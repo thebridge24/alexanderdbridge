@@ -97,7 +97,7 @@ function App() {
         </h1>
         <p className="-mt-4 opacity-70">Frontend Developer</p>
 
-        <div className="flex gap-4 flex-wrap relative z-[5]">
+        <div className="flex gap-4 flex-wrap justify-center relative z-[5]">
           <a
             href="https://wa.me/2349160979848?text=Hi%20Alexander%2C%20I’d%20like%20to%20hire%20you."
             target="_blank"
