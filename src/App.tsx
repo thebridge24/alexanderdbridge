@@ -95,7 +95,7 @@ function App() {
         <h1 className="text-3xl md:text-6xl xl:text-8xl font-bold text-center">
           Alexander D Bridge
         </h1>
-        <p className="-mt-4 opacity-70">Frontend Developer</p>
+        <p className="-mt-4 opacity-70">CEO, STACKGATE INTERNATIONAL</p>
 
         <div className="flex gap-4 flex-wrap justify-center relative z-[5]">
           <a
