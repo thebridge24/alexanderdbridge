@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import alexanderLogo from "../public/alexander_logo.png";
 import { Sun, Moon } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import DevotionalView from "./components/DevotionalView";
 
 /* ======================
    Data
 ====================== */
 const CORRECT_PIN = "1234";
-const PROJECT_LINK = "https://wa.me/2349160979848?text=Hi%20Alexander%2C%20I%27d%20like%20to%20see%20your%20projects.";
+const PROJECT_LINK =
+  "https://wa.me/2349160979848?text=Hi%20Alexander%2C%20I%27d%20like%20to%20see%20your%20projects.";
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 /* ======================
@@ -17,6 +20,7 @@ function App() {
   const [showPasswordUI, setShowPasswordUI] = useState(false);
   const [isError, setIsError] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [showDevotional, setShowDevotional] = useState(false);
 
   /* ======================
      Effects
@@ -64,7 +68,7 @@ function App() {
       <div className="container absolute md:scale-[1.4]"></div>
 
       {/* Theme Toggle */}
-      {/* Theme Toggle */}
+
       <button
         onClick={toggleTheme}
         aria-label="Toggle Theme"
@@ -108,6 +112,13 @@ function App() {
             className="py-3 px-6 rounded-full border-2 border-black dark:border-white transition active:scale-[0.97]"
           >
             View My Projects
+          </button>
+
+          <button
+            onClick={() => setShowDevotional(true)}
+            className="py-3 px-6 rounded-full border-2 border-black dark:border-white transition active:scale-[0.97]"
+          >
+            View Devotional
           </button>
         </div>
       </div>
@@ -199,6 +210,13 @@ function App() {
           </a>
         </div>
       )}
+
+      {/* Mount Isolated Cinematic Experience Overlay */}
+      <AnimatePresence>
+        {showDevotional && (
+          <DevotionalView onClose={() => setShowDevotional(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
