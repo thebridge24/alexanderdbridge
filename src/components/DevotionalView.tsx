@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { DEVOTIONALS_DATA, MONTH_THEME, type Devotional } from "../data/devotionalData"
+import {
+  DEVOTIONALS_DATA,
+  MONTH_THEME,
+  type Devotional,
+} from "../data/devotionalData";
 
 interface DevotionalViewProps {
   onClose: () => void;
@@ -14,41 +18,43 @@ type IntroStage = "logo" | "day" | "theme" | "content";
 /* ==========================================================================
    Framer Motion Variant Configurations
    ========================================================================== */
-const screenVariants:Variants = {
+const screenVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.5 } },
-  exit: { opacity: 0, transition: { duration: 0.5 } }
+  exit: { opacity: 0, transition: { duration: 0.5 } },
 };
 
-const cinematicVariants:Variants = {
+const cinematicVariants: Variants = {
   hidden: { opacity: 0, y: 15, filter: "blur(8px)" },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.7, ease: [0.215, 0.610, 0.355, 1.000] } 
+    transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1.0] },
   },
-  exit: { 
-    opacity: 0, 
-    y: -12, 
+  exit: {
+    opacity: 0,
+    y: -12,
     filter: "blur(10px)",
-    transition: { duration: 0.5, ease: "easeInOut" } 
-  }
+    transition: { duration: 0.5, ease: "easeInOut" },
+  },
 };
 
-const contentContainerVariants:Variants = {
+const contentContainerVariants: Variants = {
   hidden: { opacity: 0, filter: "blur(12px)", y: 20 },
-  visible: { 
-    opacity: 1, 
-    filter: "blur(0px)", 
+  visible: {
+    opacity: 1,
+    filter: "blur(0px)",
     y: 0,
-    transition: { duration: 0.8, ease: "easeOut", delay: 0.2 }
-  }
+    transition: { duration: 0.8, ease: "easeOut", delay: 0.2 },
+  },
 };
 
 export default function DevotionalView({ onClose }: DevotionalViewProps) {
   const [stage, setStage] = useState<IntroStage>("logo");
-  const [todaysDevotional, setTodaysDevotional] = useState<Devotional | null>(null);
+  const [todaysDevotional, setTodaysDevotional] = useState<Devotional | null>(
+    null,
+  );
 
   useEffect(() => {
     // Exact runtime parsing setup for match verification (YYYY-MM-DD)
@@ -127,7 +133,7 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
             <span className="text-[11px] tracking-widest text-neutral-500 uppercase block mb-2 font-medium">
               Theme of the Month
             </span>
-            <p className="text-lg italic font-light tracking-wide text-neutral-200 leading-relaxed">
+            <p className="text-lg font-light tracking-wide text-neutral-200 leading-relaxed">
               "{MONTH_THEME}"
             </p>
           </motion.div>
@@ -144,18 +150,19 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
           >
             {/* Header Control Panel */}
             <div className="flex justify-between items-center border-b border-neutral-900 pb-4 mb-6">
-              <div>
-                <p className="text-xs text-neutral-500 tracking-wider font-semibold uppercase">
-                  DAY {todaysDevotional?.dayNumber} &bull; {todaysDevotional?.displayDate}
-                </p>
-              </div>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-neutral-900 rounded-full transition text-neutral-400 hover:text-white"
                 aria-label="Exit Devotional"
               >
                 <ArrowLeft className="w-4 h-4" />
-              </button>
+              </button>{" "}
+              <div>
+                <p className="text-xs text-neutral-500 tracking-wider font-semibold uppercase">
+                  DAY {todaysDevotional?.dayNumber} &bull;{" "}
+                  {todaysDevotional?.displayDate}
+                </p>
+              </div>
             </div>
 
             {/* Content Switch Engine */}
@@ -203,7 +210,9 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
                     <ul className="space-y-1.5 text-sm text-neutral-300 font-normal">
                       {todaysDevotional.neededSteps.map((step, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <span className="text-neutral-500 select-none font-mono font-medium">{index + 1}.</span>
+                          <span className="text-neutral-500 select-none font-mono font-medium">
+                            {index + 1}.
+                          </span>
                           <span>{step}</span>
                         </li>
                       ))}
@@ -217,7 +226,9 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
                     <ul className="space-y-1.5 text-sm text-neutral-300 font-normal">
                       {todaysDevotional.prayerPoints.map((point, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <span className="text-neutral-500 select-none font-medium">&bull;</span>
+                          <span className="text-neutral-500 select-none font-medium">
+                            &bull;
+                          </span>
                           <span>{point}</span>
                         </li>
                       ))}
