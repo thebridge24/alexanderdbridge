@@ -65,7 +65,7 @@ function App() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-black transition-colors duration-700">
       {/* Neon Animated Background */}
-      <div className="container absolute md:scale-[1.4]"></div>
+      <div className="container absolute md:scale-[1.4] opacity-20"></div>
 
       {/* Theme Toggle */}
 
