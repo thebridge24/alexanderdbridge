@@ -30,7 +30,7 @@ const cinematicVariants: Variants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1.0] },
+    transition: { duration: 2.5, ease: [0.215, 0.61, 0.355, 1.0] },
   },
   exit: {
     opacity: 0,
