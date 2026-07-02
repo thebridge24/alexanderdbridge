@@ -1,11 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
 body{
-  font-family: Funnel Display, sans-serif;
+  font-family: "Bricolage Grotesque", sans-serif;
 }
 
 /* From Uiverse.io by Cobp */ 
