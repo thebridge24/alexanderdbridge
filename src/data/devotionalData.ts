@@ -228,5 +228,173 @@ export const DEVOTIONALS_DATA: Devotional[] = [
       "Lord, remove every form of empty religion from my life.",
       "Let me truly know You, and let my life be pleasing to You."
     ]
+  },
+  {
+    dayNumber: 183,
+    dateString: "2026-07-08",
+    displayDate: "July 8, 2026",
+    topic: "Knowing God Changes You",
+    text: "2 Corinthians 3:18",
+    memoryVerse: {
+      verse: "“But we all, with open face beholding as in a glass the glory of the Lord, are changed into the same image from glory to glory.”",
+      reference: "2 Corinthians 3:18, KJV"
+    },
+    explanation: "A genuine encounter with God never leaves a person the same. The more time you spend with Him, the more your thoughts, character, priorities, and desires begin to change. Many people are trying to change themselves through willpower alone, but true transformation comes from spending time in God's presence. If you consistently walk with Jesus, people will begin to notice something different about you. Your words will change. Your attitude will change. Your decisions will change. When you know Him, you gradually become like Him.",
+    neededSteps: [
+      "Spend quality time with God every day.",
+      "Allow God's Word to correct you.",
+      "Be willing to change where God is working on you."
+    ],
+    prayerPoints: [
+      "Lord, transform me into Your image.",
+      "Let my life reflect the character of Christ."
+    ]
+  },
+  {
+    dayNumber: 184,
+    dateString: "2026-07-09",
+    displayDate: "July 9, 2026",
+    topic: "Moses Knew God's Ways",
+    text: "Psalm 103:7",
+    memoryVerse: {
+      verse: "“He made known his ways unto Moses, his acts unto the children of Israel.”",
+      reference: "Psalm 103:7, KJV"
+    },
+    explanation: "The children of Israel saw God's miracles, but Moses knew God's heart. There is a difference between knowing what God can do and knowing who He is. Many people seek God's hand because they want blessings, but very few seek His face because they simply want Him. God desires children who love Him beyond what He can give them. When you know His ways, you begin to trust Him even when you don't understand His works.",
+    neededSteps: [
+      "Seek God for who He is, not only for what He gives.",
+      "Spend time studying His character.",
+      "Trust Him even when life doesn't make sense."
+    ],
+    prayerPoints: [
+      "Lord, reveal Your ways to me.",
+      "Help me seek Your face above Your blessings."
+    ]
+  },
+  {
+    dayNumber: 185,
+    dateString: "2026-07-10",
+    displayDate: "July 10, 2026",
+    topic: "Seek His Face First",
+    text: "Matthew 6:33",
+    memoryVerse: {
+      verse: "“But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.”",
+      reference: "Matthew 6:33, KJV"
+    },
+    explanation: "Many young people spend their energy chasing money, opportunities, relationships, and success, hoping God will fit into whatever time is left. Jesus teaches us a different order. He says to seek God first. This is not because God wants to deny you other things, but because He knows that when your relationship with Him is healthy, every other area of your life benefits. Let God become your first pursuit, not your last option.",
+    neededSteps: [
+      "Give God the first part of your day.",
+      "Let your decisions honor Him.",
+      "Make His will your priority."
+    ],
+    prayerPoints: [
+      "Lord, help me put You first.",
+      "Align my heart with Your kingdom."
+    ]
+  },
+  {
+    dayNumber: 186,
+    dateString: "2026-07-11",
+    displayDate: "July 11, 2026",
+    topic: "Knowing God Gives Confidence",
+    text: "Daniel 11:32",
+    memoryVerse: {
+      verse: "\"But the people that do know their God shall be strong, and do exploits.\"",
+      reference: "Daniel 11:32, KJV"
+    },
+    explanation: "Notice that the Bible does not say people who know about God will do exploits. It says those who know their God. Confidence is born from relationship. David faced Goliath because he knew God. Daniel entered the lions' den because he knew God. The apostles stood before rulers because they knew God. The more you know Him, the less fear controls your life. Intimacy produces courage because you know who is standing with you.",
+    neededSteps: [
+      "Build your confidence through God's Word.",
+      "Remember how God has helped you before.",
+      "Face challenges knowing God is with you."
+    ],
+    prayerPoints: [
+      "Lord, strengthen my confidence in You.",
+      "Help me live boldly for Your glory."
+    ]
+  },
+  {
+    dayNumber: 187,
+    dateString: "2026-07-12",
+    displayDate: "July 12, 2026",
+    topic: "God Wants Your Heart",
+    text: "Proverbs 23:26",
+    memoryVerse: {
+      verse: "“My son, give me thine heart, and let thine eyes observe my ways.”",
+      reference: "Proverbs 23:26, KJV"
+    },
+    explanation: "God is not after your gifts before He has your heart. He is not impressed by talent without surrender. Many people can sing, preach, lead, or serve while their hearts are far from Him. But God always starts with the heart because whatever has your heart eventually controls your life. When your heart belongs to God, obedience becomes easier, worship becomes genuine, and your relationship with Him becomes deeper.",
+    neededSteps: [
+      "Surrender every area of your life to God.",
+      "Be honest with Him about your struggles.",
+      "Guard your heart from distractions."
+    ],
+    prayerPoints: [
+      "Lord, I give You my whole heart.",
+      "Help me love You above everything else."
+    ]
+  },
+  {
+    dayNumber: 188,
+    dateString: "2026-07-13",
+    displayDate: "July 13, 2026",
+    topic: "Learn to Wait on God",
+    text: "Isaiah 40:31",
+    memoryVerse: {
+      verse: "“But they that wait upon the Lord shall renew their strength.”",
+      reference: "Isaiah 40:31, KJV"
+    },
+    explanation: "Waiting on God is not wasting time. It is one of the ways relationships are built. We live in a generation that wants instant answers, instant success, and instant results. But God often develops people in the waiting season. Waiting teaches trust, patience, and dependence on Him. Don't rush ahead of God's timing. Some of His greatest lessons are learned while you wait.",
+    neededSteps: [
+      "Be patient with God's timing.",
+      "Continue obeying while you wait.",
+      "Trust that God is working behind the scenes."
+    ],
+    prayerPoints: [
+      "Lord, teach me to wait on You.",
+      "Strengthen my faith while I wait."
+    ]
+  },
+  {
+    dayNumber: 189,
+    dateString: "2026-07-14",
+    displayDate: "July 14, 2026",
+    topic: "The Secret Place Changes Everything",
+    text: "Psalm 91:1",
+    memoryVerse: {
+      verse: "“He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.”",
+      reference: "Psalm 91:1, KJV"
+    },
+    explanation: "Every strong believer has a secret place. It is the place where no one is watching but God is present. Public victories are usually born from private encounters. Before Jesus ministered to crowds, He spent time alone with the Father. Before David defeated Goliath, he had already learned to know God in the lonely fields with the sheep. If you want your public life to carry power, your private life with God must be healthy. Never neglect your secret place because that is where God shapes you, strengthens you, and prepares you for your assignment.",
+    neededSteps: [
+      "Create a quiet place to meet with God.",
+      "Protect your personal devotion time.",
+      "Make fellowship with God a daily habit."
+    ],
+    prayerPoints: [
+      "Lord, draw me into the secret place.",
+      "Let my private walk with You become stronger."
+    ]
+  },
+  {
+    dayNumber: 190,
+    dateString: "2026-07-15",
+    displayDate: "July 15, 2026",
+    topic: "God's Presence Is Your Greatest Treasure",
+    text: "Exodus 33:15-16",
+    memoryVerse: {
+      verse: "“And he said unto him, If thy presence go not with me, carry us not up hence.”",
+      reference: "Exodus 33:15, KJV"
+    },
+    explanation: "Moses understood something many people miss today. Success without God's presence is failure in disguise. He had the opportunity to enter the Promised Land, but he refused to go if God was not going with him. That should be the cry of every believer. As you pursue your career, business, ministry, academics, relationships, and dreams, never become so focused on the destination that you forget the One who is leading you. God's presence is worth more than promotion. His presence is worth more than money. His presence is worth more than applause. When you have Him, you have everything that truly matters.",
+    neededSteps: [
+      "Value God's presence above achievements.",
+      "Ask for His direction before making decisions.",
+      "Stay close to Him every day."
+    ],
+    prayerPoints: [
+      "Lord, never let me walk without Your presence.",
+      "Let knowing You remain the greatest pursuit of my life."
+    ]
   }
 ];
