@@ -396,5 +396,132 @@ export const DEVOTIONALS_DATA: Devotional[] = [
       "Lord, never let me walk without Your presence.",
       "Let knowing You remain the greatest pursuit of my life."
     ]
+  }, 
+
+{
+    dayNumber: 191,
+    dateString: "2026-07-16",
+    displayDate: "July 16, 2026",
+    topic: "God Knows Your Name",
+    text: "Isaiah 43:1",
+    memoryVerse: {
+      verse: "“But now thus saith the Lord that created thee, O Jacob, and he that formed thee, O Israel, Fear not: for I have redeemed thee, I have called thee by thy name; thou art mine.”",
+      reference: "Isaiah 43:1, KJV"
+    },
+    explanation: "One of the most comforting truths in Scripture is that God knows you personally. You are not just another face in the crowd or another person on the earth. He knows your name, your struggles, your dreams, your fears, and even the battles you have never told anyone about. Whether you are a student preparing for exams, a parent carrying the weight of your family, a worker trusting God for promotion, or someone waiting for a breakthrough, God sees you. Knowing that God knows you gives peace even when life feels uncertain. You never have to fight your battles alone because the One who created you walks with you every step of the way.",
+    neededSteps: [
+      "Thank God for His personal love for you.",
+      "Talk to Him honestly about your life.",
+      "Rest in the assurance that He cares for you."
+    ],
+    prayerPoints: [
+      "Lord, thank You for knowing me personally.",
+      "Help me trust Your love and care every day."
+    ]
+  },
+  {
+    dayNumber: 192,
+    dateString: "2026-07-17",
+    displayDate: "July 17, 2026",
+    topic: "Knowing God Through His Word",
+    text: "John 5:39",
+    memoryVerse: {
+      verse: "“Search the scriptures; for in them ye think ye have eternal life: and they are they which testify of me.”",
+      reference: "John 5:39, KJV"
+    },
+    explanation: "If someone asked you to describe your closest friend, you would have something to say because you have spent time together. The same is true with God. We know Him by spending time in His Word. The Bible is not just a book of stories or rules. It reveals the heart, character, and ways of God. Families become stronger when they read the Scriptures together. Young people make wiser decisions when they allow God's Word to shape their thinking. The more you read the Bible with a desire to know Jesus, the more your faith and understanding will grow.",
+    neededSteps: [
+      "Read a portion of the Bible every day.",
+      "Ask God to speak to you as you read.",
+      "Apply one lesson from His Word daily."
+    ],
+    prayerPoints: [
+      "Lord, give me a love for Your Word.",
+      "Reveal Yourself to me through the Scriptures."
+    ]
+  },
+  {
+    dayNumber: 193,
+    dateString: "2026-07-18",
+    displayDate: "July 18, 2026",
+    topic: "Trust God Even When You Don't Understand",
+    text: "Proverbs 3:5-6",
+    memoryVerse: {
+      verse: "“Trust in the Lord with all thine heart; and lean not unto thine own understanding.”",
+      reference: "Proverbs 3:5, KJV"
+    },
+    explanation: "There will be seasons when life does not make sense. Prayers may seem unanswered. Doors may remain closed. Plans may change unexpectedly. During such moments, our relationship with God is tested. Knowing God means trusting His heart even when you cannot trace His hand. A child does not always understand a parent's decisions, yet trust remains. In the same way, God asks us to trust Him because He sees the end from the beginning. One day you will look back and understand why He led you the way He did.",
+    neededSteps: [
+      "Surrender your worries to God.",
+      "Refuse to let fear control your decisions.",
+      "Continue obeying even when you don't understand."
+    ],
+    prayerPoints: [
+      "Lord, strengthen my trust in You.",
+      "Help me follow You with confidence."
+    ]
+  },
+  {
+    dayNumber: 194,
+    dateString: "2026-07-19",
+    displayDate: "July 19, 2026",
+    topic: "Knowing God Produces Humility",
+    text: "Micac 6:8",
+    memoryVerse: {
+      verse: "“He hath shewed thee, O man, what is good... to do justly, and to love mercy, and to walk humbly with thy God.”",
+      reference: "Micah 6:8, KJV"
+    },
+    explanation: "The closer you get to God, the more humble you become. Pride grows when people focus on themselves, but humility grows when people focus on God. Some think humility means thinking less of yourself, but true humility means seeing yourself correctly before God. Whether you are gifted, successful, wealthy, or influential, always remember that every good thing comes from Him. A humble heart is teachable, grateful, and willing to serve others. That is the kind of heart God delights in.",
+    neededSteps: [
+      "Thank God for every blessing in your life.",
+      "Be willing to learn from others.",
+      "Serve without seeking recognition."
+    ],
+    prayerPoints: [
+      "Lord, keep my heart humble.",
+      "Let my life always give You the glory."
+    ]
+  },
+  {
+    dayNumber: 195,
+    dateString: "2026-07-20",
+    displayDate: "July 20, 2026",
+    topic: "Knowing God Changes the Atmosphere of Your Home",
+    text: "Joshua 24:15",
+    memoryVerse: {
+      verse: "“But as for me and my house, we will serve the Lord.”",
+      reference: "Joshua 24:15, KJV"
+    },
+    explanation: "A family becomes stronger when God is at the center. Homes are not transformed simply by having more money or bigger houses. They are transformed when parents, children, and siblings learn to know and honor God together. A family that prays together, forgives one another, and seeks God's wisdom creates an environment where peace can grow. Whether you live with your family or on your own, let your life bring the presence of God into your home. Someone in your house may come to know Christ because they first saw Him in you.",
+    neededSteps: [
+      "Pray with your family whenever possible.",
+      "Speak words that build your home.",
+      "Let your lifestyle reflect Christ."
+    ],
+    prayerPoints: [
+      "Lord, let Your presence fill my home.",
+      "Draw every member of my family closer to You."
+    ]
+  },
+  {
+    dayNumber: 196,
+    dateString: "2026-07-21",
+    displayDate: "July 21, 2026",
+    topic: "God Is Looking for Available Hearts",
+    text: "Isaiah 6:8",
+    memoryVerse: {
+      verse: "“Also I heard the voice of the Lord, saying, Whom shall I send, and who will go for us? Then said I, Here am I; send me.”",
+      reference: "Isaiah 6:8, KJV"
+    },
+    explanation: "God has always worked through people who made themselves available. Isaiah was not chosen because he was perfect. He responded because his heart was willing. God is still asking the same question today. Who will represent Me in the classroom? Who will stand for truth in the office? Who will bring hope to the community? Who will serve with love in the family? Knowing God should move us beyond personal blessings into purposeful living. The greatest evidence that you know Him is that you become available for His work wherever He places you.",
+    neededSteps: [
+      "Ask God how He wants to use your life.",
+      "Be willing to serve wherever He leads.",
+      "Represent Christ through your words and actions."
+    ],
+    prayerPoints: [
+      "Lord, make me available for Your purpose.",
+      "Use my life to reveal Your love to others."
+    ]
   }
 ];
