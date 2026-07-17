@@ -285,7 +285,7 @@ Day {currentDevotional.dayNumber}
       </div>
 
       {/* Floating UI Footer Command Layer */}
-      <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
+      <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-4 z-50 pointer-events-none">
 
  <div className="fixed bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
@@ -305,7 +305,7 @@ Day {currentDevotional.dayNumber}
                 >
                   {liked ? <FaHeart className="size-5" /> : <FaRegHeart className="size-5" />}
                 </button>
-                <span className="text-xs font-mono font-medium text-neutral-600 min-w-[12px]">
+                <span className="text-xs font-mono font-medium text-neutral-300 min-w-[12px]">
                   {likeCount}
                 </span>
               </div>
@@ -315,7 +315,7 @@ Day {currentDevotional.dayNumber}
                 placeholder="Share your insight..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-300 focus:ring-0"
+                className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0"
               />
             </div>
 
