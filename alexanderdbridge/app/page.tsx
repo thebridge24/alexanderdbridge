@@ -2,20 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 // Configuration for link array mapping
 const SERVICES_LINKS = [
   {
     title: "Stackgate International",
     subtitle: "Premium Web Solutions & Design Architectures",
-    url: "https://stackgate.io", // Update to actual live url
+    url: "https://stackgate.online", // Update to actual live url
     icon: "/stackgate_logo.png", 
   },
   {
     title: "Stack Menu",
     subtitle: "Installable Restaurant Management Application",
-    url: "https://stackmenu.io", // Update to actual live url
+    url: "https://stackmenu.online", // Update to actual live url
     icon: "/stackmenu_logo.png",
   },
   {
@@ -33,7 +33,7 @@ const SERVICES_LINKS = [
 ];
 
 // Spring kinematics variant definitions for Apple-like elasticity
-const containerVariants = {
+const containerVariants:Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -44,7 +44,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants:Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.96 },
   show: {
     opacity: 1,
@@ -61,10 +61,10 @@ const itemVariants = {
 
 export default function ProfilePage() {
   return (
-    <main className="w-full min-h-screen flex flex-col pb-16 bg-black selection:bg-neutral-800">
+    <main className="w-full min-h-screen flex flex-col pb-16 bg-black selection:bg-neutral-900">
       
       {/* 1. X / LinkedIn Themed Banner Asset Layer */}
-      <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-800/40">
+      <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-900/40">
         <Image
           src="/alexander_banner.png" // Path configuration mapped to your /public folder
           alt="Alexander D Bridge Banner"
@@ -77,7 +77,7 @@ export default function ProfilePage() {
       {/* 2. Overlapping Centered Identity Frame */}
       <div className="w-full max-w-xl mx-auto px-6 flex flex-col items-center">
         <div className="relative -mt-24 z-10">
-          <div className="w-40 h-40 rounded-full relative overflow-hidden border-4 border-black bg-neutral-900 ring-2 ring-neutral-800">
+          <div className="w-40 h-40 rounded-full relative overflow-hidden border-4 border-black bg-neutral-900 ring-2 ring-neutral-900">
             <Image
               src="/alexander_logo.png"
               alt="Alexander D Bridge Display Picture"
@@ -114,10 +114,10 @@ export default function ProfilePage() {
                 href={link.url}
                 target={link.url.startsWith("http") ? "_blank" : undefined}
                 rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
               >
                 {/* Embedded Circle Icon Visual */}
-                <div className="w-12 h-12 rounded-xl relative overflow-hidden flex-shrink-0 bg-neutral-800 border border-neutral-700/30">
+                <div className="w-12 h-12 rounded-xl relative overflow-hidden hrink-0 bg-neutral-900 border border-neutral-700/30">
                   <Image
                     src={link.icon}
                     alt={`${link.title} Icon`}
