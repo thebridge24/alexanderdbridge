@@ -130,7 +130,7 @@ export default function DevotionalView() {
       {/* Floating Fully Rounded Header Structure */}
       <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
         {/* Left: Action Back Circle */}
-        <div className="p-0.5 rounded-full bg-white/10 backdrop-blur-md border border-neutral-800/60 shadow-2xl">
+        <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
           <a 
             href="/"
             className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
@@ -141,7 +141,7 @@ export default function DevotionalView() {
         </div>
 
         {/* Right: Floating Pill Meta Badge */}
-        <div className="px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
+        <div className="px-5 py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
          
           <span className=" font-bold capitalize text-white">
            Daily Devotional
@@ -150,7 +150,7 @@ export default function DevotionalView() {
       </header>
 
       {/* Core Typography & Meta Architecture */}
-      <div className="w-full max-w-xl mx-auto px-6 pt-20 pb-44 relative z-10">
+      <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-44 relative z-10">
         <motion.article variants={contentVariants} initial="hidden" animate="visible" className="space-y-8">
           
           {/* Header Data Context */}
@@ -192,7 +192,7 @@ Day {currentDevotional.dayNumber}
             </h3>
             <ul className="">
               {currentDevotional.neededSteps.map((step, idx) => (
-                <li key={idx} className="flex gap-3 text-sm md:text-base text-neutral-300 items-start p-4">
+                <li key={idx} className="flex gap-3 text-sm md:text-base text-neutral-300 items-start">
                   <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
@@ -204,12 +204,12 @@ Day {currentDevotional.dayNumber}
 
           {/* Prayer Points Mapping */}
           <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-start gap-2">
+            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Prayer Points
             </h3>
             <div className="grid gap-3">
               {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className=" flex gap-3 items-center">
+                <div key={idx} className=" flex gap-3 items-start">
                   <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
@@ -297,7 +297,7 @@ Day {currentDevotional.dayNumber}
             {/* Input & Like Component Container - Fully Rounded Pill */}
             <div className="flex-1 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/80 backdrop-blur-xl border border-neutral-700/80 shadow-2xl">
               
-                <div className="flex items-center gap-1.5 pr-3 border-r border-white/60">
+                <div className="flex items-center pr-3 border-r border-white/30">
                 <button
                   type="button"
                   onClick={handleLikeToggle}
