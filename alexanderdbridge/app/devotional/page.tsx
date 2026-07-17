@@ -122,13 +122,13 @@ export default function DevotionalView() {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="fixed inset-0 z-[9999] bg-black text-white overflow-y-auto overflow-x-hidden antialiased selection:bg-neutral-800"
+      className="bg-black text-white  selection:bg-neutral-800"
     >
       {/* Gemini-Inspired Header Fade Overlay Layer */}
       <div className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       {/* Floating Fully Rounded Header Structure */}
-      <header className="fixed top-6 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
+      <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
         {/* Left: Action Back Circle */}
         <div className="p-0.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl">
           <a 
@@ -150,12 +150,12 @@ export default function DevotionalView() {
       </header>
 
       {/* Core Typography & Meta Architecture */}
-      <div className="w-full max-w-xl mx-auto px-6 pt-36 pb-44 relative z-10">
+      <div className="w-full max-w-xl mx-auto px-6 pt-20 pb-44 relative z-10">
         <motion.article variants={contentVariants} initial="hidden" animate="visible" className="space-y-8">
           
           {/* Header Data Context */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
+            <div className="gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
 <p>
 Day {currentDevotional.dayNumber}
 </p>
@@ -186,7 +186,7 @@ Day {currentDevotional.dayNumber}
           </div>
 
           {/* Needed Steps Mapping */}
-          <div className="space-y-4 pt-4">
+          <div className="space-y-2 pt-4">
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Needed Steps
             </h3>
@@ -203,7 +203,7 @@ Day {currentDevotional.dayNumber}
           </div>
 
           {/* Prayer Points Mapping */}
-          <div className=" pt-4">
+          <div className="space-y-2 pt-4">
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-start gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Prayer Points
             </h3>
