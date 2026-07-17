@@ -158,7 +158,7 @@ export default function DevotionalView() {
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <span>Theme: {MONTH_THEME}</span>
               <span>•</span>
-              <span>{currentDevotional.displayDate}</span><span>•</span> {currentDevotional.dayNumber}
+              <span>{currentDevotional.displayDate}</span><span>•</span> Day {currentDevotional.dayNumber}
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
               {currentDevotional.topic}
@@ -166,7 +166,7 @@ export default function DevotionalView() {
           </div>
 
           {/* Memory Verse Frame - Rounded Full Pill Architecture */}
-          <div className="p-6 rounded-xl bg-neutral-900/30 border border-neutral-800/80 relative overflow-hidden text-center px-8">
+          <div className="p-6 rounded-2xl bg-neutral-900/30 border border-neutral-800/80 relative overflow-hidden text-center px-8">
             <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
             {currentDevotional.memoryVerse.verse}
             </p>
@@ -189,7 +189,7 @@ export default function DevotionalView() {
             </h3>
             <ul className="space-y-3">
               {currentDevotional.neededSteps.map((step, idx) => (
-                <li key={idx} className="flex gap-4 text-sm md:text-base text-neutral-300 items-start p-4 rounded-xl bg-neutral-950 border border-neutral-900/60 px-6">
+                <li key={idx} className="flex gap-4 text-sm md:text-base text-neutral-300 items-start p-4 rounded-2xl bg-neutral-950 border border-neutral-900/60 px-6">
                   <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
@@ -206,7 +206,7 @@ export default function DevotionalView() {
             </h3>
             <div className="grid gap-3">
               {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-neutral-950 border border-neutral-900 flex gap-4 items-center px-6">
+                <div key={idx} className="p-4 rounded-2xl bg-neutral-950 border border-neutral-900 flex gap-4 items-center px-6">
                   <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
@@ -234,7 +234,7 @@ export default function DevotionalView() {
                 <motion.div 
                   initial={{ opacity: 0 }} 
                   animate={{ opacity: 1 }} 
-                  className="py-12 text-center rounded-[2.5rem] bg-neutral-950 border border-neutral-900 border-dashed"
+                  className="px-6 py-12 text-center rounded-2xl bg-neutral-950 border border-neutral-900 border-dashed"
                 >
                   <p className="text-sm text-neutral-500 font-medium">
                     No questions or observations posted yet. Be the first to start the thread.
@@ -288,7 +288,7 @@ export default function DevotionalView() {
 
 
 
-        <div className="w-full flex items-center gap-3 pointer-events-auto">
+        <div className="w-full flex items-center gap-3 pointer-events-auto relative z-50">
           <form onSubmit={handleCommentSubmit} className="w-full flex items-center gap-3">
             
             {/* Input & Like Component Container - Fully Rounded Pill */}
