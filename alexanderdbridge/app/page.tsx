@@ -66,7 +66,7 @@ export default function ProfilePage() {
       {/* 1. X / LinkedIn Themed Banner Asset Layer */}
       <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-900/40">
         <Image
-          src="https://blogger.googleusercontent.com/img/a/AVvXsEgrALD8ujNZ0QBLjeb8a_vwtlHMAUJKBbvQhc0Q1EkNN-qatStxkgmETTXlI-gioMtPkPPysdFW24Z5vstm7WU1k9I1QcHRrv4cEcICbvEBuB6bVSiQ0BKrDI6O1hG_O6Et-fm_MGWSw_U8_dyJrtn8i4gpNgFX0IpVsWLa8Fm5lD5r5BubCSvlMz282LDu=s0" // Path configuration mapped to your /public folder
+          src="https://www.wallpaperize.cc/2025/04/dark-topographic-lines-abstract-4k.html" // Path configuration mapped to your /public folder
           alt="Alexander D Bridge Banner"
           fill
           priority
