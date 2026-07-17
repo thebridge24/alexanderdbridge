@@ -190,7 +190,7 @@ Day {currentDevotional.dayNumber}
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Needed Steps
             </h3>
-            <ul className="space-y-3">
+            <ul className="">
               {currentDevotional.neededSteps.map((step, idx) => (
                 <li key={idx} className="flex gap-3 text-sm md:text-base text-neutral-300 items-start p-4">
                   <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
@@ -203,8 +203,8 @@ Day {currentDevotional.dayNumber}
           </div>
 
           {/* Prayer Points Mapping */}
-          <div className="space-y-4 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
+          <div className=" pt-4">
+            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-start gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Prayer Points
             </h3>
             <div className="grid gap-3">
@@ -295,27 +295,27 @@ Day {currentDevotional.dayNumber}
           <form onSubmit={handleCommentSubmit} className="w-full flex items-center gap-3">
             
             {/* Input & Like Component Container - Fully Rounded Pill */}
-            <div className="flex-1 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-950/80 backdrop-blur-xl border border-neutral-800/80 shadow-2xl">
+            <div className="flex-1 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/80 backdrop-blur-xl border border-neutral-700/80 shadow-2xl">
               
                 <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-800/80">
                 <button
                   type="button"
                   onClick={handleLikeToggle}
-                  className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-500 hover:text-neutral-300"}`}
+                  className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-300 hover:text-neutral-300"}`}
                 >
                   {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-6" />}
                 </button>
-                <span className="text-xs font-mono font-medium text-neutral-500 min-w-[12px]">
+                <span className="text-xs font-mono font-medium text-neutral-300 min-w-[12px]">
                   {likeCount}
                 </span>
               </div>
 
               <input
                 type="text"
-                placeholder="Share your confirmation or insight..."
+                placeholder="Share your insight..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-600 focus:ring-0"
+                className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-300 focus:ring-0"
               />
             </div>
 
@@ -324,7 +324,7 @@ Day {currentDevotional.dayNumber}
               <button
                 type="submit"
                 disabled={!commentText.trim()}
-                className="h-[52px] w-[52px] flex items-center justify-center rounded-full bg-white text-black font-semibold disabled:bg-neutral-900 disabled:text-neutral-600 active:scale-95 transition-all shadow-2xl border border-white/5"
+                className="h-[52px] w-[52px] flex items-center justify-center rounded-full bg-white text-black font-semibold disabled:bg-neutral-900 disabled:text-neutral-400 active:scale-95 transition-all shadow-2xl border border-white/5"
                 aria-label="Post comment"
               >
                 <FaChevronRight className="w-4 h-4 stroke-[2]" />
