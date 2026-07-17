@@ -6,10 +6,6 @@ import { IoArrowBack } from "react-icons/io5";
 import { FaHeart, FaRegHeart, FaRegComment, FaCheck, FaBookmark, FaChevronRight } from "react-icons/fa6";
 import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../devotionalData";
 
-interface DevotionalViewProps {
-  onClose: () => void;
-}
-
 interface Comment {
   id: string;
   name: string;
@@ -50,7 +46,7 @@ const threadVariants: Variants = {
   }
 };
 
-export default function DevotionalView({ onClose }: DevotionalViewProps) {
+export default function DevotionalView() {
   const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
@@ -129,26 +125,26 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
       className="fixed inset-0 z-[9999] bg-black text-white overflow-y-auto overflow-x-hidden antialiased selection:bg-neutral-800"
     >
       {/* Gemini-Inspired Header Fade Overlay Layer */}
-      <div className="fixed top-0 left-0 right-0 h-40 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
+      <div className="fixed top-0 left-0 right-0 h-20 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       {/* Floating Fully Rounded Header Structure */}
       <header className="fixed top-6 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
         {/* Left: Action Back Circle */}
         <div className="p-0.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl">
-          <button 
-            onClick={onClose}
+          <a 
+            href="/"
             className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
             aria-label="Go back"
           >
             <IoArrowBack className="w-5 h-5" />
-          </button>
+          </a>
         </div>
 
         {/* Right: Floating Pill Meta Badge */}
         <div className="px-5 py-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse" />
-          <span className="text-xs font-bold tracking-widest uppercase text-neutral-400">
-            Day {currentDevotional.dayNumber}
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-sm font-bold tracking-widest capitalize text-white">
+           Daily Devotional
           </span>
         </div>
       </header>
@@ -162,20 +158,17 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <span>Theme: {MONTH_THEME}</span>
               <span>•</span>
-              <span>{currentDevotional.displayDate}</span>
+              <span>{currentDevotional.displayDate}</span><span>•</span> {currentDevotional.dayNumber}
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
               {currentDevotional.topic}
             </h1>
-            <p className="text-sm font-medium text-neutral-400 italic">
-              Text Reference: {currentDevotional.text}
-            </p>
           </div>
 
           {/* Memory Verse Frame - Rounded Full Pill Architecture */}
-          <div className="p-6 rounded-[2.5rem] bg-neutral-900/30 border border-neutral-800/80 relative overflow-hidden text-center px-8">
+          <div className="p-6 rounded-xl bg-neutral-900/30 border border-neutral-800/80 relative overflow-hidden text-center px-8">
             <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
-              "{currentDevotional.memoryVerse.verse}"
+            {currentDevotional.memoryVerse.verse}
             </p>
             <span className="text-xs font-bold tracking-wide uppercase text-neutral-500 block">
               — {currentDevotional.memoryVerse.reference}
@@ -196,7 +189,7 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
             </h3>
             <ul className="space-y-3">
               {currentDevotional.neededSteps.map((step, idx) => (
-                <li key={idx} className="flex gap-4 text-sm md:text-base text-neutral-300 items-start p-4 rounded-full bg-neutral-950 border border-neutral-900/60 px-6">
+                <li key={idx} className="flex gap-4 text-sm md:text-base text-neutral-300 items-start p-4 rounded-xl bg-neutral-950 border border-neutral-900/60 px-6">
                   <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
@@ -213,8 +206,10 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
             </h3>
             <div className="grid gap-3">
               {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className="p-4 rounded-full bg-neutral-950 border border-neutral-900 flex gap-4 items-center px-6">
-                  <FaBookmark className="w-3 h-3 text-neutral-600 flex-shrink-0 ml-1" />
+                <div key={idx} className="p-4 rounded-xl bg-neutral-950 border border-neutral-900 flex gap-4 items-center px-6">
+                  <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
+                    {idx + 1}
+                  </span>
                   <p className="text-sm md:text-base font-medium text-neutral-300 leading-relaxed flex-1">
                     {prayer}
                   </p>
@@ -229,7 +224,7 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
         {/* Clean Line Threading Discussion System */}
         <section className="space-y-8">
           <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
-            Discussion Matrix ({comments.length})
+            Discussion/Question Section ({comments.length})
           </h3>
 
           <div className="space-y-0">
@@ -288,6 +283,11 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
 
       {/* Floating UI Footer Command Layer */}
       <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
+
+ <div className="fixed bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
+
+
+
         <div className="w-full flex items-center gap-3 pointer-events-auto">
           <form onSubmit={handleCommentSubmit} className="w-full flex items-center gap-3">
             
@@ -300,7 +300,7 @@ export default function DevotionalView({ onClose }: DevotionalViewProps) {
                   onClick={handleLikeToggle}
                   className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-500 hover:text-neutral-300"}`}
                 >
-                  {liked ? <FaHeart className="w-4 h-4" /> : <FaRegHeart className="w-4 h-4" />}
+                  {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-6" />}
                 </button>
                 <span className="text-xs font-mono font-medium text-neutral-500 min-w-[12px]">
                   {likeCount}
