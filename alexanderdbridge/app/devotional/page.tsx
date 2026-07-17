@@ -130,7 +130,7 @@ export default function DevotionalView() {
       {/* Floating Fully Rounded Header Structure */}
       <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
         {/* Left: Action Back Circle */}
-        <div className="p-0.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl">
+        <div className="p-0.5 rounded-full bg-white/10 backdrop-blur-md border border-neutral-800/60 shadow-2xl">
           <a 
             href="/"
             className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
@@ -141,7 +141,7 @@ export default function DevotionalView() {
         </div>
 
         {/* Right: Floating Pill Meta Badge */}
-        <div className="px-5 py-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
+        <div className="px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
          
           <span className=" font-bold capitalize text-white">
            Daily Devotional
@@ -169,7 +169,7 @@ Day {currentDevotional.dayNumber}
           </div>
 
           {/* Memory Verse Frame - Rounded Full Pill Architecture */}
-          <div className="p-6 rounded-2xl bg-neutral-900/30 border border-neutral-800/80 relative overflow-hidden text-center px-8">
+          <div className="p-6 rounded-2xl bg-white/15 border border-neutral-800/80 relative overflow-hidden text-center px-8">
             <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
             {currentDevotional.memoryVerse.verse}
             </p>
@@ -237,7 +237,7 @@ Day {currentDevotional.dayNumber}
                 <motion.div 
                   initial={{ opacity: 0 }} 
                   animate={{ opacity: 1 }} 
-                  className="px-6 py-12 text-center rounded-2xl bg-neutral-950 border border-neutral-900 border-dashed"
+                  className="px-6 py-12 text-center rounded-2xl bg-white/5 border border-neutral-900 border-dashed"
                 >
                   <p className="text-sm text-neutral-500 font-medium">
                     No questions or observations posted yet. Be the first to start the thread.
@@ -297,13 +297,13 @@ Day {currentDevotional.dayNumber}
             {/* Input & Like Component Container - Fully Rounded Pill */}
             <div className="flex-1 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/80 backdrop-blur-xl border border-neutral-700/80 shadow-2xl">
               
-                <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-800/80">
+                <div className="flex items-center gap-1.5 pr-3 border-r border-white/60">
                 <button
                   type="button"
                   onClick={handleLikeToggle}
                   className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-300 hover:text-neutral-300"}`}
                 >
-                  {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-6" />}
+                  {liked ? <FaHeart className="size-5" /> : <FaRegHeart className="size-5" />}
                 </button>
                 <span className="text-xs font-mono font-medium text-neutral-300 min-w-[12px]">
                   {likeCount}
