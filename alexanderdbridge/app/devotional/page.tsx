@@ -142,8 +142,8 @@ export default function DevotionalView() {
 
         {/* Right: Floating Pill Meta Badge */}
         <div className="px-5 py-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-sm font-bold tracking-widest capitalize text-white">
+         
+          <span className=" font-bold capitalize text-white">
            Daily Devotional
           </span>
         </div>
@@ -156,9 +156,12 @@ export default function DevotionalView() {
           {/* Header Data Context */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
+<p>
+Day {currentDevotional.dayNumber}
+</p>
               <span>Theme: {MONTH_THEME}</span>
               <span>•</span>
-              <span>{currentDevotional.displayDate}</span><span>•</span> Day {currentDevotional.dayNumber}
+              <span>{currentDevotional.displayDate}</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
               {currentDevotional.topic}
@@ -189,8 +192,8 @@ export default function DevotionalView() {
             </h3>
             <ul className="space-y-3">
               {currentDevotional.neededSteps.map((step, idx) => (
-                <li key={idx} className="flex gap-4 text-sm md:text-base text-neutral-300 items-start p-4 rounded-2xl bg-neutral-950 border border-neutral-900/60 px-6">
-                  <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
+                <li key={idx} className="flex gap-3 text-sm md:text-base text-neutral-300 items-start p-4">
+                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
                   <span className="leading-relaxed flex-1">{step}</span>
@@ -206,8 +209,8 @@ export default function DevotionalView() {
             </h3>
             <div className="grid gap-3">
               {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className="p-4 rounded-2xl bg-neutral-950 border border-neutral-900 flex gap-4 items-center px-6">
-                  <span className="font-mono text-xs font-bold text-neutral-400 bg-neutral-900 border border-neutral-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
+                <div key={idx} className=" flex gap-3 items-center">
+                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
                   <p className="text-sm md:text-base font-medium text-neutral-300 leading-relaxed flex-1">
