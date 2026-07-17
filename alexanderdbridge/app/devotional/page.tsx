@@ -305,7 +305,7 @@ Day {currentDevotional.dayNumber}
                 >
                   {liked ? <FaHeart className="size-5" /> : <FaRegHeart className="size-5" />}
                 </button>
-                <span className="text-xs font-mono font-medium text-neutral-300 min-w-[12px]">
+                <span className="text-xs font-mono font-medium text-neutral-600 min-w-[12px]">
                   {likeCount}
                 </span>
               </div>
