@@ -285,7 +285,7 @@ Day {currentDevotional.dayNumber}
       </div>
 
       {/* Floating UI Footer Command Layer */}
-      <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-4 z-50 pointer-events-none">
+      <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
 
  <div className="fixed bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
@@ -295,7 +295,7 @@ Day {currentDevotional.dayNumber}
           <form onSubmit={handleCommentSubmit} className="w-full flex items-center gap-3">
             
             {/* Input & Like Component Container - Fully Rounded Pill */}
-            <div className="flex-1 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/80 backdrop-blur-xl border border-neutral-700/80 shadow-2xl">
+            <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-800/80 backdrop-blur-xl border border-neutral-700/80 shadow-2xl">
               
                 <div className="flex items-center pr-3 border-r border-white/30">
                 <button
