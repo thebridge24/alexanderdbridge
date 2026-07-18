@@ -1,5 +1,9 @@
 import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { DEVOTIONALS_DATA } from "../devotionalData";
+
+export const runtime = "edge";
 
 export const size = {
   width: 1200,
@@ -9,15 +13,15 @@ export const size = {
 export const contentType = "image/png";
 
 function getCalendarDays(today: Date) {
+  const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
+  
   for (let i = -3; i <= 4; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
 
     const dateString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const weekday = d
-      .toLocaleDateString("en-US", { weekday: "short" })
-      .toUpperCase();
+    const weekday = WEEKDAYS[d.getDay()];
     const dayNum = String(d.getDate());
 
     days.push({ dateString, weekday, dayNum });
@@ -36,15 +40,11 @@ export default async function Image() {
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  // Fetch true dynamic TTF binary file for Bricolage Grotesque
-  const fontData = await fetch(
-    new URL(
-      "https://fonts.gstatic.com/s/bricolagegrotesque/v3/w517RtOWia0d6sqSUuKEAx15WlcyfAxFZ-v6z1S-P94.ttf",
-    ),
-  ).then((res) => {
-    if (!res.ok) throw new Error("Failed to fetch font asset");
-    return res.arrayBuffer();
-  });
+  // 1. Resolve path to your local public font file
+  const fontPath = join(process.cwd(), "public/fonts/BricolageGrotesque.ttf");
+  
+  // 2. Read the local font file as an ArrayBuffer natively
+  const fontData = readFileSync(fontPath).buffer;
 
   const calendarDays = getCalendarDays(today);
 
@@ -61,7 +61,6 @@ export default async function Image() {
         alignItems: "center",
         fontFamily: "Bricolage",
         padding: "0 80px",
-        position: "relative",
       }}
     >
       {/* Top Header Row with Title & Dynamic Date String */}
@@ -92,8 +91,7 @@ export default async function Image() {
               backgroundColor: "#ef4444",
               borderRadius: "50%",
               marginLeft: "6px",
-              marginBottom: "12px",
-              alignSelf: "flex-end",
+              marginTop: "24px",
             }}
           />
         </div>
@@ -147,13 +145,7 @@ export default async function Image() {
                 width: "110px",
                 borderRadius: "20px",
                 border: isSelected ? "1px solid #ffffff" : "1px solid #1f1f1f",
-                background: isSelected
-                  ? "linear-gradient(135deg, #ef4444 0%, #991b1b 100%)"
-                  : "rgba(23, 23, 23, 0.6)",
-                boxShadow: isSelected
-                  ? "0 0 30px rgba(239, 68, 68, 0.3)"
-                  : "none",
-                overflow: "hidden",
+                background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.6)",
               }}
             >
               <span
@@ -251,7 +243,7 @@ export default async function Image() {
           name: "Bricolage",
           data: fontData,
           style: "normal",
-          weight: 400,
+          weight: 400, // Matches the weight target handled by Satori engine mapping
         },
       ],
     },
