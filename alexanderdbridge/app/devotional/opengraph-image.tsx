@@ -8,18 +8,16 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default async function Image({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const devotional = DEVOTIONALS_DATA.find(
-    d => d.dateString === params.slug
-  );
+export default async function Image(){
+  const today = new Date();
 
-  if (!devotional) {
-    return new ImageResponse(<div>Not Found</div>);
-  }
+  const todayString = `${today.getFullYear()}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const devotional =
+    DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
+    DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
   return new ImageResponse(
     (
