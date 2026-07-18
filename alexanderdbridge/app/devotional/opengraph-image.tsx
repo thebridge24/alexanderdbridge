@@ -40,7 +40,7 @@ export default async function Image(){
 
         <span>
           Start your day with God&lsquo;s Word.
-        </span>
+        </span> 
       </div>
     ),
     size
