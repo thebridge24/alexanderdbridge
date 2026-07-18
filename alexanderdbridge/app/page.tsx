@@ -10,25 +10,25 @@ const SERVICES_LINKS = [
     title: "Stackgate International",
     subtitle: "Premium Web Solutions & Design Architectures",
     url: "https://stackgate.online", // Update to actual live url
-    icon: "/stackgate_logo.png", 
+    icon: "/stact-gate_black_on_white.png", 
   },
   {
     title: "Stack Menu",
     subtitle: "Installable Restaurant Management Application",
     url: "https://stackmenu.online", // Update to actual live url
-    icon: "/stackmenu_logo.png",
+    icon: "/stack_menu_logo.png",
   },
   {
     title: "Daily Devotionals",
     subtitle: "Knowing God — The Daily Secret Place",
     url: "/devotional", // Routes internally to your new devotional page
-    icon: "/devotional_logo.png",
+    icon: "/devotional.png",
   },
   {
     title: "Let's Build Together",
     subtitle: "Direct Channel via WhatsApp Business",
     url: "https://wa.me/2349160979848?text=Hi%20Alexander%2C%20I%27d%20like%20to%20hire%20you.",
-    icon: "/whatsapp_icon.png",
+    icon: "/business.png",
   }
 ];
 
@@ -117,7 +117,7 @@ export default function ProfilePage() {
                 className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
               >
                 {/* Embedded Circle Icon Visual */}
-                <div className="w-12 h-12 rounded-xl relative overflow-hidden hrink-0 bg-neutral-900 border border-neutral-700/30">
+                <div className="w-12 h-12 rounded-full relative overflow-hidden hrink-0 bg-neutral-900 border border-neutral-700/30">
                   <Image
                     src={link.icon}
                     alt={`${link.title} Icon`}
