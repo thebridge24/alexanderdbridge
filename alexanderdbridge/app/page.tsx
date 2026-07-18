@@ -70,7 +70,7 @@ export default function ProfilePage() {
           alt="Alexander D Bridge Banner"
           fill
           priority
-          className="object-cover opacity-80"
+          className="object-cover opacity-80 grayscale"
         />
       </div>
 
@@ -83,23 +83,28 @@ export default function ProfilePage() {
               alt="Alexander D Bridge Display Picture"
               fill
               priority
-              className="object-cover"
+              className="object-cover "
             />
           </div>
         </div>
 
-        {/* 3. Primary Name and Subtitle Description Markup */}
-        <div className="text-center mt-5 mb-10 space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
-            Alexander D Bridge
-          </h1>
-          <p className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
-            Founder & Tech Director at Stackgate International
-          </p>
-          <p className="text-xs max-w-sm mx-auto text-neutral-500 leading-relaxed">
-            Building premium, high-performance web platforms and digital products with functional art mechanics.
-          </p>
-        </div>
+     {/* 3. Primary Name and Subtitle Description Markup */}
+<div className="text-center mt-5 mb-10 space-y-2">
+  <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
+    Alexander D Bridge
+  </h1>
+
+  <p className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
+    Founder & CEO at Stackgate International
+  </p>
+
+  <p className="text-xs max-w-md mx-auto text-neutral-500 leading-relaxed">
+    Software entrepreneur, frontend engineer, and product designer building
+    technology that helps businesses grow. Creator of StackMenu, mentor through
+    Bridge Tribe, and writer passionate about equipping people both technically
+    and spiritually.
+  </p>
+</div>
 
         {/* 4. Apple-inspired Interactive Staggered Link Container */}
         <motion.div
@@ -114,7 +119,7 @@ export default function ProfilePage() {
                 href={link.url}
                 target={link.url.startsWith("http") ? "_blank" : undefined}
                 rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
+                className="w-full flex items-center gap-4 p-4 rounded-full bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
               >
                 {/* Embedded Circle Icon Visual */}
                 <div className="w-12 h-12 rounded-full relative overflow-hidden hrink-0 bg-neutral-900 border border-neutral-700/30">

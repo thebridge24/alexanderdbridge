@@ -185,12 +185,72 @@ export default function DevotionalView() {
           <span className="text-2xl font-bold capitalize text-white">
             Daily Devotional
           </span>
-          <span className="bg-red-500 size-2 rounded-full mb-2"></span>
+          <span className="bg-[#ff0000] size-2 rounded-full mb-2"></span>
         </div>
       </header>
 
       {/* Core Typography & Meta Architecture */}
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-44 relative z-10">
+         <div className="w-full mx-auto relative z-10">
+          {/* Horizontal Monochrome Mini Calendar Component Layer */}
+          <div className="w-full mb-4 relative z-50">
+            <div
+              ref={scrollContainerRef}
+              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
+            >
+              {DEVOTIONALS_DATA.map((item) => {
+                const isSelected =
+                  item.dateString === currentDevotional.dateString;
+                const isFuture = isFutureDate(item.dateString);
+
+                return (
+                  <button
+                    key={item.dateString}
+                    data-date={item.dateString}
+                    disabled={isFuture}
+                    onClick={() => {
+                      setCurrentDevotional(item);
+
+                      // Implements a precise 0.5s delay before running the smooth scroll sequence
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }, 500);
+                    }}
+                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
+                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
+                    ${
+                      isSelected
+                        ? "bg-[#ff0000] border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
+                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+                    }
+                  `}
+                  >
+                    {/* Calendar Node Title Text Context */}
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
+                    ${isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"}
+                  `}
+                    >
+                      {getDayLabel(item.dateString)}
+                    </span>
+
+                    {/* Calendar Node Core Number Area Frame */}
+                    <div
+                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
+                    ${isSelected ? "text-white" : "text-neutral-200"}
+                  `}
+                    >
+                      {getDayNumber(item.dateString)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
         <motion.article
           variants={contentVariants}
           initial="hidden"
@@ -270,66 +330,7 @@ export default function DevotionalView() {
         {/* Core Layout Shell */}
 
         <hr className="border-neutral-900 my-12" />
-        <div className="w-full max-w-xl mx-auto px-6  relative z-10">
-          {/* Horizontal Monochrome Mini Calendar Component Layer */}
-          <div className="w-full mb-10 pt-4 relative z-50">
-            <div
-              ref={scrollContainerRef}
-              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
-            >
-              {DEVOTIONALS_DATA.map((item) => {
-                const isSelected =
-                  item.dateString === currentDevotional.dateString;
-                const isFuture = isFutureDate(item.dateString);
-
-                return (
-                  <button
-                    key={item.dateString}
-                    data-date={item.dateString}
-                    disabled={isFuture}
-                    onClick={() => {
-                      setCurrentDevotional(item);
-
-                      // Implements a precise 0.5s delay before running the smooth scroll sequence
-                      setTimeout(() => {
-                        window.scrollTo({
-                          top: 0,
-                          behavior: "smooth",
-                        });
-                      }, 500);
-                    }}
-                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
-                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
-                    ${
-                      isSelected
-                        ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
-                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
-                    }
-                  `}
-                  >
-                    {/* Calendar Node Title Text Context */}
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
-                    ${isSelected ? "text-black/60" : "text-neutral-500 group-hover:text-neutral-400"}
-                  `}
-                    >
-                      {getDayLabel(item.dateString)}
-                    </span>
-
-                    {/* Calendar Node Core Number Area Frame */}
-                    <div
-                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
-                    ${isSelected ? "text-black" : "text-neutral-200"}
-                  `}
-                    >
-                      {getDayNumber(item.dateString)}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+       
         {/* Clean Line Threading Discussion System */}
         <section className="space-y-8">
           <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
@@ -404,7 +405,7 @@ export default function DevotionalView() {
               <button
                 type="button"
                 onClick={handleLikeToggle}
-                className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-300 hover:text-neutral-300"}`}
+                className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-neutral-300"}`}
               >
                 {liked ? (
                   <FaHeart className="size-5" />
