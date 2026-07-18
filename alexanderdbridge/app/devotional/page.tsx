@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { IoArrowBack } from "react-icons/io5";
 import {
@@ -58,6 +58,7 @@ export default function DevotionalView() {
   const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
     null,
   );
+  const [todayDateString, setTodayDateString] = useState<string>("");
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -65,32 +66,42 @@ export default function DevotionalView() {
   const [userName, setUserName] = useState<string>("");
   const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   // 1. Live Client-Side Date Calculation & Data Association Layer
   useEffect(() => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
+    const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    setTodayDateString(formattedToday);
 
-    // Generates precise system signature string: "YYYY-MM-DD"
-    const formattedToday = `${year}-${month}-${day}`;
-
-    // Query local source matrix for match
     const matched = DEVOTIONALS_DATA.find(
       (d) => d.dateString === formattedToday,
     );
-
-    // Graceful fallback to the latest available entry if current date exceeds data map
     const activeEntry =
       matched || DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
     setCurrentDevotional(activeEntry);
 
-    // Seed standard base metrics contextually
     if (activeEntry) {
       setLikeCount(Math.floor(Math.random() * 40) + 12);
     }
   }, []);
+
+  // Center active calendar items cleanly inside view container
+  useEffect(() => {
+    if (currentDevotional && scrollContainerRef.current) {
+      const activeEl = scrollContainerRef.current.querySelector(
+        `[data-date="${currentDevotional.dateString}"]`,
+      );
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
+      }
+    }
+  }, [currentDevotional]);
 
   if (!currentDevotional) return null;
 
@@ -128,6 +139,22 @@ export default function DevotionalView() {
       executePostComment();
     }
   };
+  // Helper calculation metrics to structure absolute temporal limits
+  const isFutureDate = (dateStr: string) => {
+    if (!todayDateString) return false;
+    return dateStr > todayDateString;
+  };
+
+  // Extract Short Day Label String ("Wed", "Thu", etc.)
+  const getDayLabel = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { weekday: "short" });
+  };
+
+  // Extract Day Numeric Value String ("15", "16", etc.)
+  const getDayNumber = (dateStr: string) => {
+    return dateStr.split("-")[2];
+  };
 
   return (
     <motion.div
@@ -156,8 +183,9 @@ export default function DevotionalView() {
         {/* Right: Floating Pill Meta Badge */}
         <div className="px-5 py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
           <span className="text-2xl font-bold capitalize text-white">
-            Daily Devotional 
-          </span><span className="bg-red-500 size-2 rounded-full mb-2"></span>
+            Daily Devotional
+          </span>
+          <span className="bg-red-500 size-2 rounded-full mb-2"></span>
         </div>
       </header>
 
@@ -173,7 +201,7 @@ export default function DevotionalView() {
           <div className="space-y-2">
             <div className="gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <p>Day {currentDevotional.dayNumber}</p>
-              <span>Theme: {MONTH_THEME}</span> 
+              <span>Theme: {MONTH_THEME}</span>
               <span> • </span>
               <span>{currentDevotional.displayDate}</span>
             </div>
@@ -204,7 +232,7 @@ export default function DevotionalView() {
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Needed Steps
             </h3>
-            <ul className="">
+            <ul className="grid gap-3">
               {currentDevotional.neededSteps.map((step, idx) => (
                 <li
                   key={idx}
@@ -239,8 +267,69 @@ export default function DevotionalView() {
           </div>
         </motion.article>
 
-        <hr className="border-neutral-900 my-12" />
+        {/* Core Layout Shell */}
 
+        <hr className="border-neutral-900 my-12" />
+        <div className="w-full max-w-xl mx-auto px-6  relative z-10">
+          {/* Horizontal Monochrome Mini Calendar Component Layer */}
+          <div className="w-full mb-10 pt-4 relative z-50">
+            <div
+              ref={scrollContainerRef}
+              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
+            >
+              {DEVOTIONALS_DATA.map((item) => {
+                const isSelected =
+                  item.dateString === currentDevotional.dateString;
+                const isFuture = isFutureDate(item.dateString);
+
+                return (
+                  <button
+                    key={item.dateString}
+                    data-date={item.dateString}
+                    disabled={isFuture}
+                    onClick={() => {
+                      setCurrentDevotional(item);
+
+                      // Implements a precise 0.5s delay before running the smooth scroll sequence
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }, 500);
+                    }}
+                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
+                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
+                    ${
+                      isSelected
+                        ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
+                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+                    }
+                  `}
+                  >
+                    {/* Calendar Node Title Text Context */}
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
+                    ${isSelected ? "text-black/60" : "text-neutral-500 group-hover:text-neutral-400"}
+                  `}
+                    >
+                      {getDayLabel(item.dateString)}
+                    </span>
+
+                    {/* Calendar Node Core Number Area Frame */}
+                    <div
+                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
+                    ${isSelected ? "text-black" : "text-neutral-200"}
+                  `}
+                    >
+                      {getDayNumber(item.dateString)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
         {/* Clean Line Threading Discussion System */}
         <section className="space-y-8">
           <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
@@ -311,26 +400,24 @@ export default function DevotionalView() {
             onSubmit={handleCommentSubmit}
             className="w-full flex items-center gap-3"
           >
-             <div className="flex items-center p-3 border border-white/10 bg-white/5 backdrop-blur-2xl rounded-full">
-                <button
-                  type="button"
-                  onClick={handleLikeToggle}
-                  className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-300 hover:text-neutral-300"}`}
-                >
-                  {liked ? (
-                    <FaHeart className="size-5" />
-                  ) : (
-                    <FaRegHeart className="size-5" />
-                  )}
-                </button>
-                <span className="text-xs font-mono font-medium text-neutral-300 min-w-3">
-                  {likeCount}
-                </span>
-              </div>
+            <div className="flex items-center p-2.5 border border-white/10 bg-white/5 backdrop-blur-2xl rounded-full">
+              <button
+                type="button"
+                onClick={handleLikeToggle}
+                className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-red-500" : "text-neutral-300 hover:text-neutral-300"}`}
+              >
+                {liked ? (
+                  <FaHeart className="size-5" />
+                ) : (
+                  <FaRegHeart className="size-5" />
+                )}
+              </button>
+              <span className="text-xs font-mono font-medium text-neutral-300 min-w-3">
+                {likeCount}
+              </span>
+            </div>
             {/* Input & Like Component Container - Fully Rounded Pill */}
             <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-             
-
               <input
                 type="text"
                 placeholder="Share your insight..."
@@ -348,7 +435,7 @@ export default function DevotionalView() {
                 className="h-13 w-13 flex items-center justify-center rounded-full bg-white text-black font-semibold disabled:bg-white/5 disabled:text-neutral-400 backdrop-blur-xl active:scale-95 transition-all shadow-2xl border border-white/10"
                 aria-label="Post comment"
               >
-                <FaChevronRight className="w-4 h-4 stroke-2" />
+                <FaRegComment className="w-4 h-4 stroke-2" />
               </button>
             </div>
           </form>
