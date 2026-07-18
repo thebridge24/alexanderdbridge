@@ -36,12 +36,15 @@ export default async function Image() {
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  // Fetch Bricolage Grotesque font dynamically for Satori engine
+  // Fetch true dynamic TTF binary file for Bricolage Grotesque
   const fontData = await fetch(
     new URL(
-      "https://fonts.gstatic.com/s/bricolagegrotesque/v3/w517RtOWia0d6sqSUuKEAx15WlcyfA.woff",
+      "https://fonts.gstatic.com/s/bricolagegrotesque/v3/w517RtOWia0d6sqSUuKEAx15WlcyfAxFZ-v6z1S-P94.ttf",
     ),
-  ).then((res) => res.arrayBuffer());
+  ).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch font asset");
+    return res.arrayBuffer();
+  });
 
   const calendarDays = getCalendarDays(today);
 
@@ -65,7 +68,7 @@ export default async function Image() {
       <div
         style={{
           display: "flex",
-          justifyContent: "between",
+          justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
           marginBottom: "40px",
@@ -106,7 +109,6 @@ export default async function Image() {
         </span>
       </div>
 
-      {/* Dynamic Devotional Topic Banner */}
       {/* Dynamic Devotional Topic Banner */}
       <div style={{ display: "flex", width: "100%", marginBottom: "50px" }}>
         <h2
@@ -249,6 +251,7 @@ export default async function Image() {
           name: "Bricolage",
           data: fontData,
           style: "normal",
+          weight: 400,
         },
       ],
     },
