@@ -9,7 +9,6 @@ import {
   FaRegHeart,
   FaRegComment,
   FaCheck,
-  FaChevronRight,
 } from "react-icons/fa6";
 import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../devotionalData";
 import Link from "next/link";
@@ -85,10 +84,11 @@ export default function DevotionalView() {
     if (activeEntry) {
       setLikeCount(Math.floor(Math.random() * 40) + 12);
     }
-  }, []);
+  }, []);   
 
   // Center active calendar items cleanly inside view container
   useEffect(() => {
+
     if (currentDevotional && scrollContainerRef.current) {
       const activeEl = scrollContainerRef.current.querySelector(
         `[data-date="${currentDevotional.dateString}"]`,
