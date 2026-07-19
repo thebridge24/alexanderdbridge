@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoArrowBack } from "react-icons/io5";
+import { IoArrowBack, IoEyeOutline } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
@@ -12,6 +12,8 @@ import {
 } from "react-icons/fa6";
 import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../devotionalData";
 import Link from "next/link";
+import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
+import { formatRelativeTime } from "@/lib/utils/date";
 
 interface Comment {
   id: string;
@@ -54,12 +56,12 @@ const threadVariants: Variants = {
 };
 
 export default function DevotionalView() {
-  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
-    null,
-  );
+  const [devotionalsList, setDevotionalsList] = useState<Devotional[]>(DEVOTIONALS_DATA);
+  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
   const [todayDateString, setTodayDateString] = useState<string>("");
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
+  const [viewsCount, setViewsCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
@@ -67,28 +69,111 @@ export default function DevotionalView() {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 1. Live Client-Side Date Calculation & Data Association Layer
+  // 1. Fetch dynamic devotionals from API on mount
+  useEffect(() => {
+    async function fetchDevotionals() {
+      try {
+        const res = await fetch("/api/devotionals");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.devotionals && data.devotionals.length > 0) {
+            setDevotionalsList(data.devotionals);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading devotionals:", err);
+      }
+    }
+    fetchDevotionals();
+  }, []);
+
+  // 2. Live Client-Side Date Calculation & Data Association Layer
   useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
-    const matched = DEVOTIONALS_DATA.find(
+    const matched = devotionalsList.find(
       (d) => d.dateString === formattedToday,
     );
     const activeEntry =
-      matched || DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
+      matched || devotionalsList[devotionalsList.length - 1];
 
-    setCurrentDevotional(activeEntry);
-
-    if (activeEntry) {
-      setLikeCount(Math.floor(Math.random() * 40) + 12);
+    if (activeEntry && (!currentDevotional || currentDevotional.dateString !== activeEntry.dateString)) {
+      setCurrentDevotional(activeEntry);
     }
-  }, []);   
+  }, [devotionalsList]);
+
+  // 3. Load stats, views, and comments when active devotional changes
+  useEffect(() => {
+    if (!currentDevotional) return;
+
+    const date = currentDevotional.dateString;
+    const sessionId = getSessionId();
+
+    const storedName = getStoredUserName();
+    if (storedName) {
+      setUserName(storedName);
+    }
+
+    async function recordView() {
+      try {
+        const res = await fetch(`/api/devotionals/${date}/view`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setViewsCount(data.viewCount);
+        }
+      } catch (err) {
+        console.error("Error recording view:", err);
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(`/api/devotionals/${date}/stats?sessionId=${sessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLikeCount(data.likeCount);
+          setLiked(data.liked);
+          if (data.viewCount !== undefined) {
+            setViewsCount(data.viewCount);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    }
+
+    async function fetchComments() {
+      try {
+        const res = await fetch(`/api/devotionals/${date}/comments`);
+        if (res.ok) {
+          const data = await res.json();
+          const mappedComments = (data.comments || []).map((c: any) => ({
+            id: c.id,
+            name: c.author_name,
+            text: c.body,
+            timestamp: formatRelativeTime(c.created_at),
+          }));
+          setComments(mappedComments);
+        }
+      } catch (err) {
+        console.error("Error loading comments:", err);
+      }
+    }
+
+    recordView().then(() => {
+      fetchStats();
+    });
+    fetchComments();
+  }, [currentDevotional]);
 
   // Center active calendar items cleanly inside view container
   useEffect(() => {
-
     if (currentDevotional && scrollContainerRef.current) {
       const activeEl = scrollContainerRef.current.querySelector(
         `[data-date="${currentDevotional.dateString}"]`,
@@ -105,9 +190,33 @@ export default function DevotionalView() {
 
   if (!currentDevotional) return null;
 
-  const handleLikeToggle = (): void => {
-    setLiked(!liked);
+  const handleLikeToggle = async (): Promise<void> => {
+    if (!currentDevotional) return;
+    const date = currentDevotional.dateString;
+    const sessionId = getSessionId();
+
+    // Optimistic toggle
+    const newLiked = !liked;
+    setLiked(newLiked);
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+
+    try {
+      const res = await fetch(`/api/devotionals/${date}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLikeCount(data.likeCount);
+        setLiked(data.liked);
+      }
+    } catch (err) {
+      console.error("Error toggling like:", err);
+      // Revert on error
+      setLiked(liked);
+      setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
+    }
   };
 
   const handleCommentSubmit = (e: React.FormEvent): void => {
@@ -119,24 +228,48 @@ export default function DevotionalView() {
       return;
     }
 
-    executePostComment();
+    executePostComment(userName.trim());
   };
 
-  const executePostComment = (): void => {
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      name: userName,
-      text: commentText,
-      timestamp: "Just now",
-    };
-    setComments([newComment, ...comments]);
-    setCommentText("");
+  const executePostComment = async (name: string): Promise<void> => {
+    if (!currentDevotional) return;
+    const date = currentDevotional.dateString;
+
+    try {
+      const res = await fetch(`/api/devotionals/${date}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          text: commentText,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const newComment: Comment = {
+          id: data.comment.id,
+          name: data.comment.author_name,
+          text: data.comment.body,
+          timestamp: "Just now",
+        };
+        setComments([newComment, ...comments]);
+        setCommentText("");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to post comment");
+      }
+    } catch (err) {
+      console.error("Error posting comment:", err);
+    }
   };
 
   const handleSaveName = (): void => {
-    if (userName.trim()) {
+    const trimmedName = userName.trim();
+    if (trimmedName) {
+      storeUserName(trimmedName);
       setShowNamePrompt(false);
-      executePostComment();
+      executePostComment(trimmedName);
     }
   };
   // Helper calculation metrics to structure absolute temporal limits
@@ -198,7 +331,7 @@ export default function DevotionalView() {
               ref={scrollContainerRef}
               className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
             >
-              {DEVOTIONALS_DATA.map((item) => {
+              {devotionalsList.map((item) => {
                 const isSelected =
                   item.dateString === currentDevotional.dateString;
                 const isFuture = isFutureDate(item.dateString);
@@ -259,11 +392,20 @@ export default function DevotionalView() {
         >
           {/* Header Data Context */}
           <div className="space-y-2">
-            <div className="gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
-              <p>Day {currentDevotional.dayNumber}</p>
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
+              <span>Day {currentDevotional.dayNumber}</span>
+              <span>•</span>
               <span>Theme: {MONTH_THEME}</span>
-              <span> • </span>
+              <span>•</span>
               <span>{currentDevotional.displayDate}</span>
+              {viewsCount > 0 && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <IoEyeOutline className="size-3.5" /> {viewsCount} {viewsCount === 1 ? "view" : "views"}
+                  </span>
+                </>
+              )}
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
               {currentDevotional.topic}
