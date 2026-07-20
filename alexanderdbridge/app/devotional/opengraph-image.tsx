@@ -4,7 +4,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";
 
-// Changed to a perfect square so the card crops perfectly on WhatsApp/social platforms
+// Scaled up to a crisp 1200x1200px perfect square layout
 export const size = {
   width: 1200,
   height: 1200,
@@ -16,7 +16,7 @@ function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
 
-  // Reduced window to 5 days to fit cleanly in a 700px width grid
+  // Keeps 5 days centered with plenty of relative width padding
   for (let i = -2; i <= 2; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -82,19 +82,19 @@ export default async function Image() {
         justifyContent: "center",
         alignItems: "center",
         fontFamily: "sans-serif",
-        padding: "0 40px",
+        padding: "0 80px",
         position: "relative",
       }}
     >
       {/* 1. Kicker Date Label */}
       <span
         style={{
-          fontSize: "14px",
+          fontSize: "24px",
           fontWeight: 700,
           color: "#ef4444",
           letterSpacing: "0.2em",
           textTransform: "uppercase",
-          marginBottom: "12px",
+          marginBottom: "24px",
         }}
       >
         {devotional.displayDate}
@@ -103,14 +103,15 @@ export default async function Image() {
       {/* 2. Primary Devotional Header Title */}
       <h1
         style={{
-          fontSize: "38px",
+          fontSize: "64px",
           fontWeight: 800,
           letterSpacing: "-0.03em",
-          margin: "0 0 24px 0",
+          margin: "0 0 54px 0",
           textAlign: "center",
           width: "100%",
-          lineHeight: 1.2,
+          lineHeight: 1.25,
           color: "#ffffff",
+          maxWidth: "1000px",
         }}
       >
         {devotional.topic}
@@ -120,9 +121,9 @@ export default async function Image() {
       <div
         style={{
           display: "flex",
-          gap: "10px",
+          gap: "20px",
           width: "100%",
-          marginBottom: "32px",
+          marginBottom: "64px",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -137,34 +138,34 @@ export default async function Image() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "80px",
-                height: "85px",
-                borderRadius: "16px",
-                border: isSelected ? "1px solid #ef4444" : "1px solid #262626",
+                width: "140px",
+                height: "150px",
+                borderRadius: "28px",
+                border: isSelected ? "2px solid #ef4444" : "2px solid #262626",
                 background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.7)",
               }}
             >
               <span
                 style={{
-                  fontSize: "11px",
+                  fontSize: "18px",
                   fontWeight: 800,
                   letterSpacing: "0.05em",
                   color: isSelected ? "#ffffff" : "#737373",
                   textAlign: "center",
                   width: "100%",
                   textTransform: "uppercase",
-                  marginBottom: "4px",
+                  marginBottom: "8px",
                 }}
               >
                 {day.weekday}
               </span>
               <span
                 style={{
-                  fontSize: "24px",
-display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                  fontWeight: 900, // Maximized boldness weight profile
+                  fontSize: "44px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 900,
                   color: "#ffffff",
                   textAlign: "center",
                   width: "100%",
@@ -183,15 +184,15 @@ display: "flex",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "10px",
-          marginBottom: "16px",
+          gap: "16px",
+          marginBottom: "28px",
           width: "100%",
         }}
       >
-        <span style={{ height: "1px", width: "20px", backgroundColor: "#262626" }} />
+        <span style={{ height: "2px", width: "40px", backgroundColor: "#262626" }} />
         <p
           style={{
-            fontSize: "15px",
+            fontSize: "26px",
             fontWeight: 800,
             color: "#a3a3a3",
             margin: 0,
@@ -202,20 +203,20 @@ display: "flex",
         >
           {devotional.memoryVerse.reference}
         </p>
-        <span style={{ height: "1px", width: "20px", backgroundColor: "#262626" }} />
+        <span style={{ height: "2px", width: "40px", backgroundColor: "#262626" }} />
       </div>
 
       {/* 5. Center-aligned Core Snippet Text Block */}
       <p
         style={{
-          fontSize: "18px",
+          fontSize: "30px",
           fontWeight: 400,
           color: "#a3a3a3",
-          margin: "0 0 36px 0",
+          margin: "0 0 64px 0",
           textAlign: "center",
           lineHeight: 1.5,
-          maxWidth: "540px",
-          maxHeight: "80px",
+          maxWidth: "900px",
+          maxHeight: "140px",
           overflow: "hidden",
         }}
       >
@@ -230,15 +231,15 @@ display: "flex",
           display: "flex",
           background: "#ef4444",
           color: "#ffffff",
-          fontSize: "15px",
+          fontSize: "24px",
           fontWeight: 700,
-          padding: "14px 32px",
-          borderRadius: "50px",
+          padding: "22px 54px",
+          borderRadius: "100px",
           letterSpacing: "0.02em",
           textAlign: "center",
           justifyContent: "center",
           alignItems: "center",
-          boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.4)",
+          boxShadow: "0 15px 35px -5px rgba(239, 68, 68, 0.4)",
         }}
       >
         Read Full Devotional
@@ -248,11 +249,11 @@ display: "flex",
       <div
         style={{
           position: "absolute",
-          bottom: "32px",
-          fontSize: "11px",
+          bottom: "48px",
+          fontSize: "18px",
           fontWeight: 700,
           color: "#404040",
-          letterSpacing: "0.25em",
+          letterSpacing: "0.35em",
           textTransform: "uppercase",
           width: "100%",
           textAlign: "center",
