@@ -63,6 +63,38 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Pre-populate day number and date string with the next sequential values
+  useEffect(() => {
+    async function loadLatestDevotional() {
+      try {
+        const res = await fetch("/api/devotionals");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.devotionals && data.devotionals.length > 0) {
+            const latest = data.devotionals[data.devotionals.length - 1];
+            if (latest.dayNumber) {
+              setDayNumber(String(latest.dayNumber + 1));
+            }
+            if (latest.dateString) {
+              const parts = latest.dateString.split("-");
+              const nextDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]) + 1);
+              if (!isNaN(nextDate.getTime())) {
+                const formatted = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, "0")}-${String(nextDate.getDate()).padStart(2, "0")}`;
+                setDateString(formatted);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading latest devotional for pre-population:", err);
+      }
+    }
+
+    if (isAuthenticated) {
+      loadLatestDevotional();
+    }
+  }, [isAuthenticated]);
+
   // Handle PIN entry validation
   useEffect(() => {
     if (pin.length === 4) {
@@ -170,6 +202,7 @@ export default function AdminPage() {
       setTopic("");
       setText("");
       setMemoryVerse({ verse: "", reference: "" });
+      setExplanation("");
       setNeededSteps([""]);
       setPrayerPoints([""]);
       if (dayNumber) {

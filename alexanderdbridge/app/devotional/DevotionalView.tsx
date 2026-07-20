@@ -314,11 +314,11 @@ export default function DevotionalView() {
         </div>
 
         {/* Right: Floating Pill Meta Badge */}
-        <div className="px-5 py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
-          <span className="text-2xl font-bold capitalize text-white">
+        <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
+          <span className="text-lg sm:text-2xl font-bold capitalize text-white">
             Daily Devotional
           </span>
-          <span className="bg-[#ff0000] size-2 rounded-full mb-2"></span>
+          <span className="bg-[#ff0000] size-1.5 sm:size-2 rounded-full mb-1.5 sm:mb-2"></span>
         </div>
       </header>
 

@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { DEVOTIONALS_DATA } from "../devotionalData";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";
 
@@ -36,15 +35,43 @@ export default async function Image() {
     today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  const devotional =
+  // Default to today's static devotional
+  let devotional =
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  // 1. Resolve path to your local public font file
-  const fontPath = join(process.cwd(), "public/fonts/BricolageGrotesque.ttf");
-  
-  // 2. Read the local font file as an ArrayBuffer natively
-  const fontData = readFileSync(fontPath).buffer;
+  // Try to load devotional dynamically from the database
+  try {
+    const supabase = createSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("devotionals")
+      .select("*")
+      .eq("date_string", todayString)
+      .maybeSingle();
+
+    if (data && !error) {
+      devotional = {
+        dayNumber: data.day_number,
+        dateString: data.date_string,
+        displayDate: data.display_date,
+        topic: data.topic,
+        text: data.text,
+        memoryVerse: typeof data.memory_verse === "string"
+          ? JSON.parse(data.memory_verse)
+          : data.memory_verse,
+        explanation: data.explanation,
+        neededSteps: data.needed_steps,
+        prayerPoints: data.prayer_points,
+      };
+    }
+  } catch (err) {
+    console.error("Error loading dynamic devotional for OG image:", err);
+  }
+
+  // Load the Bricolage font using Edge-compatible fetch API
+  const fontData = await fetch(
+    new URL("../../public/fonts/BricolageGrotesque-VariableFont_opsz,wdth,wght.ttf", import.meta.url)
+  ).then((res) => res.arrayBuffer());
 
   const calendarDays = getCalendarDays(today);
 
@@ -108,7 +135,7 @@ export default async function Image() {
       </div>
 
       {/* Dynamic Devotional Topic Banner */}
-      <div style={{ display: "flex", width: "100%", marginBottom: "50px" }}>
+      <div style={{ display: "flex", width: "100%", marginBottom: "40px" }}>
         <h2
           style={{
             fontSize: "52px",
@@ -129,7 +156,7 @@ export default async function Image() {
           display: "flex",
           gap: "14px",
           width: "100%",
-          marginBottom: "50px",
+          marginBottom: "40px",
           justifyContent: "center",
         }}
       >
@@ -208,24 +235,31 @@ export default async function Image() {
         />
       </div>
 
-      {/* Bottom Subtitle Core Message */}
+      {/* Bottom Subtitle Core Message (Reflects first 120 chars of dynamic explanation) */}
       <p
         style={{
-          fontSize: "36px",
+          fontSize: "24px",
           fontWeight: 400,
-          color: "#ffffff",
-          margin: "0 0 60px 0",
-          letterSpacing: "-0.02em",
+          color: "#d4d4d4",
+          margin: "0 0 50px 0",
+          letterSpacing: "-0.01em",
+          textAlign: "center",
+          lineHeight: 1.4,
+          maxWidth: "800px",
+          height: "68px",
+          overflow: "hidden",
         }}
       >
-        Start your day with God&apos;s Word.
+        {devotional.explanation.length > 120
+          ? `${devotional.explanation.slice(0, 120)}...`
+          : devotional.explanation}
       </p>
 
       {/* Footer Brand Node */}
       <div
         style={{
           position: "absolute",
-          bottom: "36px",
+          bottom: "32px",
           fontSize: "14px",
           fontWeight: 700,
           color: "#404040",
@@ -243,7 +277,7 @@ export default async function Image() {
           name: "Bricolage",
           data: fontData,
           style: "normal",
-          weight: 400, // Matches the weight target handled by Satori engine mapping
+          weight: 400,
         },
       ],
     },
