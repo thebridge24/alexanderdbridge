@@ -4,9 +4,10 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";
 
+// Changed to a perfect square so the card crops perfectly on WhatsApp/social platforms
 export const size = {
-  width: 1200,
-  height: 630,
+  width: 700,
+  height: 700,
 };
 
 export const contentType = "image/jpeg";
@@ -15,7 +16,8 @@ function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
 
-  for (let i = -3; i <= 4; i++) {
+  // Reduced window to 5 days to fit cleanly in a 700px width grid
+  for (let i = -2; i <= 2; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
 
@@ -35,12 +37,10 @@ export default async function Image() {
     today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  // Default to today's static devotional
   let devotional =
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  // Try to load devotional dynamically from the database
   try {
     const supabase = createSupabaseAdmin();
     const { data, error } = await supabase
@@ -82,77 +82,49 @@ export default async function Image() {
         justifyContent: "center",
         alignItems: "center",
         fontFamily: "sans-serif",
-        padding: "0 80px",
+        padding: "0 40px",
+        position: "relative",
       }}
     >
-      {/* Top Header Row with Title & Dynamic Date String */}
-      <div
+      {/* 1. Kicker Date Label */}
+      <span
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-          marginBottom: "40px",
+          fontSize: "14px",
+          fontWeight: 700,
+          color: "#ef4444",
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          marginBottom: "12px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <h1
-            style={{
-              fontSize: "56px",
-              fontWeight: 800,
-              letterSpacing: "-0.04em",
-              margin: 0,
-            }}
-          >
-            Daily Devotional
-          </h1>
-          <div
-            style={{
-              width: "10px",
-              height: "10px",
-              backgroundColor: "#ef4444",
-              borderRadius: "50%",
-              marginLeft: "6px",
-              marginTop: "24px",
-            }}
-          />
-        </div>
-        <span
-          style={{
-            fontSize: "20px",
-            fontWeight: 600,
-            color: "#737373",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {devotional.displayDate}
-        </span>
-      </div>
+        {devotional.displayDate}
+      </span>
 
-      {/* Dynamic Devotional Topic Banner */}
-      <div style={{ display: "flex", width: "100%", marginBottom: "40px" }}>
-        <h2
-          style={{
-            fontSize: "52px",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            margin: 0,
-            color: "#f5f5f5",
-            lineHeight: 1.2,
-          }}
-        >
-          {devotional.topic}
-        </h2>
-      </div>
+      {/* 2. Primary Devotional Header Title */}
+      <h1
+        style={{
+          fontSize: "38px",
+          fontWeight: 800,
+          letterSpacing: "-0.03em",
+          margin: "0 0 24px 0",
+          textAlign: "center",
+          width: "100%",
+          lineHeight: 1.2,
+          color: "#ffffff",
+        }}
+      >
+        {devotional.topic}
+      </h1>
 
-      {/* Horizontal Calendar Layer */}
+      {/* 3. Centered Grid Horizontal Calendar Layer */}
       <div
         style={{
           display: "flex",
-          gap: "14px",
+          gap: "10px",
           width: "100%",
-          marginBottom: "40px",
+          marginBottom: "32px",
           justifyContent: "center",
+          alignItems: "center",
         }}
       >
         {calendarDays.map((day) => {
@@ -164,102 +136,123 @@ export default async function Image() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "110px",
-                borderRadius: "20px",
-                border: isSelected ? "1px solid #ffffff" : "1px solid #1f1f1f",
-                background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.6)",
+                justifyContent: "center",
+                width: "80px",
+                height: "85px",
+                borderRadius: "16px",
+                border: isSelected ? "1px solid #ef4444" : "1px solid #262626",
+                background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.7)",
               }}
             >
               <span
                 style={{
-                  fontSize: "14px",
+                  fontSize: "11px",
                   fontWeight: 800,
                   letterSpacing: "0.05em",
-                  paddingTop: "12px",
-                  paddingBottom: "4px",
                   color: isSelected ? "#ffffff" : "#737373",
+                  textAlign: "center",
+                  width: "100%",
+                  textTransform: "uppercase",
+                  marginBottom: "4px",
                 }}
               >
                 {day.weekday}
               </span>
-              <div
+              <span
                 style={{
-                  width: "100%",
+                  fontSize: "22px",
+                  fontWeight: 900, // Maximized boldness weight profile
+                  color: "#ffffff",
                   textAlign: "center",
-                  background: isSelected ? "transparent" : "rgba(0, 0, 0, 0.3)",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  paddingBottom: "12px",
-                  paddingTop: "4px",
-                  color: isSelected ? "#ffffff" : "#a3a3a3",
+                  width: "100%",
                 }}
               >
                 {day.dayNum}
-              </div>
+              </span>
             </div>
           );
         })}
       </div>
 
-      {/* Focus Scripture Reference Node */}
+      {/* 4. Focus Scripture Reference Node */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           gap: "10px",
           marginBottom: "16px",
+          width: "100%",
         }}
       >
-        <span
-          style={{ height: "1px", width: "24px", backgroundColor: "#404040" }}
-        />
+        <span style={{ height: "1px", width: "20px", backgroundColor: "#262626" }} />
         <p
           style={{
-            fontSize: "20px",
-            fontWeight: 700,
+            fontSize: "15px",
+            fontWeight: 800,
             color: "#a3a3a3",
             margin: 0,
-            letterSpacing: "-0.03em",
+            letterSpacing: "0.05em",
             textTransform: "uppercase",
+            textAlign: "center",
           }}
         >
           {devotional.memoryVerse.reference}
         </p>
-        <span
-          style={{ height: "1px", width: "24px", backgroundColor: "#404040" }}
-        />
+        <span style={{ height: "1px", width: "20px", backgroundColor: "#262626" }} />
       </div>
 
-      {/* Bottom Subtitle Core Message (Reflects first 120 chars of dynamic explanation) */}
+      {/* 5. Center-aligned Core Snippet Text Block */}
       <p
         style={{
-          fontSize: "24px",
+          fontSize: "18px",
           fontWeight: 400,
-          color: "#d4d4d4",
-          margin: "0 0 50px 0",
-          letterSpacing: "-0.01em",
+          color: "#a3a3a3",
+          margin: "0 0 36px 0",
           textAlign: "center",
-          lineHeight: 1.4,
-          maxWidth: "800px",
-          height: "68px",
+          lineHeight: 1.5,
+          maxWidth: "540px",
+          maxHeight: "80px",
           overflow: "hidden",
         }}
       >
-        {devotional.explanation.length > 120
-          ? `${devotional.explanation.slice(0, 120)}...`
+        {devotional.explanation.length > 140
+          ? `${devotional.explanation.slice(0, 140)}...`
           : devotional.explanation}
       </p>
 
-      {/* Footer Brand Node */}
+      {/* 6. Dynamic Conversion CTA Interactive Button Layout */}
+      <div
+        style={{
+          display: "flex",
+          background: "#ef4444",
+          color: "#ffffff",
+          fontSize: "15px",
+          fontWeight: 700,
+          padding: "14px 32px",
+          borderRadius: "50px",
+          letterSpacing: "0.02em",
+          textAlign: "center",
+          justifyContent: "center",
+          alignItems: "center",
+          boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.4)",
+        }}
+      >
+        Read Full Devotional
+      </div>
+
+      {/* 7. Footer Brand Subtext Anchor */}
       <div
         style={{
           position: "absolute",
           bottom: "32px",
-          fontSize: "14px",
+          fontSize: "11px",
           fontWeight: 700,
           color: "#404040",
-          letterSpacing: "0.3em",
+          letterSpacing: "0.25em",
           textTransform: "uppercase",
+          width: "100%",
+          textAlign: "center",
         }}
       >
         POWERED BY BRIDGE TRIBE NETWORK
