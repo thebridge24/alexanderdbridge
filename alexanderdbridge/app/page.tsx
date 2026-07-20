@@ -1,27 +1,29 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+import { useEffect, useState } from "react";
 
 // Configuration for link array mapping
 const SERVICES_LINKS = [
   {
     title: "Stackgate International",
     subtitle: "Premium Web Solutions & Design Architectures",
-    url: "https://stackgate.online", // Update to actual live url
-    icon: "/stact-gate_black_on_white.png", 
+    url: "https://stackgate.online",
+    icon: "/stact-gate_black_on_white.png",
   },
   {
     title: "Stack Menu",
     subtitle: "Installable Restaurant Management Application",
-    url: "https://stackmenu.online", // Update to actual live url
+    url: "https://stackmenu.online",
     icon: "/stack_menu_logo.png",
   },
   {
     title: "Daily Devotionals",
     subtitle: "Knowing God — The Daily Secret Place",
-    url: "/devotional", // Routes internally to your new devotional page
+    url: "/devotional", // Handled dynamically below
     icon: "/devotional.png",
   },
   {
@@ -33,7 +35,7 @@ const SERVICES_LINKS = [
 ];
 
 // Spring kinematics variant definitions for Apple-like elasticity
-const containerVariants:Variants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -44,7 +46,7 @@ const containerVariants:Variants = {
   },
 };
 
-const itemVariants:Variants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.96 },
   show: {
     opacity: 1,
@@ -60,13 +62,25 @@ const itemVariants:Variants = {
 };
 
 export default function ProfilePage() {
+  const [devotionalUrl, setDevotionalUrl] = useState("/devotional");
+
+  // Calculate the current client-side date format on mount to prevent hydration mismatch
+  useEffect(() => {
+    const today = new Date();
+    const todayString = `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    
+    setDevotionalUrl(`/devotional/${todayString}`);console.log(todayString)
+
+  }, []);
   return (
     <main className="w-full min-h-screen flex flex-col pb-16 bg-black selection:bg-neutral-900">
       
       {/* 1. X / LinkedIn Themed Banner Asset Layer */}
       <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-900/40">
         <Image
-          src="/alexander_banner.png" // Path configuration mapped to your /public folder
+          src="/alexander_banner.png"
           alt="Alexander D Bridge Banner"
           fill
           priority
@@ -83,28 +97,28 @@ export default function ProfilePage() {
               alt="Alexander D Bridge Display Picture"
               fill
               priority
-              className="object-cover "
+              className="object-cover"
             />
           </div>
         </div>
 
-     {/* 3. Primary Name and Subtitle Description Markup */}
-<div className="text-center mt-5 mb-10 space-y-2">
-  <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
-    Alexander D Bridge
-  </h1>
+        {/* 3. Primary Name and Subtitle Description Markup */}
+        <div className="text-center mt-5 mb-10 space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight text-neutral-100">
+            Alexander D Bridge
+          </h1>
 
-  <p className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
-    Founder & CEO at Stackgate International
-  </p>
+          <p className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
+            Founder & CEO at Stackgate International
+          </p>
 
-  <p className="text-xs max-w-md mx-auto text-neutral-500 leading-relaxed">
-    Software entrepreneur, frontend engineer, and product designer building
-    technology that helps businesses grow. Creator of StackMenu, mentor through
-    Bridge Tribe, and writer passionate about equipping people both technically
-    and spiritually.
-  </p>
-</div>
+          <p className="text-xs max-w-md mx-auto text-neutral-500 leading-relaxed">
+            Software entrepreneur, frontend engineer, and product designer building
+            technology that helps businesses grow. Creator of StackMenu, mentor through
+            Bridge Tribe, and writer passionate about equipping people both technically
+            and spiritually.
+          </p>
+        </div>
 
         {/* 4. Apple-inspired Interactive Staggered Link Container */}
         <motion.div
@@ -113,48 +127,53 @@ export default function ProfilePage() {
           animate="show"
           className="w-full space-y-4"
         >
-          {SERVICES_LINKS.map((link, idx) => (
-            <motion.div key={idx} variants={itemVariants}>
-              <Link
-                href={link.url}
-                target={link.url.startsWith("http") ? "_blank" : undefined}
-                rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="w-full flex items-center gap-4 p-4 rounded-full bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
-              >
-                {/* Embedded Circle Icon Visual */}
-                <div className="w-12 h-12 rounded-full relative overflow-hidden hrink-0 bg-neutral-900 border border-neutral-700/30">
-                  <Image
-                    src={link.icon}
-                    alt={`${link.title} Icon`}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    fallback-src="/alexander_logo.png" // Safety default profile visual
-                  />
-                </div>
+          {SERVICES_LINKS.map((link, idx) => {
+            // Swap the static route for our state-driven dynamic date route
+            const targetUrl = link.title === "Daily Devotionals" ? devotionalUrl : link.url;
+            const isExternal = targetUrl.startsWith("http");
 
-                {/* Info Text Flow alignment */}
-                <div className="flex-1 min-w-0 text-left">
-                  <h2 className="text-base font-semibold text-neutral-200 group-hover:text-white transition-colors">
-                    {link.title}
-                  </h2>
-                  <p className="text-xs text-neutral-500 line-clamp-1">
-                    {link.subtitle}
-                  </p>
-                </div>
-
-                {/* Chevron Interactive Callout */}
-                <svg
-                  className="w-5 h-5 text-neutral-600 group-hover:text-neutral-400 group-hover:translate-x-0.5 transition-all"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
+            return (
+              <motion.div key={idx} variants={itemVariants}>
+                <Link
+                  href={targetUrl}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                  className="w-full flex items-center gap-4 p-4 rounded-full bg-neutral-900/40 border border-neutral-900/60 hover:bg-neutral-900 hover:border-neutral-700/80 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </motion.div>
-          ))}
+                  {/* Embedded Circle Icon Visual */}
+                  <div className="w-12 h-12 rounded-full relative overflow-hidden shrink-0 bg-neutral-900 border border-neutral-700/30">
+                    <Image
+                      src={link.icon}
+                      alt={`${link.title} Icon`}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+
+                  {/* Info Text Flow alignment */}
+                  <div className="flex-1 min-w-0 text-left">
+                    <h2 className="text-base font-semibold text-neutral-200 group-hover:text-white transition-colors">
+                      {link.title}
+                    </h2>
+                    <p className="text-xs text-neutral-500 line-clamp-1">
+                      {link.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Chevron Interactive Callout */}
+                  <svg
+                    className="w-5 h-5 text-neutral-600 group-hover:text-neutral-400 group-hover:translate-x-0.5 transition-all"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </div>
     </main>

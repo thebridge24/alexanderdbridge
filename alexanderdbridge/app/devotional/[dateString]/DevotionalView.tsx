@@ -12,8 +12,9 @@ import {
   FaRegComment,
   FaCheck,
 } from "react-icons/fa6";
-import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../devotionalData";
+import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../../devotionalData"; // Adjusted path depending on your file structure
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
 
@@ -58,6 +59,12 @@ const threadVariants: Variants = {
 };
 
 export default function DevotionalView() {
+  const params = useParams();
+  const router = useRouter();
+  
+  // Extract dateString from URL params (matches the folder name [dateString])
+  const urlDateString = params?.dateString as string | undefined;
+
   const [devotionalsList, setDevotionalsList] = useState<Devotional[]>(DEVOTIONALS_DATA);
   const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
   const [todayDateString, setTodayDateString] = useState<string>("");
@@ -89,22 +96,21 @@ export default function DevotionalView() {
     fetchDevotionals();
   }, []);
 
-  // 2. Live Client-Side Date Calculation & Data Association Layer
+  // 2. Live Client-Side Date Calculation & Data Association Layer matching URL string
   useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
-    const matched = devotionalsList.find(
-      (d) => d.dateString === formattedToday,
-    );
-    const activeEntry =
-      matched || devotionalsList[devotionalsList.length - 1];
+    // Prioritize the URL dateString parameter if present; otherwise default to today
+    const targetDate = urlDateString || formattedToday;
+    const matched = devotionalsList.find((d) => d.dateString === targetDate);
+    const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
 
     if (activeEntry && (!currentDevotional || currentDevotional.dateString !== activeEntry.dateString)) {
       setCurrentDevotional(activeEntry);
     }
-  }, [devotionalsList]);
+  }, [devotionalsList, urlDateString]);
 
   // 3. Load stats, views, and comments when active devotional changes
   useEffect(() => {
@@ -274,19 +280,17 @@ export default function DevotionalView() {
       executePostComment(trimmedName);
     }
   };
-  // Helper calculation metrics to structure absolute temporal limits
+  
   const isFutureDate = (dateStr: string) => {
     if (!todayDateString) return false;
     return dateStr > todayDateString;
   };
 
-  // Extract Short Day Label String ("Wed", "Thu", etc.)
   const getDayLabel = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString("en-US", { weekday: "short" });
   };
 
-  // Extract Day Numeric Value String ("15", "16", etc.)
   const getDayNumber = (dateStr: string) => {
     return dateStr.split("-")[2];
   };
@@ -297,14 +301,11 @@ export default function DevotionalView() {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="bg-black text-white  selection:bg-neutral-800"
+      className="bg-black text-white selection:bg-neutral-800"
     >
-      {/* Gemini-Inspired Header Fade Overlay Layer */}
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
-      {/* Floating Fully Rounded Header Structure */}
       <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
-        {/* Left: Action Back Circle */}
         <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
           <Link
             href="/"
@@ -315,7 +316,6 @@ export default function DevotionalView() {
           </Link>
         </div>
 
-        {/* Right: Floating Pill Meta Badge */}
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
           <span className="text-lg sm:text-2xl font-bold capitalize text-white">
             Daily Devotional
@@ -324,18 +324,15 @@ export default function DevotionalView() {
         </div>
       </header>
 
-      {/* Core Typography & Meta Architecture */}
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-44 relative z-10">
          <div className="w-full mx-auto relative z-10">
-          {/* Horizontal Monochrome Mini Calendar Component Layer */}
           <div className="w-full mb-4 relative z-50">
             <div
               ref={scrollContainerRef}
               className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
             >
               {devotionalsList.map((item) => {
-                const isSelected =
-                  item.dateString === currentDevotional.dateString;
+                const isSelected = item.dateString === currentDevotional.dateString;
                 const isFuture = isFutureDate(item.dateString);
 
                 return (
@@ -344,9 +341,9 @@ export default function DevotionalView() {
                     data-date={item.dateString}
                     disabled={isFuture}
                     onClick={() => {
-                      setCurrentDevotional(item);
+                      // Navigate directly to the date's dynamic path
+                      router.push(`/devotional/${item.dateString}`);
 
-                      // Implements a precise 0.5s delay before running the smooth scroll sequence
                       setTimeout(() => {
                         window.scrollTo({
                           top: 0,
@@ -363,7 +360,6 @@ export default function DevotionalView() {
                     }
                   `}
                   >
-                    {/* Calendar Node Title Text Context */}
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
                     ${isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"}
@@ -372,7 +368,6 @@ export default function DevotionalView() {
                       {getDayLabel(item.dateString)}
                     </span>
 
-                    {/* Calendar Node Core Number Area Frame */}
                     <div
                       className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
                     ${isSelected ? "text-white" : "text-neutral-200"}
@@ -392,7 +387,6 @@ export default function DevotionalView() {
           animate="visible"
           className="space-y-8"
         >
-          {/* Header Data Context */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <span>Day {currentDevotional.dayNumber}</span>
@@ -414,7 +408,6 @@ export default function DevotionalView() {
             </h1>
           </div>
 
-          {/* Memory Verse Frame - Rounded Full Pill Architecture */}
           <div className="p-6 rounded-2xl bg-white/5 border border-neutral-800/80 relative overflow-hidden text-center px-8">
             <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
               {currentDevotional.memoryVerse.verse}
@@ -424,14 +417,12 @@ export default function DevotionalView() {
             </span>
           </div>
 
-          {/* Detailed Content Narrative */}
           <div className="text-base md:text-lg text-neutral-300 leading-relaxed font-light space-y-4">
             <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white">
               {currentDevotional.explanation}
             </p>
           </div>
 
-          {/* Needed Steps Mapping */}
           <div className="space-y-2 pt-4">
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Needed Steps
@@ -451,7 +442,6 @@ export default function DevotionalView() {
             </ul>
           </div>
 
-          {/* Prayer Points Mapping */}
           <div className="space-y-2 pt-4">
             <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
               <span className="w-4 h-px bg-neutral-700" /> Prayer Points
@@ -471,11 +461,8 @@ export default function DevotionalView() {
           </div>
         </motion.article>
 
-        {/* Core Layout Shell */}
-
         <hr className="border-neutral-900 my-12" />
        
-        {/* Clean Line Threading Discussion System */}
         <section className="space-y-8">
           <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
             Discussion/Question Section ({comments.length})
@@ -484,7 +471,6 @@ export default function DevotionalView() {
           <div className="space-y-0">
             <AnimatePresence initial={false}>
               {comments.length === 0 ? (
-                // Realism Layer: Empty State Handling when no user input exists
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -505,7 +491,6 @@ export default function DevotionalView() {
                     exit="hidden"
                     className="flex gap-4 relative"
                   >
-                    {/* Vertical Connecting Guide */}
                     <div className="flex flex-col items-center shrink-0">
                       <div className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center font-black text-xs text-neutral-300">
                         {comment.name.charAt(0).toUpperCase()}
@@ -536,7 +521,6 @@ export default function DevotionalView() {
         </section>
       </div>
 
-      {/* Floating UI Footer Command Layer */}
       <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
         <div className="fixed bottom-0 left-0 right-0 h-20 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
@@ -561,7 +545,6 @@ export default function DevotionalView() {
                 {likeCount}
               </span>
             </div>
-            {/* Input & Like Component Container - Fully Rounded Pill */}
             <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
               <input
                 type="text"
@@ -572,7 +555,6 @@ export default function DevotionalView() {
               />
             </div>
 
-            {/* Action Submit Button - Fully Rounded Circle */}
             <div className="shrink-0">
               <button
                 type="submit"
@@ -587,7 +569,6 @@ export default function DevotionalView() {
         </div>
       </div>
 
-      {/* Interactive Verification Modal */}
       <AnimatePresence>
         {showNamePrompt && (
           <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">

@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import DevotionalView from "./DevotionalView";
-import { DEVOTIONALS_DATA } from "../devotionalData";
+import { DEVOTIONALS_DATA } from "@/app/devotionalData";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const today = new Date();
+type Props = {
+  params: Promise<{ dateString: string }>;
+};
 
-  const todayString = `${today.getFullYear()}-${String(
-    today.getMonth() + 1
-  ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { dateString } = await params;
 
+  // Fallback to today's date if the dynamic string doesn't match an exact record
   const devotional =
-    DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
+    DEVOTIONALS_DATA.find((d) => d.dateString === dateString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
   return {

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { DEVOTIONALS_DATA } from "../devotionalData";
+import { DEVOTIONALS_DATA } from "../../devotionalData";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";
@@ -9,12 +9,12 @@ export const size = {
   height: 630,
 };
 
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
 
 function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
-
+  
   for (let i = -3; i <= 4; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -35,10 +35,12 @@ export default async function Image() {
     today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
+  // Default to today's static devotional
   let devotional =
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
+  // Try to load devotional dynamically from the database
   try {
     const supabase = createSupabaseAdmin();
     const { data, error } = await supabase
@@ -66,12 +68,6 @@ export default async function Image() {
     console.error("Error loading dynamic devotional for OG image:", err);
   }
 
-  // FIXED: Fetch the font from a remote URL to remove it entirely from your Edge function bundle footprint.
-  // Using Google Fonts' raw TTF link for Bricolage Grotesque (700 weight for a crisp look).
-  const fontData = await fetch(
-    new URL("https://fonts.gstatic.com/s/bricolagegrotesque/v3/iaabWP9t3_LwbZ4K161JgG2sV5P5cW518g_bLpZ3C6g.ttf")
-  ).then((res) => res.arrayBuffer());
-
   const calendarDays = getCalendarDays(today);
 
   return new ImageResponse(
@@ -85,7 +81,7 @@ export default async function Image() {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        fontFamily: "Bricolage",
+        fontFamily: "sans-serif",
         padding: "0 80px",
       }}
     >
@@ -234,7 +230,7 @@ export default async function Image() {
         />
       </div>
 
-      {/* Bottom Subtitle Core Message */}
+      {/* Bottom Subtitle Core Message (Reflects first 120 chars of dynamic explanation) */}
       <p
         style={{
           fontSize: "24px",
@@ -271,14 +267,6 @@ export default async function Image() {
     </div>,
     {
       ...size,
-      fonts: [
-        {
-          name: "Bricolage",
-          data: fontData,
-          style: "normal",
-          weight: 700,
-        },
-      ],
     },
   );
 }
