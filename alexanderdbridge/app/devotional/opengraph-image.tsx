@@ -9,7 +9,7 @@ export const size = {
   height: 630,
 };
 
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
 
 function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
