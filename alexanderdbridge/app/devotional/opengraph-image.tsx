@@ -154,6 +154,9 @@ export default async function Image() {
                   textAlign: "center",
                   width: "100%",
                   textTransform: "uppercase",
+display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
                   marginBottom: "8px",
                 }}
               >
