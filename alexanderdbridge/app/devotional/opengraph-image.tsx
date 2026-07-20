@@ -6,8 +6,8 @@ export const runtime = "edge";
 
 // Changed to a perfect square so the card crops perfectly on WhatsApp/social platforms
 export const size = {
-  width: 700,
-  height: 700,
+  width: 1200,
+  height: 1200,
 };
 
 export const contentType = "image/jpeg";
@@ -160,7 +160,10 @@ export default async function Image() {
               </span>
               <span
                 style={{
-                  fontSize: "22px",
+                  fontSize: "24px",
+display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                   fontWeight: 900, // Maximized boldness weight profile
                   color: "#ffffff",
                   textAlign: "center",
