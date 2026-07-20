@@ -146,6 +146,7 @@ export default function AdminPage() {
       topic,
       text,
       memoryVerse,
+      explanation,
       neededSteps: neededSteps.filter(s => s.trim() !== ""),
       prayerPoints: prayerPoints.filter(p => p.trim() !== ""),
     };
