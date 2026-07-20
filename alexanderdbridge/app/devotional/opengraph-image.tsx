@@ -9,12 +9,12 @@ export const size = {
   height: 630,
 };
 
-export const contentType = "image/jpeg";
+export const contentType = "image/png";
 
 function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
-  
+
   for (let i = -3; i <= 4; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -35,12 +35,10 @@ export default async function Image() {
     today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  // Default to today's static devotional
   let devotional =
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  // Try to load devotional dynamically from the database
   try {
     const supabase = createSupabaseAdmin();
     const { data, error } = await supabase
@@ -68,9 +66,10 @@ export default async function Image() {
     console.error("Error loading dynamic devotional for OG image:", err);
   }
 
-  // Load the Bricolage font using Edge-compatible fetch API
+  // FIXED: Fetch the font from a remote URL to remove it entirely from your Edge function bundle footprint.
+  // Using Google Fonts' raw TTF link for Bricolage Grotesque (700 weight for a crisp look).
   const fontData = await fetch(
-    new URL("../../public/fonts/BricolageGrotesque-VariableFont_opsz,wdth,wght.ttf", import.meta.url)
+    new URL("https://fonts.gstatic.com/s/bricolagegrotesque/v3/iaabWP9t3_LwbZ4K161JgG2sV5P5cW518g_bLpZ3C6g.ttf")
   ).then((res) => res.arrayBuffer());
 
   const calendarDays = getCalendarDays(today);
@@ -235,7 +234,7 @@ export default async function Image() {
         />
       </div>
 
-      {/* Bottom Subtitle Core Message (Reflects first 120 chars of dynamic explanation) */}
+      {/* Bottom Subtitle Core Message */}
       <p
         style={{
           fontSize: "24px",
@@ -277,7 +276,7 @@ export default async function Image() {
           name: "Bricolage",
           data: fontData,
           style: "normal",
-          weight: 400,
+          weight: 700,
         },
       ],
     },
