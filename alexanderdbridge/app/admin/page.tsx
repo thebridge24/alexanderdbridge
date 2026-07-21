@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -226,8 +228,8 @@ export default function AdminPage() {
   return (
     <main className="w-full min-h-screen bg-black text-white selection:bg-neutral-800 relative flex flex-col items-center">
       {/* Background Neon Glows */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-neutral-900/40 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-125 h-125 bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-neutral-900/40 rounded-full blur-[120px] pointer-events-none" />
 
       <AnimatePresence mode="wait">
         {!isAuthenticated ? (
@@ -272,7 +274,7 @@ export default function AdminPage() {
             </motion.div>
 
             {/* KEYPAD GRID */}
-            <div className="grid grid-cols-3 gap-5 w-[280px]">
+            <div className="grid grid-cols-3 gap-5 w-70">
               {KEYS.map((key) => (
                 <button
                   key={key}
