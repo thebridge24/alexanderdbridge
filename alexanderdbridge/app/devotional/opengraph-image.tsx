@@ -5,7 +5,6 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";
 
-// Scaled up to a crisp 1200x1200px perfect square layout
 export const size = {
   width: 1200,
   height: 1200,
@@ -13,11 +12,26 @@ export const size = {
 
 export const contentType = "image/jpeg";
 
+// Helper to safely load local public assets into a Base64 string for Satori
+async function getBase64Image(relativePath: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com";
+  try {
+    const res = await fetch(`${baseUrl}${relativePath}`);
+    if (!res.ok) return null;
+    const arrayBuffer = await res.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = relativePath.endsWith(".png") ? "image/png" : "image/jpeg";
+    return `data:${mimeType};base64,${base64}`;
+  } catch (err) {
+    console.error("Failed to load image for OG:", err);
+    return null;
+  }
+}
+
 function getCalendarDays(today: Date) {
   const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const days = [];
 
-  // Keeps 5 days centered with plenty of relative width padding
   for (let i = -2; i <= 2; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -37,6 +51,9 @@ export default async function Image() {
   const todayString = `${today.getFullYear()}-${String(
     today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  // Pre-fetch image to base64 buffer to prevent DataView offset exceptions
+  const logoSrc = await getBase64Image("/alexander_logo.png");
 
   let devotional =
     DEVOTIONALS_DATA.find((d) => d.dateString === todayString) ??
@@ -88,12 +105,21 @@ export default async function Image() {
         position: "relative",
       }}
     >
-      {" "}
-      <img
-        src="/alexander_logo.png"
-        className="size-7 rounded-full object-cover my-3"
-        alt=""
-      />
+      {/* Safe base64 image rendering with pure inline CSS */}
+      {logoSrc && (
+        <img
+          src={logoSrc}
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            marginBottom: "20px",
+          }}
+          alt="Logo"
+        />
+      )}
+
       {/* 1. Kicker Date Label */}
       <span
         style={{
@@ -107,6 +133,7 @@ export default async function Image() {
       >
         {devotional.displayDate}
       </span>
+
       {/* 2. Primary Devotional Header Title */}
       <h1
         style={{
@@ -123,6 +150,7 @@ export default async function Image() {
       >
         {devotional.topic}
       </h1>
+
       {/* 3. Centered Grid Horizontal Calendar Layer */}
       <div
         style={{
@@ -186,6 +214,7 @@ export default async function Image() {
           );
         })}
       </div>
+
       {/* 4. Focus Scripture Reference Node */}
       <div
         style={{
@@ -217,6 +246,7 @@ export default async function Image() {
           style={{ height: "2px", width: "40px", backgroundColor: "#262626" }}
         />
       </div>
+
       {/* 5. Center-aligned Core Snippet Text Block */}
       <p
         style={{
@@ -235,6 +265,7 @@ export default async function Image() {
           ? `${devotional.explanation.slice(0, 140)}...`
           : devotional.explanation}
       </p>
+
       {/* 6. Dynamic Conversion CTA Interactive Button Layout */}
       <div
         style={{
@@ -249,11 +280,12 @@ export default async function Image() {
           textAlign: "center",
           justifyContent: "center",
           alignItems: "center",
-          boxShadow: "0 15px 35px -5px rgba(239, 68, 68, 0.2)",
+          boxShadow: "0 15px 35px -5px rgba(255, 0, 0, 0.2)",
         }}
       >
         Read Full Devotional
       </div>
+
       {/* 7. Footer Brand Subtext Anchor */}
       <div
         style={{
