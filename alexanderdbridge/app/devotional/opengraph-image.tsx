@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from "next/og";
 import { DEVOTIONALS_DATA } from "../devotionalData";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
@@ -56,9 +57,10 @@ export default async function Image() {
         displayDate: data.display_date,
         topic: data.topic,
         text: data.text,
-        memoryVerse: typeof data.memory_verse === "string"
-          ? JSON.parse(data.memory_verse)
-          : data.memory_verse,
+        memoryVerse:
+          typeof data.memory_verse === "string"
+            ? JSON.parse(data.memory_verse)
+            : data.memory_verse,
         explanation: data.explanation,
         neededSteps: data.needed_steps,
         prayerPoints: data.prayer_points,
@@ -86,12 +88,18 @@ export default async function Image() {
         position: "relative",
       }}
     >
+      {" "}
+      <img
+        src="/alexander_logo.png"
+        className="size-7 rounded-full object-cover my-3"
+        alt=""
+      />
       {/* 1. Kicker Date Label */}
       <span
         style={{
           fontSize: "24px",
           fontWeight: 700,
-          color: "#ef4444",
+          color: "#ff0000",
           letterSpacing: "0.2em",
           textTransform: "uppercase",
           marginBottom: "24px",
@@ -99,12 +107,11 @@ export default async function Image() {
       >
         {devotional.displayDate}
       </span>
-
       {/* 2. Primary Devotional Header Title */}
       <h1
         style={{
           fontSize: "64px",
-          fontWeight: 800,
+          fontWeight: 900,
           letterSpacing: "-0.03em",
           margin: "0 0 54px 0",
           textAlign: "center",
@@ -116,7 +123,6 @@ export default async function Image() {
       >
         {devotional.topic}
       </h1>
-
       {/* 3. Centered Grid Horizontal Calendar Layer */}
       <div
         style={{
@@ -141,8 +147,8 @@ export default async function Image() {
                 width: "140px",
                 height: "150px",
                 borderRadius: "28px",
-                border: isSelected ? "2px solid #ef4444" : "2px solid #262626",
-                background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.7)",
+                border: isSelected ? "2px solid #ff0000" : "2px solid #262626",
+                background: isSelected ? "#ff0000" : "rgba(23, 23, 23, 0.7)",
               }}
             >
               <span
@@ -154,9 +160,9 @@ export default async function Image() {
                   textAlign: "center",
                   width: "100%",
                   textTransform: "uppercase",
-display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                   marginBottom: "8px",
                 }}
               >
@@ -180,7 +186,6 @@ display: "flex",
           );
         })}
       </div>
-
       {/* 4. Focus Scripture Reference Node */}
       <div
         style={{
@@ -192,7 +197,9 @@ display: "flex",
           width: "100%",
         }}
       >
-        <span style={{ height: "2px", width: "40px", backgroundColor: "#262626" }} />
+        <span
+          style={{ height: "2px", width: "40px", backgroundColor: "#262626" }}
+        />
         <p
           style={{
             fontSize: "26px",
@@ -206,9 +213,10 @@ display: "flex",
         >
           {devotional.memoryVerse.reference}
         </p>
-        <span style={{ height: "2px", width: "40px", backgroundColor: "#262626" }} />
+        <span
+          style={{ height: "2px", width: "40px", backgroundColor: "#262626" }}
+        />
       </div>
-
       {/* 5. Center-aligned Core Snippet Text Block */}
       <p
         style={{
@@ -227,12 +235,11 @@ display: "flex",
           ? `${devotional.explanation.slice(0, 140)}...`
           : devotional.explanation}
       </p>
-
       {/* 6. Dynamic Conversion CTA Interactive Button Layout */}
       <div
         style={{
           display: "flex",
-          background: "#ef4444",
+          background: "#ff0000",
           color: "#ffffff",
           fontSize: "24px",
           fontWeight: 700,
@@ -242,21 +249,20 @@ display: "flex",
           textAlign: "center",
           justifyContent: "center",
           alignItems: "center",
-          boxShadow: "0 15px 35px -5px rgba(239, 68, 68, 0.4)",
+          boxShadow: "0 15px 35px -5px rgba(239, 68, 68, 0.2)",
         }}
       >
         Read Full Devotional
       </div>
-
       {/* 7. Footer Brand Subtext Anchor */}
       <div
         style={{
           position: "absolute",
           bottom: "48px",
           fontSize: "18px",
-display: "flex", 
-                alignItems: "center",
-                justifyContent: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           fontWeight: 700,
           color: "#404040",
           letterSpacing: "0.35em",

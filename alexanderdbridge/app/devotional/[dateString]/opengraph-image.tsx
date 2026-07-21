@@ -85,6 +85,7 @@ export default async function Image() {
         padding: "0 80px",
       }}
     >
+      
       {/* Top Header Row with Title & Dynamic Date String */}
       <div
         style={{
@@ -110,7 +111,7 @@ export default async function Image() {
             style={{
               width: "10px",
               height: "10px",
-              backgroundColor: "#ef4444",
+              backgroundColor: "#ff0000",
               borderRadius: "50%",
               marginLeft: "6px",
               marginTop: "24px",
@@ -134,7 +135,7 @@ export default async function Image() {
         <h2
           style={{
             fontSize: "52px",
-            fontWeight: 800,
+            fontWeight: 900,
             letterSpacing: "-0.03em",
             margin: 0,
             color: "#f5f5f5",
@@ -167,7 +168,7 @@ export default async function Image() {
                 width: "110px",
                 borderRadius: "20px",
                 border: isSelected ? "1px solid #ffffff" : "1px solid #1f1f1f",
-                background: isSelected ? "#ef4444" : "rgba(23, 23, 23, 0.6)",
+                background: isSelected ? "#ff0000" : "rgba(23, 23, 23, 0.6)",
               }}
             >
               <span
