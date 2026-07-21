@@ -245,7 +245,7 @@ export default function AdminPage() {
               <div
                 key={i}
                 className={`w-5 h-5 rounded-full border transition
-                ${pin.length > i ? "bg-black dark:bg-white border-black" : "border-gray-400"}
+                ${pin.length > i ? "bg-black dark:bg-[#ff0000] border-black" : "border-gray-400"}
                 ${isError ? "animate-shake" : ""}`}
               />
             ))}
@@ -303,7 +303,7 @@ export default function AdminPage() {
           >
             Cancel
           </Link>
-
+{/* 
           <a
             style={{ animationDelay: isError ? `0.05s` : "0s" }}
             href="https://wa.me/2349160979848?text=I'm%20trying%20to%20access%20your%20projects%20but%20I%20don't%20know%20the%20passcode"
@@ -314,7 +314,7 @@ export default function AdminPage() {
           >
             {" "}
             Emergency{" "}
-          </a>
+          </a> */}
         </div>
           // <motion.div
           //   key="passcode"
