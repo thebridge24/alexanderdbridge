@@ -142,7 +142,7 @@ export default async function Image() {
           letterSpacing: "-0.03em",
           margin: "0 0 54px 0",
           textAlign: "center",
-          width: "100%",
+          width: "fit-content",
           lineHeight: 1.25,
           color: "#ffffff",
           maxWidth: "1000px",
