@@ -59,6 +59,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
+// Add favicon configuration here
+    icons: {
+      icon: "/favicon.ico", // Or '/favicon.png' / '/icon.png' depending on your file name in /public
+      shortcut: "/favicon.ico",
+      apple: "/apple-touch-icon.png", // Optional: if you have an Apple touch icon
+    },
+
       images: [
         {
           url: "/devotional/opengraph-image",
