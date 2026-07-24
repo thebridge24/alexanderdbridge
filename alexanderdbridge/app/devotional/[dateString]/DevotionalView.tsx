@@ -204,7 +204,7 @@ export default function DevotionalView() {
 
     async function fetchComments() {
       try {
-        const res = await fetch(`/api/devotionals/${date}/comments`);
+        const res = await fetch(`/api/devotionals/${date}/comments?sessionId=${sessionId}`);
         if (res.ok) {
           const data = await res.json();
           const mappedComments = (data.comments || []).map((c: any) => ({
@@ -212,8 +212,8 @@ export default function DevotionalView() {
             name: c.author_name,
             text: c.body,
             timestamp: formatRelativeTime(c.created_at),
-            likes: c.likes || 0,
-            liked: false,
+            likes: c.like_count ?? 0,
+            liked: Boolean(c.liked),
             replies: c.replies || [],
           }));
           setComments(mappedComments);
@@ -341,7 +341,9 @@ export default function DevotionalView() {
     }
   };
 
-  const handleCommentLike = (commentId: string) => {
+  const handleCommentLike = async (commentId: string) => {
+    const sessionId = getSessionId();
+
     setComments((prev) =>
       prev.map((c) => {
         if (c.id === commentId) {
@@ -349,12 +351,38 @@ export default function DevotionalView() {
           return {
             ...c,
             liked: !isLiked,
-            likes: isLiked ? c.likes - 1 : c.likes + 1,
+            likes: isLiked ? Math.max(c.likes - 1, 0) : c.likes + 1,
           };
         }
         return c;
       })
     );
+
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                likes: data.likeCount,
+                liked: data.liked,
+              };
+            }
+            return c;
+          })
+        );
+      }
+    } catch (err) {
+      console.error("Error toggling comment like:", err);
+    }
   };
 
   const handleReplySubmit = (commentId: string) => {

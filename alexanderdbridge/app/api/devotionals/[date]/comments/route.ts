@@ -7,7 +7,7 @@ type RouteContext = {
   params: Promise<{ date: string }>;
 };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   const configError = assertSupabaseConfigured();
   if (configError) {
     return configError;
@@ -18,10 +18,12 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
   }
 
+  const sessionId = request.nextUrl.searchParams.get("sessionId")?.trim();
   const supabase = createSupabaseAdmin();
-  const { data, error } = await supabase
+  
+  const { data: rawComments, error } = await supabase
     .from("devotional_comments")
-    .select("id, devotional_date, author_name, body, created_at")
+    .select("id, devotional_date, author_name, body, created_at, like_count")
     .eq("devotional_date", date)
     .order("created_at", { ascending: false });
 
@@ -29,7 +31,33 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ comments: data ?? [] });
+  const comments = rawComments ?? [];
+  const commentIds = comments.map((c) => c.id);
+
+  let likedSet = new Set<string>();
+  if (sessionId && commentIds.length > 0) {
+    const { data: likedSessions } = await supabase
+      .from("devotional_comment_like_sessions")
+      .select("comment_id")
+      .eq("session_id", sessionId)
+      .in("comment_id", commentIds);
+
+    if (likedSessions) {
+      likedSet = new Set(likedSessions.map((s) => s.comment_id));
+    }
+  }
+
+  const formattedComments = comments.map((c) => ({
+    id: c.id,
+    devotional_date: c.devotional_date,
+    author_name: c.author_name,
+    body: c.body,
+    created_at: c.created_at,
+    like_count: c.like_count ?? 0,
+    liked: likedSet.has(c.id),
+  }));
+
+  return NextResponse.json({ comments: formattedComments });
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
