@@ -5,25 +5,38 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoArrowBack, IoEyeOutline } from "react-icons/io5";
+import { IoArrowBack, IoEyeOutline, IoShareOutline, IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
-  FaRegComment,
   FaCheck,
+  FaReply,
 } from "react-icons/fa6";
-import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../../devotionalData"; // Adjusted path depending on your file structure
+import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../../devotionalData"; 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
+import { FaPaperPlane } from "react-icons/fa";
+
+interface Reply {
+  id: string;
+  name: string;
+  text: string;
+  timestamp: string;
+}
 
 interface Comment {
   id: string;
   name: string;
   text: string;
   timestamp: string;
+  likes: number;
+  liked?: boolean;
+  replies?: Reply[];
 }
+
+type IntroStage = "logo" | "day" | "theme" | "done";
 
 // Framer Motion Animation Kinematics Configuration
 const screenVariants: Variants = {
@@ -58,11 +71,26 @@ const threadVariants: Variants = {
   },
 };
 
+const cinematicVariants: Variants = {
+  hidden: { opacity: 0, y: 15, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1.0] },
+  },
+  exit: {
+    opacity: 0,
+    y: -12,
+    filter: "blur(10px)",
+    transition: { duration: 0.5, ease: "easeInOut" },
+  },
+};
+
 export default function DevotionalView() {
   const params = useParams();
   const router = useRouter();
-  
-  // Extract dateString from URL params (matches the folder name [dateString])
+
   const urlDateString = params?.dateString as string | undefined;
 
   const [devotionalsList, setDevotionalsList] = useState<Devotional[]>(DEVOTIONALS_DATA);
@@ -76,7 +104,26 @@ export default function DevotionalView() {
   const [userName, setUserName] = useState<string>("");
   const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
+  // Preloader & Interaction states
+  const [introStage, setIntroStage] = useState<IntroStage>("logo");
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>("");
+  const [copied, setCopied] = useState<boolean>(false);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Preloader Stage Controls
+  useEffect(() => {
+    const timer1 = setTimeout(() => setIntroStage("day"), 1800);
+    const timer2 = setTimeout(() => setIntroStage("theme"), 4000);
+    const timer3 = setTimeout(() => setIntroStage("done"), 7000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
 
   // 1. Fetch dynamic devotionals from API on mount
   useEffect(() => {
@@ -96,13 +143,12 @@ export default function DevotionalView() {
     fetchDevotionals();
   }, []);
 
-  // 2. Live Client-Side Date Calculation & Data Association Layer matching URL string
+  // 2. Live Client-Side Date Calculation & Data Association Layer
   useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
-    // Prioritize the URL dateString parameter if present; otherwise default to today
     const targetDate = urlDateString || formattedToday;
     const matched = devotionalsList.find((d) => d.dateString === targetDate);
     const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
@@ -166,6 +212,9 @@ export default function DevotionalView() {
             name: c.author_name,
             text: c.body,
             timestamp: formatRelativeTime(c.created_at),
+            likes: c.likes || 0,
+            liked: false,
+            replies: c.replies || [],
           }));
           setComments(mappedComments);
         }
@@ -180,7 +229,6 @@ export default function DevotionalView() {
     fetchComments();
   }, [currentDevotional]);
 
-  // Center active calendar items cleanly inside view container
   useEffect(() => {
     if (currentDevotional && scrollContainerRef.current) {
       const activeEl = scrollContainerRef.current.querySelector(
@@ -203,7 +251,6 @@ export default function DevotionalView() {
     const date = currentDevotional.dateString;
     const sessionId = getSessionId();
 
-    // Optimistic toggle
     const newLiked = !liked;
     setLiked(newLiked);
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
@@ -221,9 +268,28 @@ export default function DevotionalView() {
       }
     } catch (err) {
       console.error("Error toggling like:", err);
-      // Revert on error
       setLiked(liked);
       setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `${currentDevotional.topic} | Daily Devotional`,
+      text: `Read today's devotional: "${currentDevotional.topic}"`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -260,6 +326,9 @@ export default function DevotionalView() {
           name: data.comment.author_name,
           text: data.comment.body,
           timestamp: "Just now",
+          likes: 0,
+          liked: false,
+          replies: [],
         };
         setComments([newComment, ...comments]);
         setCommentText("");
@@ -272,6 +341,49 @@ export default function DevotionalView() {
     }
   };
 
+  const handleCommentLike = (commentId: string) => {
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id === commentId) {
+          const isLiked = c.liked;
+          return {
+            ...c,
+            liked: !isLiked,
+            likes: isLiked ? c.likes - 1 : c.likes + 1,
+          };
+        }
+        return c;
+      })
+    );
+  };
+
+  const handleReplySubmit = (commentId: string) => {
+    if (!replyText.trim()) return;
+    const author = userName.trim() || "Believer";
+
+    const newReply: Reply = {
+      id: Date.now().toString(),
+      name: author,
+      text: replyText.trim(),
+      timestamp: "Just now",
+    };
+
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            replies: [...(c.replies || []), newReply],
+          };
+        }
+        return c;
+      })
+    );
+
+    setReplyText("");
+    setReplyingToId(null);
+  };
+
   const handleSaveName = (): void => {
     const trimmedName = userName.trim();
     if (trimmedName) {
@@ -280,7 +392,7 @@ export default function DevotionalView() {
       executePostComment(trimmedName);
     }
   };
-  
+
   const isFutureDate = (dateStr: string) => {
     if (!todayDateString) return false;
     return dateStr > todayDateString;
@@ -301,8 +413,71 @@ export default function DevotionalView() {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="bg-black text-white selection:bg-neutral-800"
+      className="bg-black text-white selection:bg-neutral-800 relative min-h-screen"
     >
+      {/* Intro Preloader Overlay */}
+      <AnimatePresence>
+        {introStage !== "done" && (
+          <motion.div
+            key="preloader-overlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.6 } }}
+            className="fixed inset-0 z-200 bg-black flex flex-col items-center justify-center px-6 h-screen"
+          >
+            <AnimatePresence mode="wait">
+              {introStage === "logo" && (
+                <motion.h2
+                  key="intro-logo"
+                  variants={cinematicVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-2xl font-light tracking-[0.25em] uppercase text-neutral-200"
+                >
+                 Daily Devotional
+                </motion.h2>
+              )}
+
+              {introStage === "day" && (
+                <motion.div
+                  key="intro-day"
+                  variants={cinematicVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-center"
+                >
+                  <span className="text-[11px] tracking-widest text-neutral-500 uppercase block mb-1 font-medium">
+                    Current Progress
+                  </span>
+                  <h3 className="text-4xl font-semibold tracking-tight">
+                    Day {currentDevotional.dayNumber}
+                  </h3>
+                </motion.div>
+              )}
+
+              {introStage === "theme" && (
+                <motion.div
+                  key="intro-theme"
+                  variants={cinematicVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-center max-w-md"
+                >
+                  <span className="text-[11px] tracking-widest text-neutral-500 uppercase block mb-2 font-medium">
+                    Theme: {MONTH_THEME}
+                  </span>
+                  <h2 className="text-2xl font-bold tracking-tight text-neutral-100">
+                    {currentDevotional.topic}
+                  </h2>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
@@ -325,7 +500,7 @@ export default function DevotionalView() {
       </header>
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-44 relative z-10">
-         <div className="w-full mx-auto relative z-10">
+        <div className="w-full mx-auto relative z-10">
           <div className="w-full mb-4 relative z-50">
             <div
               ref={scrollContainerRef}
@@ -341,9 +516,7 @@ export default function DevotionalView() {
                     data-date={item.dateString}
                     disabled={isFuture}
                     onClick={() => {
-                      // Navigate directly to the date's dynamic path
                       router.push(`/devotional/${item.dateString}`);
-
                       setTimeout(() => {
                         window.scrollTo({
                           top: 0,
@@ -381,6 +554,7 @@ export default function DevotionalView() {
             </div>
           </div>
         </div>
+
         <motion.article
           variants={contentVariants}
           initial="hidden"
@@ -462,13 +636,13 @@ export default function DevotionalView() {
         </motion.article>
 
         <hr className="border-neutral-900 my-12" />
-       
+
         <section className="space-y-8">
           <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
             Discussion/Question Section ({comments.length})
           </h3>
 
-          <div className="space-y-0">
+          <div className="space-y-6">
             <AnimatePresence initial={false}>
               {comments.length === 0 ? (
                 <motion.div
@@ -477,12 +651,11 @@ export default function DevotionalView() {
                   className="px-6 py-12 text-center rounded-2xl bg-white/5 border border-neutral-900 border-dashed"
                 >
                   <p className="text-sm text-neutral-500 font-medium">
-                    No questions or observations posted yet. Be the first to
-                    start the thread.
+                    No questions or observations posted yet. Be the first to start the thread.
                   </p>
                 </motion.div>
               ) : (
-                comments.map((comment, index) => (
+                comments.map((comment) => (
                   <motion.div
                     key={comment.id}
                     variants={threadVariants}
@@ -495,12 +668,10 @@ export default function DevotionalView() {
                       <div className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center font-black text-xs text-neutral-300">
                         {comment.name.charAt(0).toUpperCase()}
                       </div>
-                      {index !== comments.length - 1 && (
-                        <div className="w-0.5 flex-1 bg-neutral-900 my-2" />
-                      )}
+                      <div className="w-0.5 flex-1 bg-neutral-900 my-2" />
                     </div>
 
-                    <div className="flex-1 pb-8 text-left">
+                    <div className="flex-1 pb-4 text-left">
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm font-bold text-neutral-200">
                           {comment.name}
@@ -512,6 +683,77 @@ export default function DevotionalView() {
                       <p className="text-sm text-neutral-400 mt-1.5 leading-relaxed">
                         {comment.text}
                       </p>
+
+                      {/* X-Style Interaction Row for Comment */}
+                      <div className="flex items-center gap-6 mt-3">
+                        <button
+                          onClick={() => handleCommentLike(comment.id)}
+                          className={`flex items-center gap-1.5 text-xs transition-colors ${
+                            comment.liked
+                              ? "text-red-500"
+                              : "text-neutral-500 hover:text-neutral-300"
+                          }`}
+                        >
+                          {comment.liked ? (
+                            <FaHeart className="w-3.5 h-3.5" />
+                          ) : (
+                            <FaRegHeart className="w-3.5 h-3.5" />
+                          )}
+                          <span>{comment.likes}</span>
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            setReplyingToId(
+                              replyingToId === comment.id ? null : comment.id
+                            )
+                          }
+                          className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+                        >
+                          <FaReply className="w-3.5 h-3.5" />
+                          <span>Reply</span>
+                        </button>
+                      </div>
+
+                      {/* Inline Reply Input */}
+                      {replyingToId === comment.id && (
+                        <div className="mt-3 flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Write a reply..."
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            className="flex-1 bg-neutral-900/80 border border-neutral-800 rounded-full px-4 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-700"
+                          />
+                          <button
+                            onClick={() => handleReplySubmit(comment.id)}
+                            className="px-3 py-1.5 bg-white text-black text-xs font-semibold rounded-full hover:bg-neutral-200 transition-colors"
+                          >
+                            Reply
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Nested Replies Rendering */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-4 space-y-3 pl-4 border-l border-neutral-800">
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="text-left">
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-xs font-bold text-neutral-300">
+                                  {reply.name}
+                                </span>
+                                <span className="text-[10px] text-neutral-500">
+                                  · {reply.timestamp}
+                                </span>
+                              </div>
+                              <p className="text-xs text-neutral-400 mt-1">
+                                {reply.text}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))
@@ -521,6 +763,7 @@ export default function DevotionalView() {
         </section>
       </div>
 
+      {/* Floating Bottom Toolbar */}
       <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
         <div className="fixed bottom-0 left-0 right-0 h-20 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
@@ -529,11 +772,11 @@ export default function DevotionalView() {
             onSubmit={handleCommentSubmit}
             className="w-full flex items-center gap-3"
           >
-            <div className="flex items-center p-2.5 border border-white/10 bg-white/5 backdrop-blur-2xl rounded-full">
+            <div className="flex items-center p-2.5 border border-white/10 bg-white/5 backdrop-blur-2xl rounded-full gap-1">
               <button
                 type="button"
                 onClick={handleLikeToggle}
-                className={`p-2 rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-neutral-300"}`}
+                className={`p-1 rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
               >
                 {liked ? (
                   <FaHeart className="size-5" />
@@ -541,10 +784,25 @@ export default function DevotionalView() {
                   <FaRegHeart className="size-5" />
                 )}
               </button>
-              <span className="text-xs font-mono font-medium text-neutral-300 min-w-3">
+              <span className="text-xs font-mono font-medium text-neutral-300 min-w-3 pr-1">
                 {likeCount}
               </span>
+
+              {/* Share Button */}
+              <button
+                type="button"
+                onClick={handleShare}
+                className="p-2 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border-l border-white/10 pl-2.5"
+                aria-label="Share Devotional"
+              >
+                {copied ? (
+                  <IoCheckmark className="size-5 text-green-500" />
+                ) : (
+                  <IoShareOutline className="size-5" />
+                )}
+              </button>
             </div>
+
             <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
               <input
                 type="text"
@@ -552,23 +810,24 @@ export default function DevotionalView() {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0"
-              />
-            </div>
-
-            <div className="shrink-0">
+              /><div className="shrink-0">
               <button
                 type="submit"
                 disabled={!commentText.trim()}
-                className="h-13 w-13 flex items-center justify-center rounded-full bg-white text-black font-semibold disabled:bg-white/5 disabled:text-neutral-400 backdrop-blur-xl active:scale-95 transition-all shadow-2xl border border-white/10"
+                className="h-10 w-10 flex items-center justify-center rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-white"
                 aria-label="Post comment"
               >
-                <FaRegComment className="w-4 h-4 stroke-2" />
+                <FaPaperPlane className="w-4 h-4 stroke-2" />
               </button>
             </div>
+            </div>
+
+            
           </form>
         </div>
       </div>
 
+      {/* Name Prompt Modal */}
       <AnimatePresence>
         {showNamePrompt && (
           <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
