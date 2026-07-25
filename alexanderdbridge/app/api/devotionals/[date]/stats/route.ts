@@ -52,9 +52,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({
-    viewCount: viewsResult.data?.view_count ?? 0,
-    likeCount: likesResult.data?.like_count ?? 0,
-    liked: Boolean(likedResult.data),
-  });
+  return NextResponse.json(
+    {
+      viewCount: viewsResult.data?.view_count ?? 0,
+      likeCount: likesResult.data?.like_count ?? 0,
+      liked: Boolean(likedResult.data),
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      },
+    }
+  );
 }

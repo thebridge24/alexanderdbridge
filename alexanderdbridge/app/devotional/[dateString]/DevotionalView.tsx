@@ -188,7 +188,9 @@ export default function DevotionalView() {
 
     async function fetchStats() {
       try {
-        const res = await fetch(`/api/devotionals/${date}/stats?sessionId=${sessionId}`);
+        const res = await fetch(`/api/devotionals/${date}/stats?sessionId=${sessionId}&_t=${Date.now()}`, {
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
           setLikeCount(data.likeCount);
@@ -204,7 +206,9 @@ export default function DevotionalView() {
 
     async function fetchComments() {
       try {
-        const res = await fetch(`/api/devotionals/${date}/comments?sessionId=${sessionId}`);
+        const res = await fetch(`/api/devotionals/${date}/comments?sessionId=${sessionId}&_t=${Date.now()}`, {
+          cache: "no-store",
+        });
         if (res.ok) {
           const data = await res.json();
           const mappedComments = (data.comments || []).map((c: any) => ({

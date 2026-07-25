@@ -57,7 +57,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
     liked: likedSet.has(c.id),
   }));
 
-  return NextResponse.json({ comments: formattedComments });
+  return NextResponse.json(
+    { comments: formattedComments },
+    {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      },
+    }
+  );
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
