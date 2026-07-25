@@ -218,7 +218,12 @@ export default function DevotionalView() {
             timestamp: formatRelativeTime(c.created_at),
             likes: c.like_count ?? 0,
             liked: Boolean(c.liked),
-            replies: c.replies || [],
+            replies: (c.replies || []).map((r: any) => ({
+              id: r.id,
+              name: r.author_name,
+              text: r.body,
+              timestamp: formatRelativeTime(r.created_at),
+            })),
           }));
           setComments(mappedComments);
         }
@@ -389,31 +394,51 @@ export default function DevotionalView() {
     }
   };
 
-  const handleReplySubmit = (commentId: string) => {
+  const handleReplySubmit = async (commentId: string) => {
     if (!replyText.trim()) return;
     const author = userName.trim() || "Believer";
+    const text = replyText.trim();
 
-    const newReply: Reply = {
-      id: Date.now().toString(),
-      name: author,
-      text: replyText.trim(),
-      timestamp: "Just now",
-    };
+    try {
+      const res = await fetch(`/api/comments/${commentId}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: author,
+          text,
+        }),
+      });
 
-    setComments((prev) =>
-      prev.map((c) => {
-        if (c.id === commentId) {
-          return {
-            ...c,
-            replies: [...(c.replies || []), newReply],
-          };
-        }
-        return c;
-      })
-    );
+      if (res.ok) {
+        const data = await res.json();
+        const newReply: Reply = {
+          id: data.reply.id,
+          name: data.reply.author_name,
+          text: data.reply.body,
+          timestamp: "Just now",
+        };
 
-    setReplyText("");
-    setReplyingToId(null);
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                replies: [...(c.replies || []), newReply],
+              };
+            }
+            return c;
+          })
+        );
+
+        setReplyText("");
+        setReplyingToId(null);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to post reply");
+      }
+    } catch (err) {
+      console.error("Error posting reply:", err);
+    }
   };
 
   const handleSaveName = (): void => {

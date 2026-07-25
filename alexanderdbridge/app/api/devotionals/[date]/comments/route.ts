@@ -35,15 +35,39 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const commentIds = comments.map((c) => c.id);
 
   let likedSet = new Set<string>();
-  if (sessionId && commentIds.length > 0) {
-    const { data: likedSessions } = await supabase
-      .from("devotional_comment_like_sessions")
-      .select("comment_id")
-      .eq("session_id", sessionId)
-      .in("comment_id", commentIds);
+  const repliesMap = new Map<string, any[]>();
 
-    if (likedSessions) {
-      likedSet = new Set(likedSessions.map((s) => s.comment_id));
+  if (commentIds.length > 0) {
+    const [likedSessionsRes, repliesRes] = await Promise.all([
+      sessionId
+        ? supabase
+            .from("devotional_comment_like_sessions")
+            .select("comment_id")
+            .eq("session_id", sessionId)
+            .in("comment_id", commentIds)
+        : Promise.resolve({ data: null, error: null }),
+      supabase
+        .from("devotional_comment_replies")
+        .select("id, comment_id, author_name, body, created_at")
+        .in("comment_id", commentIds)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    if (likedSessionsRes.data) {
+      likedSet = new Set(likedSessionsRes.data.map((s) => s.comment_id));
+    }
+
+    if (repliesRes.data) {
+      repliesRes.data.forEach((r) => {
+        const currentList = repliesMap.get(r.comment_id) || [];
+        currentList.push({
+          id: r.id,
+          author_name: r.author_name,
+          body: r.body,
+          created_at: r.created_at,
+        });
+        repliesMap.set(r.comment_id, currentList);
+      });
     }
   }
 
@@ -55,6 +79,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
     liked: likedSet.has(c.id),
+    replies: repliesMap.get(c.id) || [],
   }));
 
   return NextResponse.json(
