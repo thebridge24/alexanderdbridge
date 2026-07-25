@@ -5,16 +5,21 @@ import { DEVOTIONALS_DATA, Devotional } from "@/app/devotionalData";
 
 export async function GET() {
   const configError = assertSupabaseConfigured();
+  const today = new Date();
+  const todayDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
   if (configError) {
-    const fallbackAnalytics = DEVOTIONALS_DATA.map((d) => ({
-      dateString: d.dateString,
-      topic: d.topic,
-      dayNumber: d.dayNumber,
-      displayDate: d.displayDate,
-      views: 0,
-      likes: 0,
-      comments: 0,
-    }));
+    const fallbackAnalytics = DEVOTIONALS_DATA
+      .filter((d) => d.dateString <= todayDateString)
+      .map((d) => ({
+        dateString: d.dateString,
+        topic: d.topic,
+        dayNumber: d.dayNumber,
+        displayDate: d.displayDate,
+        views: 0,
+        likes: 0,
+        comments: 0,
+      }));
     return NextResponse.json({
       analytics: fallbackAnalytics,
       totalViews: 0,
@@ -49,9 +54,11 @@ export async function GET() {
     DEVOTIONALS_DATA.forEach((d) => devotionalMap.set(d.dateString, d));
     mappedDbDevotionals.forEach((d) => devotionalMap.set(d.dateString, d));
 
-    const combinedDevotionals = Array.from(devotionalMap.values()).sort((a, b) => {
-      return a.dateString.localeCompare(b.dateString);
-    });
+    const combinedDevotionals = Array.from(devotionalMap.values())
+      .filter((d) => d.dateString <= todayDateString)
+      .sort((a, b) => {
+        return a.dateString.localeCompare(b.dateString);
+      });
 
     // 2. Fetch views, likes, and comments stats from Supabase
     const [viewsRes, likesRes, commentsRes] = await Promise.all([

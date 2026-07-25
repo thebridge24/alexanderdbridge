@@ -777,70 +777,109 @@ export default function AdminPage() {
                     <div className="h-64 flex items-center justify-center text-sm text-neutral-500">
                       No devotional analytics recorded yet.
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Tooltip Overlay */}
-                      <div className="h-10 flex items-center justify-center">
-                        {hoveredBar ? (
-                          <motion.div
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="px-4 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 flex items-center gap-2 shadow-xl"
-                          >
-                            <span className="font-bold text-white">Day {hoveredBar.dayNumber}:</span>
-                            <span className="text-neutral-400 line-clamp-1 max-w-[200px]">{hoveredBar.topic}</span>
-                            <span className="font-mono font-bold text-red-400">
-                              {hoveredBar[analyticsMetric]} {analyticsMetric}
-                            </span>
-                          </motion.div>
-                        ) : (
-                          <span className="text-xs text-neutral-600 italic">
-                            Hover or tap any bar on the graph for detailed metrics
-                          </span>
-                        )}
-                      </div>
+                  ) : (() => {
+                    // Dynamic Y-axis scale calculation
+                    const cleanIntervals = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+                    let niceMax = 5;
+                    for (const val of cleanIntervals) {
+                      if (maxMetricValue <= val) {
+                        niceMax = val;
+                        break;
+                      }
+                    }
+                    if (maxMetricValue > cleanIntervals[cleanIntervals.length - 1]) {
+                      niceMax = Math.ceil(maxMetricValue / 50000) * 50000;
+                    }
 
-                      {/* Chart Grid Container */}
-                      <div className="h-64 w-full flex items-end gap-2 overflow-x-auto no-scrollbar pt-6 pb-2 px-2 border-b border-neutral-900">
-                        {analyticsData.map((item) => {
-                          const val = item[analyticsMetric];
-                          const heightPercent = Math.max((val / maxMetricValue) * 100, 4);
-
-                          const barColor =
-                            analyticsMetric === "views"
-                              ? "bg-gradient-to-t from-blue-600 to-indigo-500"
-                              : analyticsMetric === "likes"
-                              ? "bg-gradient-to-t from-red-600 to-rose-500"
-                              : "bg-gradient-to-t from-amber-600 to-orange-500";
-
-                          return (
-                            <div
-                              key={item.dateString}
-                              onMouseEnter={() => setHoveredBar(item)}
-                              onMouseLeave={() => setHoveredBar(null)}
-                              className="flex flex-col items-center flex-1 min-w-[28px] h-full justify-end group cursor-pointer"
+                    return (
+                      <div className="space-y-4">
+                        {/* Tooltip Overlay */}
+                        <div className="h-10 flex items-center justify-center">
+                          {hoveredBar ? (
+                            <motion.div
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="px-4 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 flex items-center gap-2 shadow-xl"
                             >
-                              {/* Value label above bar */}
-                              <span className="text-[10px] font-mono text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity mb-1">
-                                {val}
+                              <span className="font-bold text-white">Day {hoveredBar.dayNumber}:</span>
+                              <span className="text-neutral-400 line-clamp-1 max-w-[200px]">{hoveredBar.topic}</span>
+                              <span className="font-mono font-bold text-red-400">
+                                {hoveredBar[analyticsMetric]} {analyticsMetric}
                               </span>
+                            </motion.div>
+                          ) : (
+                            <span className="text-xs text-neutral-600 italic">
+                              Hover or tap any bar on the graph for detailed metrics
+                            </span>
+                          )}
+                        </div>
 
-                              {/* Bar Pillar */}
-                              <div
-                                style={{ height: `${heightPercent}%` }}
-                                className={`w-full rounded-t-lg transition-all duration-300 group-hover:brightness-125 ${barColor}`}
-                              />
+                        {/* Chart Area Container (with Y Axis on the left) */}
+                        <div className="h-64 w-full flex gap-3 pt-6 pb-2">
+                          {/* Y-axis Ticks Column */}
+                          <div className="flex flex-col justify-between h-[calc(100%-24px)] text-[10px] font-mono text-neutral-500 w-10 text-right pr-2 select-none shrink-0">
+                            <span>{niceMax}</span>
+                            <span>{Math.round(niceMax * 0.75)}</span>
+                            <span>{Math.round(niceMax * 0.5)}</span>
+                            <span>{Math.round(niceMax * 0.25)}</span>
+                            <span>0</span>
+                          </div>
 
-                              {/* Day Label Below */}
-                              <span className="text-[9px] font-mono text-neutral-500 group-hover:text-white transition-colors mt-2">
-                                D{item.dayNumber}
-                              </span>
+                          {/* Chart Grid & Pillars Area */}
+                          <div className="flex-1 h-full relative border-l border-b border-neutral-900/60 overflow-hidden">
+                            {/* Grid Lines */}
+                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none h-[calc(100%-24px)] z-0">
+                              <div className="w-full border-t border-neutral-900/50" />
+                              <div className="w-full border-t border-neutral-900/50" />
+                              <div className="w-full border-t border-neutral-900/50" />
+                              <div className="w-full border-t border-neutral-900/50" />
+                              <div className="w-full" />
                             </div>
-                          );
-                        })}
+
+                            {/* Scrollable Pillars Container */}
+                            <div className="absolute inset-0 flex items-end gap-3.5 overflow-x-auto no-scrollbar pt-6 pb-0.5 px-3 z-10 h-full">
+                              {analyticsData.map((item) => {
+                                const val = item[analyticsMetric];
+                                const heightPercent = (val / niceMax) * 100;
+
+                                const barColor =
+                                  analyticsMetric === "views"
+                                    ? "bg-gradient-to-t from-blue-600 to-indigo-500"
+                                    : analyticsMetric === "likes"
+                                    ? "bg-gradient-to-t from-red-600 to-rose-500"
+                                    : "bg-gradient-to-t from-amber-600 to-orange-500";
+
+                                return (
+                                  <div
+                                    key={item.dateString}
+                                    onMouseEnter={() => setHoveredBar(item)}
+                                    onMouseLeave={() => setHoveredBar(null)}
+                                    className="flex flex-col items-center w-8 shrink-0 h-[calc(100%-24px)] justify-end group cursor-pointer relative"
+                                  >
+                                    {/* Value label above bar */}
+                                    <span className="absolute -top-5 text-[9px] font-mono text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      {val}
+                                    </span>
+
+                                    {/* Bar Pillar */}
+                                    <div
+                                      style={{ height: `${Math.max(heightPercent, 3)}%` }}
+                                      className={`w-full rounded-t-md transition-all duration-300 group-hover:brightness-125 ${barColor}`}
+                                    />
+
+                                    {/* Day Label Below */}
+                                    <span className="absolute -bottom-5 text-[9px] font-mono text-neutral-500 group-hover:text-white transition-colors">
+                                      D{item.dayNumber}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </motion.div>
             )}
