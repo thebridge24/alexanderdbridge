@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: "Alexander D Bridge | Founder, Software Engineer & Writer",
     template: "%s | Alexander D Bridge",
   },
-
+  manifest: "/manifest.json",
   description:
     "Alexander D Bridge is the Founder & CEO of Stackgate International, software engineer, product builder, and creator of StackMenu. He builds high-performance web applications, mentors aspiring developers, and writes daily Christian devotionals to help people grow in faith and purpose.",
 
