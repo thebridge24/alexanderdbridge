@@ -21,5 +21,41 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+  "src": "/screenshots/image.png",
+  "sizes": "1080x1920",
+  "type": "image/png",
+  "form_factor": "narrow",
+  "label": "Daily Devotional Reading"
+},
+{
+  "src": "/screenshots/image copy.png",
+  "sizes": "1080x1920",
+  "type": "image/png",
+  "form_factor": "narrow",
+  "label": "Daily Devotional Reading"
+},
+{
+  "src": "/screenshots/image copy 2.png",
+  "sizes": "1080x1920",
+  "type": "image/png",
+  "form_factor": "narrow",
+  "label": "Daily Devotional Reading"
+},
+{
+  "src": "/screenshots/image copy 3.png",
+  "sizes": "1080x1920",
+  "type": "image/png",
+  "form_factor": "narrow",
+  "label": "Daily Devotional Reading"
+},
+{
+  "src": "/screenshots/image copy 4.png",
+  "sizes": "1080x1920",
+  "type": "image/png",
+  "form_factor": "narrow",
+  "label": "Daily Devotional Reading"
+} ]
 }

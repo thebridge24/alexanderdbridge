@@ -5,14 +5,24 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoArrowBack, IoEyeOutline, IoShareOutline, IoCheckmark } from "react-icons/io5";
+import {
+  IoArrowBack,
+  IoEyeOutline,
+  IoShareOutline,
+  IoCheckmark,
+} from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
   FaCheck,
   FaReply,
+  FaDownload,
 } from "react-icons/fa6";
-import { DEVOTIONALS_DATA, MONTH_THEME, Devotional } from "../../devotionalData"; 
+import {
+  DEVOTIONALS_DATA,
+  MONTH_THEME,
+  Devotional,
+} from "../../devotionalData";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
@@ -93,8 +103,11 @@ export default function DevotionalView() {
 
   const urlDateString = params?.dateString as string | undefined;
 
-  const [devotionalsList, setDevotionalsList] = useState<Devotional[]>(DEVOTIONALS_DATA);
-  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
+  const [devotionalsList, setDevotionalsList] =
+    useState<Devotional[]>(DEVOTIONALS_DATA);
+  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
+    null,
+  );
   const [todayDateString, setTodayDateString] = useState<string>("");
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
@@ -111,6 +124,38 @@ export default function DevotionalView() {
   const [copied, setCopied] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Inside DevotionalView component:
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [canInstall, setCanInstall] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setCanInstall(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   // Preloader Stage Controls
   useEffect(() => {
@@ -153,7 +198,11 @@ export default function DevotionalView() {
     const matched = devotionalsList.find((d) => d.dateString === targetDate);
     const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
 
-    if (activeEntry && (!currentDevotional || currentDevotional.dateString !== activeEntry.dateString)) {
+    if (
+      activeEntry &&
+      (!currentDevotional ||
+        currentDevotional.dateString !== activeEntry.dateString)
+    ) {
       setCurrentDevotional(activeEntry);
     }
   }, [devotionalsList, urlDateString]);
@@ -188,9 +237,12 @@ export default function DevotionalView() {
 
     async function fetchStats() {
       try {
-        const res = await fetch(`/api/devotionals/${date}/stats?sessionId=${sessionId}&_t=${Date.now()}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/devotionals/${date}/stats?sessionId=${sessionId}&_t=${Date.now()}`,
+          {
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const data = await res.json();
           setLikeCount(data.likeCount);
@@ -206,9 +258,12 @@ export default function DevotionalView() {
 
     async function fetchComments() {
       try {
-        const res = await fetch(`/api/devotionals/${date}/comments?sessionId=${sessionId}&_t=${Date.now()}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/devotionals/${date}/comments?sessionId=${sessionId}&_t=${Date.now()}`,
+          {
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const data = await res.json();
           const mappedComments = (data.comments || []).map((c: any) => ({
@@ -364,7 +419,7 @@ export default function DevotionalView() {
           };
         }
         return c;
-      })
+      }),
     );
 
     try {
@@ -386,7 +441,7 @@ export default function DevotionalView() {
               };
             }
             return c;
-          })
+          }),
         );
       }
     } catch (err) {
@@ -427,7 +482,7 @@ export default function DevotionalView() {
               };
             }
             return c;
-          })
+          }),
         );
 
         setReplyText("");
@@ -491,7 +546,7 @@ export default function DevotionalView() {
                   exit="exit"
                   className="text-2xl font-light tracking-[0.25em] uppercase text-neutral-200"
                 >
-                 Daily Devotional
+                  Daily Devotional
                 </motion.h2>
               )}
 
@@ -538,14 +593,26 @@ export default function DevotionalView() {
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
-        <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
-          <Link
-            href="/"
-            className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
-            aria-label="Go back"
-          >
-            <IoArrowBack className="w-5 h-5" />
-          </Link>
+        <div className="flex gap-2">
+          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+            <Link
+              href="/"
+              className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+              aria-label="Go back"
+            >
+              <IoArrowBack className="w-5 h-5" />
+            </Link>
+          </div>
+          <div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+            {canInstall && (
+              <button
+                onClick={handleInstallClick}
+                className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+              >
+                <FaDownload />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
@@ -564,7 +631,8 @@ export default function DevotionalView() {
               className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
             >
               {devotionalsList.map((item) => {
-                const isSelected = item.dateString === currentDevotional.dateString;
+                const isSelected =
+                  item.dateString === currentDevotional.dateString;
                 const isFuture = isFutureDate(item.dateString);
 
                 return (
@@ -629,7 +697,8 @@ export default function DevotionalView() {
                 <>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <IoEyeOutline className="size-3.5" /> {viewsCount} {viewsCount === 1 ? "view" : "views"}
+                    <IoEyeOutline className="size-3.5" /> {viewsCount}{" "}
+                    {viewsCount === 1 ? "view" : "views"}
                   </span>
                 </>
               )}
@@ -708,7 +777,8 @@ export default function DevotionalView() {
                   className="px-6 py-12 text-center rounded-2xl bg-white/5 border border-neutral-900 border-dashed"
                 >
                   <p className="text-sm text-neutral-500 font-medium">
-                    No questions or observations posted yet. Be the first to start the thread.
+                    No questions or observations posted yet. Be the first to
+                    start the thread.
                   </p>
                 </motion.div>
               ) : (
@@ -762,7 +832,7 @@ export default function DevotionalView() {
                         <button
                           onClick={() =>
                             setReplyingToId(
-                              replyingToId === comment.id ? null : comment.id
+                              replyingToId === comment.id ? null : comment.id,
                             )
                           }
                           className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
@@ -867,19 +937,18 @@ export default function DevotionalView() {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0"
-              /><div className="shrink-0">
-              <button
-                type="submit"
-                disabled={!commentText.trim()}
-                className="h-10 w-10 flex items-center justify-center rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-white"
-                aria-label="Post comment"
-              >
-                <FaPaperPlane className="w-4 h-4 stroke-2" />
-              </button>
+              />
+              <div className="shrink-0">
+                <button
+                  type="submit"
+                  disabled={!commentText.trim()}
+                  className="h-10 w-10 flex items-center justify-center rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-white"
+                  aria-label="Post comment"
+                >
+                  <FaPaperPlane className="w-4 h-4 stroke-2" />
+                </button>
+              </div>
             </div>
-            </div>
-
-            
           </form>
         </div>
       </div>
