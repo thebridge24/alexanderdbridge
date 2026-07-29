@@ -128,33 +128,60 @@ export default function DevotionalView() {
   // Inside DevotionalView component:
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [canInstall, setCanInstall] = useState<boolean>(false);
+  // Default to true so it shows immediately on load
+  const [showInstallBtn, setShowInstallBtn] = useState<boolean>(true);
 
   useEffect(() => {
+    // 1. Hide immediately if user is ALREADY using the installed app (standalone mode)
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+
+    if (isStandalone) {
+      setShowInstallBtn(false);
+      return;
+    }
+
+    // 2. Capture Chrome / Android deferred install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setCanInstall(true);
+      setShowInstallBtn(true);
+    };
+
+    // 3. Hide button immediately after user completes installation
+    const handleAppInstalled = () => {
+      setShowInstallBtn(false);
+      setDeferredPrompt(null);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener(
         "beforeinstallprompt",
         handleBeforeInstallPrompt,
       );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setCanInstall(false);
+    // If browser supports native install prompt
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        setShowInstallBtn(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      // Fallback for iOS / Safari or browsers without immediate prompt event
+      alert(
+        "To install: Tap the Share button in your browser and select 'Add to Home Screen'.",
+      );
     }
-    setDeferredPrompt(null);
   };
 
   // Preloader Stage Controls
@@ -603,16 +630,17 @@ export default function DevotionalView() {
               <IoArrowBack className="w-5 h-5" />
             </Link>
           </div>
-          <div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
-            {canInstall && (
+          
+            {showInstallBtn && (<div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
               <button
                 onClick={handleInstallClick}
                 className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
               >
                 <FaDownload />
-              </button>
+              </button> 
+              </div>
             )}
-          </div>
+         
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
