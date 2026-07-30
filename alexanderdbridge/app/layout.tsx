@@ -16,10 +16,22 @@ export const metadata: Metadata = {
     template: "%s | Alexander D Bridge",
   },
   manifest: "/manifest.json",
+
+icons: {
+  icon: [
+    { url: "/favicon.ico", sizes: "any" },
+    { url: "/icon-32x32.png", type: "image/png", sizes: "32x32" },
+    { url: "/icon-16x16.png", type: "image/png", sizes: "16x16" },
+  ],
+  apple: [
+    { url: "/alexander_logo.png", sizes: "180x180" },
+  ],
+  shortcut: "/favicon.ico",
+},
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Devotional",
+    title: "Alexander D Bridge",
   },
   description:
     "Alexander D Bridge is the Founder & CEO of Stackgate International, software engineer, product builder, and creator of StackMenu. He builds high-performance web applications, mentors aspiring developers, and writes daily Christian devotionals to help people grow in faith and purpose.",
@@ -82,7 +94,7 @@ export const metadata: Metadata = {
     description:
       "Founder of Stackgate International. Building software, mentoring developers, and writing daily devotionals.",
 
-    images: ["/alexander_logo.png"],
+    images: ["/open_graph.png"],
     creator: "@yalexdbridge", // Replace if you have X/Twitter
   },
 
