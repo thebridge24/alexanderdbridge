@@ -29,6 +29,8 @@ import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
 import { FaPaperPlane } from "react-icons/fa";
 import MonthlyCelebration from "./MonthlyCelebration";
+import BackgroundMusic from "./BackgroundMusic";
+import { BiShare } from "react-icons/bi";
 
 interface Reply {
   id: string;
@@ -101,6 +103,7 @@ const cinematicVariants: Variants = {
 export default function DevotionalView() {
   const params = useParams();
   const router = useRouter();
+   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const urlDateString = params?.dateString as string | undefined;
 
@@ -142,6 +145,7 @@ export default function DevotionalView() {
       setShowInstallBtn(false);
       return;
     }
+
 
     // 2. Capture Chrome / Android deferred install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -335,6 +339,19 @@ export default function DevotionalView() {
       }
     }
   }, [currentDevotional]);
+
+  // Auto-resize logic based on scrollHeight
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Reset height first so it shrinks correctly when deleting text
+      textarea.style.height = "auto";
+      // Set height equal to scrollHeight
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [commentText]);
+
+
 
   if (!currentDevotional) return null;
 
@@ -633,16 +650,47 @@ export default function DevotionalView() {
             </Link>
           </div>
 
-          {showInstallBtn && (
-            <div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+          <div className="fixed bottom-30 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+            <div className=" flex flex-col items-center gap-1">
               <button
-                onClick={handleInstallClick}
-                className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+                type="button"
+                onClick={handleLikeToggle}
+                className={` flex p-3 border border-white/10 bg-white/10 backdrop-blur-xl  rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
               >
-                <FaDownload />
+                {liked ? (
+                  <FaHeart className="size-5" />
+                ) : (
+                  <FaRegHeart className="size-5" />
+                )}
               </button>
+              <span className=" font-mono font-medium text-neutral-300 min-w-3">
+                {likeCount}
+              </span>
             </div>
-          )}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80  flex items-center justify-center"
+              aria-label="Share Devotional"
+            >
+              {copied ? (
+                <IoCheckmark className="size-6 text-green-500" />
+              ) : (
+                <BiShare className="size-6" />
+              )}
+            </button>
+            <BackgroundMusic />
+            {showInstallBtn && (
+              <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+                <button
+                  onClick={handleInstallClick}
+                  className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+                >
+                  <FaDownload />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
@@ -719,7 +767,7 @@ export default function DevotionalView() {
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <span>Day {currentDevotional.dayNumber}</span>
-              <span>•</span> 
+              <span>•</span>
               <span>{currentDevotional.displayDate}</span>
               <span>•</span>
               <span>Monthly Theme: {MONTH_THEME}</span>
@@ -929,53 +977,23 @@ export default function DevotionalView() {
             onSubmit={handleCommentSubmit}
             className="w-full flex items-center gap-3"
           >
-            <div className="flex items-center p-2.5 border border-white/10 bg-white/5 backdrop-blur-2xl rounded-full gap-1">
-              <button
-                type="button"
-                onClick={handleLikeToggle}
-                className={`p-1 rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
-              >
-                {liked ? (
-                  <FaHeart className="size-5" />
-                ) : (
-                  <FaRegHeart className="size-5" />
-                )}
-              </button>
-              <span className="text-xs font-mono font-medium text-neutral-300 min-w-3 pr-1">
-                {likeCount}
-              </span>
-
-              {/* Share Button */}
-              <button
-                type="button"
-                onClick={handleShare}
-                className="p-2 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border-l border-white/10 pl-2.5"
-                aria-label="Share Devotional"
-              >
-                {copied ? (
-                  <IoCheckmark className="size-5 text-green-500" />
-                ) : (
-                  <IoShareOutline className="size-5" />
-                )}
-              </button>
-            </div>
-
-            <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-              <input
-                type="text"
+            <div className="flex-1 flex items-end gap-4 ">
+              <textarea
+                ref={textareaRef}
+                rows={1}
                 placeholder="Share your insight..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-transparent border-none outline-none py-2 text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0"
+                className="w-full min-h-12 max-h-36 px-4 py-3 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl outline-none text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0 resize-none overflow-y-auto no-scrollbar"
               />
               <div className="shrink-0">
                 <button
                   type="submit"
                   disabled={!commentText.trim()}
-                  className="h-10 w-10 flex items-center justify-center rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-white"
+                  className="p-3 flex items-center justify-center border border-white/10 disabled:bg-white/10 bg-white rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-black"
                   aria-label="Post comment"
                 >
-                  <FaPaperPlane className="w-4 h-4 stroke-2" />
+                  <FaPaperPlane className="size-6 stroke-2" />
                 </button>
               </div>
             </div>
