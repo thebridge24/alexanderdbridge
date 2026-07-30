@@ -8,7 +8,6 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   IoArrowBack,
   IoEyeOutline,
-  IoShareOutline,
   IoCheckmark,
 } from "react-icons/io5";
 import {
@@ -650,7 +649,7 @@ export default function DevotionalView() {
             </Link>
           </div>
 
-          <div className="fixed bottom-30 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+          <div className="fixed bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
             <div className=" flex flex-col items-center gap-1">
               <button
                 type="button"
