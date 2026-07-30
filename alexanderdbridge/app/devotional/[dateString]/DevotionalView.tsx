@@ -28,6 +28,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
 import { FaPaperPlane } from "react-icons/fa";
+import MonthlyCelebration from "./MonthlyCelebration";
 
 interface Reply {
   id: string;
@@ -554,6 +555,7 @@ export default function DevotionalView() {
       exit="exit"
       className="bg-black text-white selection:bg-neutral-800 relative min-h-screen"
     >
+      <MonthlyCelebration />
       {/* Intro Preloader Overlay */}
       <AnimatePresence>
         {introStage !== "done" && (
@@ -587,10 +589,10 @@ export default function DevotionalView() {
                   className="text-center"
                 >
                   <span className="text-[11px] tracking-widest text-neutral-500 uppercase block mb-1 font-medium">
-                    Current Progress
+                    Current Progress Day {currentDevotional.dayNumber}
                   </span>
                   <h3 className="text-4xl font-semibold tracking-tight">
-                    Day {currentDevotional.dayNumber}
+                    {currentDevotional.displayDate}
                   </h3>
                 </motion.div>
               )}
@@ -630,17 +632,17 @@ export default function DevotionalView() {
               <IoArrowBack className="w-5 h-5" />
             </Link>
           </div>
-          
-            {showInstallBtn && (<div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+
+          {showInstallBtn && (
+            <div className="p-0.5 fixed lg:right-[35vw] bottom-24 right-6 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
               <button
                 onClick={handleInstallClick}
                 className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
               >
                 <FaDownload />
-              </button> 
-              </div>
-            )}
-         
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
@@ -717,10 +719,10 @@ export default function DevotionalView() {
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
               <span>Day {currentDevotional.dayNumber}</span>
-              <span>•</span>
-              <span>Theme: {MONTH_THEME}</span>
-              <span>•</span>
+              <span>•</span> 
               <span>{currentDevotional.displayDate}</span>
+              <span>•</span>
+              <span>Monthly Theme: {MONTH_THEME}</span>
               {viewsCount > 0 && (
                 <>
                   <span>•</span>

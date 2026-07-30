@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { IoClose } from "react-icons/io5";
-import { MONTH_THEME } from "../devotionalData"; // Adjust import path if needed
+import { MONTH_THEME } from "@/app/devotionalData";
 
 export default function MonthlyCelebration() {
   const [showPopup, setShowPopup] = useState<boolean>(false);
@@ -50,7 +51,7 @@ export default function MonthlyCelebration() {
 
         frame();
         setShowPopup(true);
-      }, 6000);
+      }, 7000);
 
       return () => clearTimeout(timer);
     }
@@ -59,7 +60,7 @@ export default function MonthlyCelebration() {
   return (
     <AnimatePresence>
       {showPopup && (
-        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -68,7 +69,7 @@ export default function MonthlyCelebration() {
             className="w-full max-w-sm rounded-3xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl relative text-center overflow-hidden"
           >
             {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#ff0000] to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-[#ff0000] to-transparent" />
 
             <button
               onClick={() => setShowPopup(false)}
