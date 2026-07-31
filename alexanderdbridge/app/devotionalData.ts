@@ -15,7 +15,7 @@ export interface Devotional {
   prayerPoints: string[];
 }
 
-export const MONTH_THEME = "Knowing God";
+export const MONTH_THEME = "Doing Exploit";
 
 export const DEVOTIONALS_DATA: Devotional[] = [
  
