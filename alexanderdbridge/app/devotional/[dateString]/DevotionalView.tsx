@@ -5,11 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import {
-  IoArrowBack,
-  IoEyeOutline,
-  IoCheckmark,
-} from "react-icons/io5";
+import { IoArrowBack, IoEyeOutline, IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
@@ -30,6 +26,7 @@ import { FaPaperPlane } from "react-icons/fa";
 import MonthlyCelebration from "./MonthlyCelebration";
 import BackgroundMusic from "./BackgroundMusic";
 import { BiShare } from "react-icons/bi";
+import StreakFloatingButton from "@/app/components/StreakFloatingButton";
 
 interface Reply {
   id: string;
@@ -102,7 +99,7 @@ const cinematicVariants: Variants = {
 export default function DevotionalView() {
   const params = useParams();
   const router = useRouter();
-   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const urlDateString = params?.dateString as string | undefined;
 
@@ -144,7 +141,6 @@ export default function DevotionalView() {
       setShowInstallBtn(false);
       return;
     }
-
 
     // 2. Capture Chrome / Android deferred install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -349,8 +345,6 @@ export default function DevotionalView() {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [commentText]);
-
-
 
   if (!currentDevotional) return null;
 
@@ -651,6 +645,9 @@ export default function DevotionalView() {
 
           <div className="fixed bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
             <div className=" flex flex-col items-center gap-1">
+              {/* NEW: Streak Floating Button Component */}
+              <StreakFloatingButton userName={userName || "Believer"} />
+              
               <button
                 type="button"
                 onClick={handleLikeToggle}
