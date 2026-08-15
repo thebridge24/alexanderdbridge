@@ -560,8 +560,6 @@ export default function DevotionalView() {
     return dateStr.split("-")[2];
   };
 
-  
-
   return (
     <motion.div
       variants={screenVariants}
@@ -652,22 +650,21 @@ export default function DevotionalView() {
             <div className=" flex flex-col items-center gap-1">
               {/* NEW: Streak Floating Button Component */}
               <StreakFloatingButton userName={userName || "Believer"} />
-              <div className="p-4">
-      {/* Test Trigger Button */}
-      <button
-        onClick={() => setTestMedal(MILESTONE_MEDALS[2])} // Fires the 7-day 'Ignition Flame' medal
-        className="px-4 py-2 bg-red-600 text-white font-bold rounded-full text-xs"
-      >
-        🔥 Trigger Test Celebration Modal
-      </button>
 
-      {/* Render Modal */}
-      <StreakCelebrationModal
-        medal={testMedal}
-        onClose={() => setTestMedal(null)}
-        userName="Test User"
-      />
-    </div>
+              {/* Test Trigger Button */}
+              <button
+                onClick={() => setTestMedal(MILESTONE_MEDALS[2])} // Fires the 7-day 'Ignition Flame' medal
+                className="px-2 py-2 bg-red-600 text-white font-bold rounded-full text-xs"
+              >
+                🔥
+              </button>
+
+              {/* Render Modal */}
+              <StreakCelebrationModal
+                medal={testMedal}
+                onClose={() => setTestMedal(null)}
+                userName="Test User"
+              />
               <button
                 type="button"
                 onClick={handleLikeToggle}

@@ -46,17 +46,15 @@ export default function StreakCelebrationModal({
         type: "image/png",
       });
 
+      const today = new Date().toISOString().split("T")[0];
+
       const shareData = {
         title: "Bridge Daily Devotional Achievement",
         text: `🔥 I just unlocked the '${medal.name}' (${medal.targetDays}-Day Streak) on Bridge Daily Devotional! Join me:`,
-        url: window.location.origin,
+        url: `${window.location.origin}/devotional/${today}`,
       };
-
       // 2. Share image file natively via Web Share API if supported
-      if (
-        navigator.canShare &&
-        navigator.canShare({ files: [file] })
-      ) {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           ...shareData,
           files: [file],
@@ -72,7 +70,7 @@ export default function StreakCelebrationModal({
         link.click();
 
         await navigator.clipboard.writeText(
-          `${shareData.text} ${window.location.origin}`
+          `${shareData.text} ${window.location.origin}`,
         );
         setCopied(true);
         setTimeout(() => setCopied(false), 3000);
@@ -108,7 +106,7 @@ export default function StreakCelebrationModal({
           {/* Card Graphic Container (Captured as Image) */}
           <div
             ref={cardRef}
-            className="pt-4 pb-4 px-2 flex flex-col items-center bg-neutral-950 rounded-2xl relative"
+            className="pt-4 pb-4 px-4 flex flex-col items-center bg-black rounded-2xl relative overflow-clip"
           >
             {/* Main Trophy/Medal Icon with Glow Shadow */}
             <motion.div
@@ -117,7 +115,7 @@ export default function StreakCelebrationModal({
               transition={{ type: "spring", stiffness: 200 }}
               className="relative my-4"
             >
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#ff0000]/30 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#ff0000]/30 rounded-full blur-2xl pointer-events-none" />
 
               <div className="w-28 h-28 rounded-full relative bg-neutral-900 border-2 border-[#ff0000] flex items-center justify-center text-5xl text-white">
                 <MedalIcon className="w-12 h-12" />
@@ -141,23 +139,23 @@ export default function StreakCelebrationModal({
             </p>
 
             {/* Read Devotional CTA Banner inside the generated image */}
-            <div className="mt-5 w-full py-2 px-3 rounded-xl bg-white/5 border border-neutral-800/80 flex items-center justify-between">
+            <div className="mt-5 w-full py-2 px-2.5 rounded-full bg-white/5 border border-neutral-800/80 flex items-center justify-between">
               <div className="flex gap-3 items-center">
-                 <div className="size-10">
-                <img src="../favicon.ico" alt="" />
+                <div className="size-10">
+                  <img src="../favicon.ico" alt="" />
+                </div>
+                <div className="text-left">
+                  <span className="block text-[9px] -mb-2 font-mono text-neutral-500 uppercase">
+                    Bridge Daily Devotional
+                  </span>
+                  <span className="text-[11px] font-bold text-white">
+                    Read Today&apos;s Word
+                  </span>
+                </div>
               </div>
-              <div className="text-left">
-                <span className="block text-[9px] -mb-2 font-mono text-neutral-500 uppercase">
-                  Bridge Daily Devotional
-                </span>
-                <span className="text-[11px] font-bold text-white">
-                  Read Today&apos;s Word
-                </span>
-              </div>
-              </div>
-             
-              <div className="w-6 h-6 rounded-full bg-[#ff0000] flex items-center justify-center text-white">
-                <FaArrowRight className="w-2.5 h-2.5" />
+
+              <div className="w-10 h-10 rounded-full bg-[#ff0000] flex items-center justify-center text-white">
+                <FaArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
           </div>
