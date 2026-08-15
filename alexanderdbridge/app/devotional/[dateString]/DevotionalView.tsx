@@ -27,8 +27,6 @@ import MonthlyCelebration from "./MonthlyCelebration";
 import BackgroundMusic from "./BackgroundMusic";
 import { BiShare } from "react-icons/bi";
 import StreakFloatingButton from "@/app/components/StreakFloatingButton";
-import StreakCelebrationModal from "@/app/components/StreakCelebrationModal";
-import { MILESTONE_MEDALS } from "@/lib/types/streak";
 
 interface Reply {
   id: string;
@@ -124,7 +122,6 @@ export default function DevotionalView() {
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
-  const [testMedal, setTestMedal] = useState<any>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -650,21 +647,6 @@ export default function DevotionalView() {
             <div className=" flex flex-col items-center gap-1">
               {/* NEW: Streak Floating Button Component */}
               <StreakFloatingButton userName={userName || "Believer"} />
-
-              {/* Test Trigger Button */}
-              <button
-                onClick={() => setTestMedal(MILESTONE_MEDALS[2])} // Fires the 7-day 'Ignition Flame' medal
-                className="px-2 py-2 bg-red-600 text-white font-bold rounded-full text-xs"
-              >
-                🔥
-              </button>
-
-              {/* Render Modal */}
-              <StreakCelebrationModal
-                medal={testMedal}
-                onClose={() => setTestMedal(null)}
-                userName="Test User"
-              />
               <button
                 type="button"
                 onClick={handleLikeToggle}
