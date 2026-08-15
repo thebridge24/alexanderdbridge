@@ -31,20 +31,28 @@ export default function StreakDrawer({
     return "Faith Novice";
   };
 
+  // Find the first uncompleted milestone to mark as active
+  const activeMilestoneIndex = MILESTONE_MEDALS.findIndex(
+    (medal) => !streakData.unlockedMedalIds.includes(medal.id)
+  );
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-9999 flex justify-end bg-black/70 backdrop-blur-sm">
-          {/* Slide-in Panel from Right (90% width max) */}
+        <div className="fixed inset-0 z-99999 flex justify-end bg-black/80 backdrop-blur-md">
+          {/* Backdrop dismiss click handler */}
+          <div className="flex-1" onClick={onClose} />
+
+          {/* Slide-in Panel taking 95% width */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="w-full max-w-[90vw] sm:max-w-md h-full bg-black border-l border-neutral-800 flex flex-col justify-between overflow-y-auto no-scrollbar shadow-2xl"
+            className="w-[95vw] max-w-[95vw] sm:max-w-md h-full bg-black border-l border-neutral-800 flex flex-col justify-between overflow-y-auto no-scrollbar shadow-2xl relative z-99999"
           >
             {/* Header with Back Button */}
-            <div className="p-6 sticky top-0 bg-black/90 backdrop-blur-md z-20 border-b border-neutral-900 flex items-center justify-between">
+            <div className="p-6 sticky top-0 bg-black/90 backdrop-blur-md z-30 border-b border-neutral-900 flex items-center justify-between">
               <button
                 onClick={onClose}
                 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-full transition-all active:scale-95"
@@ -59,7 +67,7 @@ export default function StreakDrawer({
 
             {/* Content Container */}
             <div className="p-6 space-y-8 flex-1">
-              {/* Profile Avatar Header (TikTok Vibe) */}
+              {/* Profile Avatar Header */}
               <div className="flex flex-col items-center text-center space-y-3">
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full bg-neutral-900 border-2 border-[#ff0000] p-1 shadow-[0_0_25px_rgba(255,0,0,0.3)] flex items-center justify-center">
@@ -120,32 +128,89 @@ export default function StreakDrawer({
                 </div>
 
                 <div className="grid gap-3">
-                  {MILESTONE_MEDALS.map((medal) => {
+                  {MILESTONE_MEDALS.map((medal, index) => {
                     const isUnlocked = streakData.unlockedMedalIds.includes(
-                      medal.id,
+                      medal.id
                     );
+                    const isActiveTarget = index === activeMilestoneIndex;
                     const MedalIcon = medal.icon;
+
+                    // Calculate progress for current active target
+                    const previousTarget =
+                      index > 0 ? MILESTONE_MEDALS[index - 1].targetDays : 0;
+                    const daysToCurrentTarget =
+                      medal.targetDays - previousTarget;
+                    const currentProgressDays = Math.max(
+                      0,
+                      streakData.currentStreak - previousTarget
+                    );
+                    const progressPercent = Math.min(
+                      100,
+                      Math.round(
+                        (currentProgressDays / daysToCurrentTarget) * 100
+                      )
+                    );
+
+                    // Circular SVG attributes
+                    const strokeWidth = 3;
+                    const radius = 22;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset =
+                      circumference - (progressPercent / 100) * circumference;
+
                     return (
                       <div
                         key={medal.id}
                         className={`flex items-center gap-4 p-3.5 rounded-2xl border transition-all ${
                           isUnlocked
                             ? "bg-neutral-900/80 border-[#ff0000]/40 text-white shadow-[0_0_15px_rgba(255,0,0,0.1)]"
+                            : isActiveTarget
+                            ? "bg-neutral-900/40 border-[#ff0000]/60 text-neutral-200"
                             : "bg-neutral-950 border-neutral-900 text-neutral-600"
                         }`}
                       >
-                        {/* Icon Container */}
-                        <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${
-                            isUnlocked
-                              ? "bg-black border border-[#ff0000]/60 text-white shadow-[0_0_10px_rgba(255,0,0,0.2)]"
-                              : "bg-neutral-900 border border-neutral-800 text-neutral-600"
-                          }`}
-                        >
-                          {isUnlocked ? (
+                        {/* Icon Container with Progress Ring & Bottom-Right Lock */}
+                        <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
+                          {/* Radial Progress Ring for current active level */}
+                          {isActiveTarget && (
+                            <svg className="absolute inset-0 w-full h-full -rotate-90">
+                              <circle
+                                cx="24"
+                                cy="24"
+                                r={radius}
+                                className="stroke-neutral-800"
+                                strokeWidth={strokeWidth}
+                                fill="transparent"
+                              />
+                              <circle
+                                cx="24"
+                                cy="24"
+                                r={radius}
+                                className="stroke-[#ff0000] transition-all duration-500"
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={circumference}
+                                strokeDashoffset={strokeDashoffset}
+                                strokeLinecap="round"
+                                fill="transparent"
+                              />
+                            </svg>
+                          )}
+
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
+                              isUnlocked
+                                ? "bg-black border border-[#ff0000]/60 text-[#ff0000] shadow-[0_0_10px_rgba(255,0,0,0.2)]"
+                                : "bg-neutral-900 border border-neutral-800 text-neutral-500 opacity-75"
+                            }`}
+                          >
                             <MedalIcon />
-                          ) : (
-                            <IoLockClosed className="w-5 h-5 text-neutral-700" />
+                          </div>
+
+                          {/* Lock Badge on Bottom-Right */}
+                          {!isUnlocked && (
+                            <div className="absolute -bottom-1 -right-1 bg-neutral-950 border border-neutral-800 rounded-full p-1 text-neutral-400 shadow-md">
+                              <IoLockClosed className="w-2.5 h-2.5" />
+                            </div>
                           )}
                         </div>
 
@@ -154,7 +219,11 @@ export default function StreakDrawer({
                           <div className="flex items-center justify-between">
                             <h4
                               className={`text-sm font-bold truncate ${
-                                isUnlocked ? "text-white" : "text-neutral-500"
+                                isUnlocked
+                                  ? "text-white"
+                                  : isActiveTarget
+                                  ? "text-neutral-200"
+                                  : "text-neutral-500"
                               }`}
                             >
                               {medal.name}
@@ -163,6 +232,8 @@ export default function StreakDrawer({
                               className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
                                 isUnlocked
                                   ? "bg-[#ff0000] text-white"
+                                  : isActiveTarget
+                                  ? "bg-[#ff0000]/20 text-[#ff0000] border border-[#ff0000]/30"
                                   : "bg-neutral-900 text-neutral-600"
                               }`}
                             >
@@ -172,6 +243,21 @@ export default function StreakDrawer({
                           <p className="text-[11px] text-neutral-500 truncate mt-0.5">
                             {medal.description}
                           </p>
+
+                          {/* Progress bar text indicator for current target */}
+                          {isActiveTarget && (
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <div className="flex-1 h-1 bg-neutral-800 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-[#ff0000] rounded-full transition-all duration-300"
+                                  style={{ width: `${progressPercent}%` }}
+                                />
+                              </div>
+                              <span className="text-[9px] font-mono text-[#ff0000] font-bold">
+                                {progressPercent}%
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );

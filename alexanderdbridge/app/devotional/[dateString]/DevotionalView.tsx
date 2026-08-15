@@ -566,6 +566,50 @@ export default function DevotionalView() {
       className="bg-black text-white selection:bg-neutral-800 relative min-h-screen"
     >
       <MonthlyCelebration />
+
+       <div className="fixed z-99999 bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+            <div className=" flex flex-col items-center gap-1">
+              {/* NEW: Streak Floating Button Component */}
+              <StreakFloatingButton userName={userName || "Believer"} />
+              <button
+                type="button"
+                onClick={handleLikeToggle}
+                className={` flex p-3 border border-white/10 bg-white/10 backdrop-blur-xl  rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
+              >
+                {liked ? (
+                  <FaHeart className="size-5" />
+                ) : (
+                  <FaRegHeart className="size-5" />
+                )}
+              </button>
+              <span className=" font-mono font-medium text-neutral-300 min-w-3">
+                {likeCount}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80  flex items-center justify-center"
+              aria-label="Share Devotional"
+            >
+              {copied ? (
+                <IoCheckmark className="size-6 text-green-500" />
+              ) : (
+                <BiShare className="size-6" />
+              )}
+            </button>
+            <BackgroundMusic />
+            {showInstallBtn && (
+              <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+                <button
+                  onClick={handleInstallClick}
+                  className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+                >
+                  <FaDownload />
+                </button>
+              </div>
+            )}
+          </div>
       {/* Intro Preloader Overlay */}
       <AnimatePresence>
         {introStage !== "done" && (
@@ -643,49 +687,7 @@ export default function DevotionalView() {
             </Link>
           </div>
 
-          <div className="fixed bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
-            <div className=" flex flex-col items-center gap-1">
-              {/* NEW: Streak Floating Button Component */}
-              <StreakFloatingButton userName={userName || "Believer"} />
-              <button
-                type="button"
-                onClick={handleLikeToggle}
-                className={` flex p-3 border border-white/10 bg-white/10 backdrop-blur-xl  rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
-              >
-                {liked ? (
-                  <FaHeart className="size-5" />
-                ) : (
-                  <FaRegHeart className="size-5" />
-                )}
-              </button>
-              <span className=" font-mono font-medium text-neutral-300 min-w-3">
-                {likeCount}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80  flex items-center justify-center"
-              aria-label="Share Devotional"
-            >
-              {copied ? (
-                <IoCheckmark className="size-6 text-green-500" />
-              ) : (
-                <BiShare className="size-6" />
-              )}
-            </button>
-            <BackgroundMusic />
-            {showInstallBtn && (
-              <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
-                <button
-                  onClick={handleInstallClick}
-                  className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
-                >
-                  <FaDownload />
-                </button>
-              </div>
-            )}
-          </div>
+         
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
