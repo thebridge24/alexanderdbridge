@@ -12,6 +12,7 @@
     "@supabase/supabase-js": "^2.110.7",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.42.2",
+    "html-to-image": "^1.11.13",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
