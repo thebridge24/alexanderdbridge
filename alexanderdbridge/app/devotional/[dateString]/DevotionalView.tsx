@@ -567,7 +567,7 @@ export default function DevotionalView() {
     >
       <MonthlyCelebration />
 
-       <div className="fixed z-99999 bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+       <div className="fixed z-999 bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
             <div className=" flex flex-col items-center gap-1">
               {/* NEW: Streak Floating Button Component */}
               <StreakFloatingButton userName={userName || "Believer"} />
@@ -617,7 +617,7 @@ export default function DevotionalView() {
             key="preloader-overlay"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.6 } }}
-            className="fixed inset-0 z-200 bg-black flex flex-col items-center justify-center px-6 h-screen"
+            className="fixed inset-0 z-9999 bg-black flex flex-col items-center justify-center px-6 h-screen"
           >
             <AnimatePresence mode="wait">
               {introStage === "logo" && (
