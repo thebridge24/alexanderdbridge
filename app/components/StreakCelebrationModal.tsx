@@ -3,7 +3,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Medal } from "../../lib/types/streak";
+import { Medal } from "../../../lib/types/streak";
 import { IoClose, IoShareSocial, IoCheckmark } from "react-icons/io5";
 import { FaTrophy, FaArrowRight } from "react-icons/fa6";
 import { useState, useRef } from "react";
