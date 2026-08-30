@@ -33,9 +33,19 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   onReplySelect,
   isSubmitting = false,
 }) => {
+  const hasReplies = comment.replies && comment.replies.length > 0;
+
   return (
-    <div className="flex flex-col gap-3 py-3 border-b border-neutral-900/60 last:border-b-0 relative ">
-      {comment.replies && comment.replies.length > 0 && (<div className="absolute h-[60%] w-6 border-l border-b rounded-l-xl border-neutral-700 top-6 left-4 z-0"></div>)}
+    <div className="flex flex-col gap-3 py-3 border-b border-neutral-900/60 last:border-b-0 relative">
+      {/* Dynamic Comment Line */}
+      {hasReplies && (
+        <div
+          aria-hidden="true"
+          className="absolute left-4 top-5 bottom-9 w-6 border-l border-neutral-700 pointer-events-none rounded-xs z-0"
+        />
+      )}
+
+      {/* Main Comment */}
       <div className="flex items-start justify-between gap-3 z-10">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {/* Avatar */}
@@ -90,14 +100,23 @@ export const CommentItem: React.FC<CommentItemProps> = ({
         </div>
       </div>
 
-      {/* LinkedIn-style Nested Replies Container */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-10 border-neutral-800 space-y-3 mt-1 z-10">
-          {comment.replies.map((reply) => (
-            <div key={reply.id} className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center font-bold text-xs text-neutral-300 shrink-0">
+      {/* Nested Replies Container */}
+      {hasReplies && (
+        <div className="ml-10 space-y-3 mt-1 z-10">
+          {comment.replies!.map((reply) => (
+            <div key={reply.id} className="flex items-start gap-3 relative">
+              {/* Horizontal curve connecting to the vertical thread line */}
+              <div
+                aria-hidden="true"
+                className="absolute -left-6 top-2.5 w-6 h-2 border-l border-b rounded-bl-xl border-neutral-700 pointer-events-none"
+              />
+
+              {/* Reply Avatar */}
+              <div className="w-9 h-9 rounded-full bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center font-bold text-xs text-neutral-300 shrink-0 z-10">
                 {reply.name ? reply.name.charAt(0).toUpperCase() : "U"}
               </div>
+
+              {/* Reply Details */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-neutral-400 truncate">
