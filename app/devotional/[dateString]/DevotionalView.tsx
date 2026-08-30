@@ -843,7 +843,7 @@ export default function DevotionalView() {
       {/* Name Prompt Modal */}
       <AnimatePresence>
         {showNamePrompt && (
-          <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
             <motion.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
