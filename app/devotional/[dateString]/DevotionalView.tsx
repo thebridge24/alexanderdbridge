@@ -10,40 +10,25 @@ import {
   FaHeart,
   FaRegHeart,
   FaCheck,
-  FaReply,
   FaDownload,
+  FaRegCommentDots,
 } from "react-icons/fa6";
 import {
   DEVOTIONALS_DATA,
   MONTH_THEME,
   Devotional,
-} from "../../devotionalData";
+} from "../../data/devotionalData";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
-import { FaPaperPlane } from "react-icons/fa";
 import MonthlyCelebration from "./MonthlyCelebration";
 import BackgroundMusic from "./BackgroundMusic";
 import { BiShare } from "react-icons/bi";
 import StreakFloatingButton from "@/app/components/StreakFloatingButton";
 
-interface Reply {
-  id: string;
-  name: string;
-  text: string;
-  timestamp: string;
-}
-
-interface Comment {
-  id: string;
-  name: string;
-  text: string;
-  timestamp: string;
-  likes: number;
-  liked?: boolean;
-  replies?: Reply[];
-}
+import { Comment } from "@/app/components/CommentItem";
+import { CommentSlideUpModal } from "@/app/components/CommentSlideUpModal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -71,15 +56,6 @@ const contentVariants: Variants = {
   },
 };
 
-const threadVariants: Variants = {
-  hidden: { opacity: 0, x: -8 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-};
-
 const cinematicVariants: Variants = {
   hidden: { opacity: 0, y: 15, filter: "blur(8px)" },
   visible: {
@@ -99,7 +75,6 @@ const cinematicVariants: Variants = {
 export default function DevotionalView() {
   const params = useParams();
   const router = useRouter();
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const urlDateString = params?.dateString as string | undefined;
 
@@ -117,22 +92,22 @@ export default function DevotionalView() {
   const [userName, setUserName] = useState<string>("");
   const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
+  // Modal & Reply states
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [isSubmittingComment, setIsSubmittingComment] = useState<boolean>(false);
+
   // Preloader & Interaction states
   const [introStage, setIntroStage] = useState<IntroStage>("logo");
-  const [replyingToId, setReplyingToId] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Inside DevotionalView component:
-
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  // Default to true so it shows immediately on load
   const [showInstallBtn, setShowInstallBtn] = useState<boolean>(true);
 
   useEffect(() => {
-    // 1. Hide immediately if user is ALREADY using the installed app (standalone mode)
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
@@ -142,14 +117,12 @@ export default function DevotionalView() {
       return;
     }
 
-    // 2. Capture Chrome / Android deferred install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallBtn(true);
     };
 
-    // 3. Hide button immediately after user completes installation
     const handleAppInstalled = () => {
       setShowInstallBtn(false);
       setDeferredPrompt(null);
@@ -168,7 +141,6 @@ export default function DevotionalView() {
   }, []);
 
   const handleInstallClick = async () => {
-    // If browser supports native install prompt
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -177,7 +149,6 @@ export default function DevotionalView() {
       }
       setDeferredPrompt(null);
     } else {
-      // Fallback for iOS / Safari or browsers without immediate prompt event
       alert(
         "To install: Tap the Share button in your browser and select 'Add to Home Screen'.",
       );
@@ -335,17 +306,6 @@ export default function DevotionalView() {
     }
   }, [currentDevotional]);
 
-  // Auto-resize logic based on scrollHeight
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      // Reset height first so it shrinks correctly when deleting text
-      textarea.style.height = "auto";
-      // Set height equal to scrollHeight
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [commentText]);
-
   if (!currentDevotional) return null;
 
   const handleLikeToggle = async (): Promise<void> => {
@@ -397,7 +357,7 @@ export default function DevotionalView() {
 
   const handleCommentSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || isSubmittingComment) return;
 
     if (!userName.trim()) {
       setShowNamePrompt(true);
@@ -410,36 +370,81 @@ export default function DevotionalView() {
   const executePostComment = async (name: string): Promise<void> => {
     if (!currentDevotional) return;
     const date = currentDevotional.dateString;
+    setIsSubmittingComment(true);
 
     try {
-      const res = await fetch(`/api/devotionals/${date}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          text: commentText,
-        }),
-      });
+      if (replyingToId) {
+        // Post Reply
+        const res = await fetch(`/api/comments/${replyingToId}/replies`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            text: commentText,
+          }),
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const newComment: Comment = {
-          id: data.comment.id,
-          name: data.comment.author_name,
-          text: data.comment.body,
-          timestamp: "Just now",
-          likes: 0,
-          liked: false,
-          replies: [],
-        };
-        setComments([newComment, ...comments]);
-        setCommentText("");
+        if (res.ok) {
+          const data = await res.json();
+          const newReply = {
+            id: data.reply.id,
+            name: data.reply.author_name,
+            text: data.reply.body,
+            timestamp: "Just now",
+          };
+
+          setComments((prev) =>
+            prev.map((c) => {
+              if (c.id === replyingToId) {
+                return {
+                  ...c,
+                  replies: [...(c.replies || []), newReply],
+                };
+              }
+              return c;
+            }),
+          );
+
+          setCommentText("");
+          setReplyingToId(null);
+          setReplyingToName(null);
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to post reply");
+        }
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to post comment");
+        // Post Top-level Comment
+        const res = await fetch(`/api/devotionals/${date}/comments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            text: commentText,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const newComment: Comment = {
+            id: data.comment.id,
+            name: data.comment.author_name,
+            text: data.comment.body,
+            timestamp: "Just now",
+            likes: 0,
+            liked: false,
+            replies: [],
+          };
+          setComments([newComment, ...comments]);
+          setCommentText("");
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to post comment");
+        }
       }
     } catch (err) {
-      console.error("Error posting comment:", err);
+      console.error("Error posting comment/reply:", err);
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
 
@@ -487,53 +492,6 @@ export default function DevotionalView() {
     }
   };
 
-  const handleReplySubmit = async (commentId: string) => {
-    if (!replyText.trim()) return;
-    const author = userName.trim() || "Believer";
-    const text = replyText.trim();
-
-    try {
-      const res = await fetch(`/api/comments/${commentId}/replies`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: author,
-          text,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const newReply: Reply = {
-          id: data.reply.id,
-          name: data.reply.author_name,
-          text: data.reply.body,
-          timestamp: "Just now",
-        };
-
-        setComments((prev) =>
-          prev.map((c) => {
-            if (c.id === commentId) {
-              return {
-                ...c,
-                replies: [...(c.replies || []), newReply],
-              };
-            }
-            return c;
-          }),
-        );
-
-        setReplyText("");
-        setReplyingToId(null);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to post reply");
-      }
-    } catch (err) {
-      console.error("Error posting reply:", err);
-    }
-  };
-
   const handleSaveName = (): void => {
     const trimmedName = userName.trim();
     if (trimmedName) {
@@ -567,49 +525,73 @@ export default function DevotionalView() {
     >
       <MonthlyCelebration />
 
-       <div className="fixed z-999 bottom-24 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
-            <div className=" flex flex-col items-center gap-1">
-              {/* NEW: Streak Floating Button Component */}
-              <StreakFloatingButton userName={userName || "Believer"} />
-              <button
-                type="button"
-                onClick={handleLikeToggle}
-                className={` flex p-3 border border-white/10 bg-white/10 backdrop-blur-xl  rounded-full transition-transform active:scale-75 ${liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"}`}
-              >
-                {liked ? (
-                  <FaHeart className="size-5" />
-                ) : (
-                  <FaRegHeart className="size-5" />
-                )}
-              </button>
-              <span className=" font-mono font-medium text-neutral-300 min-w-3">
-                {likeCount}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80  flex items-center justify-center"
-              aria-label="Share Devotional"
-            >
-              {copied ? (
-                <IoCheckmark className="size-6 text-green-500" />
-              ) : (
-                <BiShare className="size-6" />
-              )}
-            </button>
-            <BackgroundMusic />
-            {showInstallBtn && (
-              <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
-                <button
-                  onClick={handleInstallClick}
-                  className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
-                >
-                  <FaDownload />
-                </button>
-              </div>
+      {/* Floating Right Side Action Column */}
+      <div className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+        <div className="flex flex-col items-center gap-1">
+          <StreakFloatingButton userName={userName || "Believer"} />
+
+          {/* Like Button & Counter */}
+          <button
+            type="button"
+            onClick={handleLikeToggle}
+            className={`flex p-3 border border-white/10 bg-white/10 backdrop-blur-xl rounded-full transition-transform active:scale-75 ${
+              liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"
+            }`}
+          >
+            {liked ? (
+              <FaHeart className="size-5" />
+            ) : (
+              <FaRegHeart className="size-5" />
             )}
+          </button>
+          <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
+            {likeCount}
+          </span>
+        </div>
+
+        {/* Floating Comment Button & Counter */}
+        <div className="flex flex-col items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setIsCommentModalOpen(true)}
+            className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl bg-white/10 hover:bg-neutral-800/80 flex items-center justify-center"
+            aria-label="Open Comments"
+          >
+            <FaRegCommentDots className="size-5" />
+          </button>
+          <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
+            {comments.length}
+          </span>
+        </div>
+
+        {/* Share Button */}
+        <button
+          type="button"
+          onClick={handleShare}
+          className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80 flex items-center justify-center"
+          aria-label="Share Devotional"
+        >
+          {copied ? (
+            <IoCheckmark className="size-6 text-green-500" />
+          ) : (
+            <BiShare className="size-6" />
+          )}
+        </button>
+
+        <BackgroundMusic />
+
+        {showInstallBtn && (
+          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+            <button
+              onClick={handleInstallClick}
+              className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
+            >
+              <FaDownload />
+            </button>
           </div>
+        )}
+      </div>
+
       {/* Intro Preloader Overlay */}
       <AnimatePresence>
         {introStage !== "done" && (
@@ -686,8 +668,6 @@ export default function DevotionalView() {
               <IoArrowBack className="w-5 h-5" />
             </Link>
           </div>
-
-         
         </div>
 
         <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
@@ -698,7 +678,7 @@ export default function DevotionalView() {
         </div>
       </header>
 
-      <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-44 relative z-10">
+      <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
         <div className="w-full mx-auto relative z-10">
           <div className="w-full mb-4 relative z-50">
             <div
@@ -793,7 +773,7 @@ export default function DevotionalView() {
           </div>
 
           <div className="text-base md:text-lg text-neutral-300 leading-relaxed font-light space-y-4">
-            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white">
+            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white w-[96%]">
               {currentDevotional.explanation}
             </p>
           </div>
@@ -823,7 +803,7 @@ export default function DevotionalView() {
             </h3>
             <div className="grid gap-3">
               {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className=" flex gap-3 items-start">
+                <div key={idx} className="flex gap-3 items-start">
                   <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
@@ -835,173 +815,35 @@ export default function DevotionalView() {
             </div>
           </div>
         </motion.article>
-
-        <hr className="border-neutral-900 my-12" />
-
-        <section className="space-y-8">
-          <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
-            Discussion/Question Section ({comments.length})
-          </h3>
-
-          <div className="space-y-6">
-            <AnimatePresence initial={false}>
-              {comments.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="px-6 py-12 text-center rounded-2xl bg-white/5 border border-neutral-900 border-dashed"
-                >
-                  <p className="text-sm text-neutral-500 font-medium">
-                    No questions or observations posted yet. Be the first to
-                    start the thread.
-                  </p>
-                </motion.div>
-              ) : (
-                comments.map((comment) => (
-                  <motion.div
-                    key={comment.id}
-                    variants={threadVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
-                    className="flex gap-4 relative"
-                  >
-                    <div className="flex flex-col items-center shrink-0">
-                      <div className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center font-black text-xs text-neutral-300">
-                        {comment.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="w-0.5 flex-1 bg-neutral-900 my-2" />
-                    </div>
-
-                    <div className="flex-1 pb-4 text-left">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-bold text-neutral-200">
-                          {comment.name}
-                        </span>
-                        <span className="text-xs text-neutral-500">
-                          · {comment.timestamp}
-                        </span>
-                      </div>
-                      <p className="text-sm text-neutral-400 mt-1.5 leading-relaxed">
-                        {comment.text}
-                      </p>
-
-                      {/* X-Style Interaction Row for Comment */}
-                      <div className="flex items-center gap-6 mt-3">
-                        <button
-                          onClick={() => handleCommentLike(comment.id)}
-                          className={`flex items-center gap-1.5 text-xs transition-colors ${
-                            comment.liked
-                              ? "text-red-500"
-                              : "text-neutral-500 hover:text-neutral-300"
-                          }`}
-                        >
-                          {comment.liked ? (
-                            <FaHeart className="w-3.5 h-3.5" />
-                          ) : (
-                            <FaRegHeart className="w-3.5 h-3.5" />
-                          )}
-                          <span>{comment.likes}</span>
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            setReplyingToId(
-                              replyingToId === comment.id ? null : comment.id,
-                            )
-                          }
-                          className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
-                        >
-                          <FaReply className="w-3.5 h-3.5" />
-                          <span>Reply</span>
-                        </button>
-                      </div>
-
-                      {/* Inline Reply Input */}
-                      {replyingToId === comment.id && (
-                        <div className="mt-3 flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Write a reply..."
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            className="flex-1 bg-neutral-900/80 border border-neutral-800 rounded-full px-4 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-700"
-                          />
-                          <button
-                            onClick={() => handleReplySubmit(comment.id)}
-                            className="px-3 py-1.5 bg-white text-black text-xs font-semibold rounded-full hover:bg-neutral-200 transition-colors"
-                          >
-                            Reply
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Nested Replies Rendering */}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <div className="mt-4 space-y-3 pl-4 border-l border-neutral-800">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="text-left">
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-xs font-bold text-neutral-300">
-                                  {reply.name}
-                                </span>
-                                <span className="text-[10px] text-neutral-500">
-                                  · {reply.timestamp}
-                                </span>
-                              </div>
-                              <p className="text-xs text-neutral-400 mt-1">
-                                {reply.text}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </AnimatePresence>
-          </div>
-        </section>
       </div>
 
-      {/* Floating Bottom Toolbar */}
-      <div className="fixed bottom-6 left-0 right-0 max-w-xl mx-auto px-6 z-50 pointer-events-none">
-        <div className="fixed bottom-0 left-0 right-0 h-20 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
-
-        <div className="w-full flex items-center gap-3 pointer-events-auto relative z-50">
-          <form
-            onSubmit={handleCommentSubmit}
-            className="w-full flex items-center gap-3"
-          >
-            <div className="flex-1 flex items-end gap-4 ">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                placeholder="Share your insight..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full min-h-12 max-h-36 px-4 py-3 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl outline-none text-sm text-neutral-200 placeholder-neutral-500 focus:ring-0 resize-none overflow-y-auto no-scrollbar"
-              />
-              <div className="shrink-0">
-                <button
-                  type="submit"
-                  disabled={!commentText.trim()}
-                  className="p-3 flex items-center justify-center border border-white/10 disabled:bg-white/10 bg-white rounded-full font-semibold  disabled:text-neutral-600 backdrop-blur-xl active:scale-95 transition-all shadow-2xl text-black"
-                  aria-label="Post comment"
-                >
-                  <FaPaperPlane className="size-6 stroke-2" />
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
+      {/* Slide-Up Comment Modal Component */}
+      <CommentSlideUpModal
+        isOpen={isCommentModalOpen}
+        onClose={() => {
+          setIsCommentModalOpen(false);
+          setReplyingToId(null);
+          setReplyingToName(null);
+        }}
+        comments={comments}
+        commentText={commentText}
+        setCommentText={setCommentText}
+        onSubmitComment={handleCommentSubmit}
+        onLikeComment={handleCommentLike}
+        replyingToId={replyingToId}
+        replyingToName={replyingToName}
+        setReplyingTo={(id, name) => {
+          setReplyingToId(id);
+          setReplyingToName(name);
+        }}
+        isSubmitting={isSubmittingComment}
+        userInitial={userName ? userName.charAt(0).toUpperCase() : "U"}
+      />
 
       {/* Name Prompt Modal */}
       <AnimatePresence>
         {showNamePrompt && (
-          <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
             <motion.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

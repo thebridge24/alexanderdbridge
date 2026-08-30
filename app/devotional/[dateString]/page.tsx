@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import DevotionalView from "./DevotionalView";
-import { DEVOTIONALS_DATA } from "@/app/devotionalData";
+import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
 
 type Props = {
   params: Promise<{ dateString: string }>;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-import { DEVOTIONALS_DATA, Devotional } from "@/app/devotionalData";
+import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
 
 export async function GET() {
   const configError = assertSupabaseConfigured();

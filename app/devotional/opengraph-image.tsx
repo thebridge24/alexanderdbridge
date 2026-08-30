@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from "next/og";
-import { DEVOTIONALS_DATA } from "../devotionalData";
+import { DEVOTIONALS_DATA } from "../data/devotionalData";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "edge";

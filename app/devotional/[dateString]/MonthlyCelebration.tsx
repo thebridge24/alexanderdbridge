@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { IoClose } from "react-icons/io5";
-import { MONTH_THEME } from "@/app/devotionalData";
+import { MONTH_THEME } from "@/app/data/devotionalData";
 
 export default function MonthlyCelebration() {
   const [showPopup, setShowPopup] = useState<boolean>(false);

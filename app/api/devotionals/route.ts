@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-import { DEVOTIONALS_DATA, Devotional } from "@/app/devotionalData";
+import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
 import { isValidDevotionalDate } from "@/lib/utils/date";
 
 export async function GET() {
