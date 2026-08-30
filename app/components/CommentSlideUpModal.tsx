@@ -2,8 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoClose, IoCloseCircle } from "react-icons/io5";
-import { FaPaperPlane } from "react-icons/fa";
+import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
 import { Comment, CommentItem } from "./CommentItem";
 
 interface CommentSlideUpModalProps {
@@ -45,6 +44,28 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
       textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     }
   }, [commentText]);
+
+  // Handle auto-focus and cursor positioning when selecting a reply target
+  useEffect(() => {
+    if (replyingToName && textareaRef.current) {
+      textareaRef.current.focus();
+      const length = textareaRef.current.value.length;
+      textareaRef.current.setSelectionRange(length, length);
+    }
+  }, [replyingToName, replyingToId]);
+
+  const handleReplySelect = (id: string, name: string) => {
+    setReplyingTo(id, name);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 50);
+  };
+
+  const handleClearReply = () => {
+    setReplyingTo(null, null);
+  };
 
   return (
     <AnimatePresence>
@@ -97,7 +118,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     key={comment.id}
                     comment={comment}
                     onLike={onLikeComment}
-                    onReplySelect={(id, name) => setReplyingTo(id, name)}
+                    onReplySelect={handleReplySelect}
                     isSubmitting={isSubmitting}
                   />
                 ))
@@ -106,25 +127,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
 
             {/* Input Section */}
             <div className="p-4 border-t border-neutral-900 bg-neutral-950/90 backdrop-blur-md shrink-0">
-              {/* Replying Tag Banner */}
-              {replyingToId && replyingToName && (
-                <div className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-1.5 mb-2.5">
-                  <span className="text-xs text-neutral-300 font-medium truncate">
-                    Replying to{" "}
-                    <span className="text-white font-semibold">
-                      @{replyingToName}
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setReplyingTo(null, null)}
-                    className="text-neutral-400 hover:text-white ml-2"
-                  >
-                    <IoCloseCircle className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
               <form
                 onSubmit={onSubmitComment}
                 className="flex items-end gap-3"
@@ -133,19 +135,35 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   {userInitial}
                 </div>
 
-                <div className="flex-1 flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-3xl px-4 py-2 focus-within:border-neutral-700 transition-colors">
+                {/* Input Container */}
+                <div className="relative flex-1 bg-neutral-900 border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
+                  {/* Floating Tag (Pinned Top-Left) */}
+                  {replyingToName && (
+                    <div className="float-left mr-2 mb-1">
+                      <span className="inline-flex items-center gap-1 bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-semibold px-2 py-0.5 rounded-full select-none">
+                        @{replyingToName}
+                        <button
+                          type="button"
+                          onClick={handleClearReply}
+                          className="hover:text-red-400 focus:outline-none"
+                          aria-label="Remove mention"
+                        >
+                          <IoCloseCircle className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    </div>
+                  )}
+
                   <textarea
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName
-                        ? `Reply to @${replyingToName}...`
-                        : "Your Comment..."
+                      replyingToName ? "Write a reply..." : "Your Comment..."
                     }
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     disabled={isSubmitting}
-                    className="w-full bg-transparent text-sm text-white placeholder-neutral-500 outline-none resize-none no-scrollbar max-h-28 leading-relaxed"
+                    className="w-full bg-transparent text-sm text-white placeholder-neutral-500 outline-none resize-none no-scrollbar max-h-28 leading-relaxed block"
                   />
                 </div>
 
@@ -155,7 +173,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:bg-neutral-800 disabled:text-neutral-600 active:scale-90 transition-all mb-0.5"
                   aria-label="Send comment"
                 >
-                  <FaPaperPlane className="w-4 h-4" />
+                  <IoSend className="w-4 h-4 ml-0.5" />
                 </button>
               </form>
             </div>
