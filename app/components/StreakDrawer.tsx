@@ -324,7 +324,7 @@ export default function StreakDrawer({
                               whileHover={isUnlocked ? "hover" : undefined}
                               className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
                                 isUnlocked
-                                  ? "bg-black border border-white/60 text-white"
+                                  ? "bg-black border border-white/60 text-white animate-bounce"
                                   : "bg-neutral-900 border border-neutral-800 text-neutral-500 opacity-75"
                               }`}
                             >
