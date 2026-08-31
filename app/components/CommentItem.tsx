@@ -41,7 +41,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       {hasReplies && (
         <div
           aria-hidden="true"
-          className="absolute left-4 top-5 bottom-9 w-6 border-l border-neutral-700 pointer-events-none rounded-xs z-0"
+          className="absolute left-4 top-5 bottom-9 w-6 border-l-2 border-neutral-900 pointer-events-none rounded-xs z-0"
         />
       )}
 
@@ -108,7 +108,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               {/* Horizontal curve connecting to the vertical thread line */}
               <div
                 aria-hidden="true"
-                className="absolute -left-6 top-2.5 w-6 h-2 border-l border-b rounded-bl-xl border-neutral-700 pointer-events-none"
+                className="absolute -left-6 top-2.5 w-6 h-2 border-l-2 border-b-2 rounded-bl-xl border-neutral-900 pointer-events-none"
               />
 
               {/* Reply Avatar */}
