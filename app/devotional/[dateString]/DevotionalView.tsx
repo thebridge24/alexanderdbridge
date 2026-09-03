@@ -77,6 +77,37 @@ export default function DevotionalView() {
   const router = useRouter();
 
   const urlDateString = params?.dateString as string | undefined;
+  const [isFloatingVisible, setIsFloatingVisible] = useState<boolean>(true);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to reset the auto-hide timer
+  const startHideTimer = (delayMs: number) => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      setIsFloatingVisible(false);
+    }, delayMs);
+  };
+
+  // 1. Initial load 10s auto-hide timer
+  useEffect(() => {
+    startHideTimer(10000);
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
+  // 2. Scroll listener to show column and trigger 4s hide delay when scrolling stops
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsFloatingVisible(true);
+      startHideTimer(4000);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const [devotionalsList, setDevotionalsList] =
     useState<Devotional[]>(DEVOTIONALS_DATA);
@@ -96,7 +127,8 @@ export default function DevotionalView() {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
-  const [isSubmittingComment, setIsSubmittingComment] = useState<boolean>(false);
+  const [isSubmittingComment, setIsSubmittingComment] =
+    useState<boolean>(false);
 
   // Preloader & Interaction states
   const [introStage, setIntroStage] = useState<IntroStage>("logo");
@@ -526,7 +558,15 @@ export default function DevotionalView() {
       <MonthlyCelebration />
 
       {/* Floating Right Side Action Column */}
-      <div className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4">
+      <motion.div
+        initial={{ x: 0, opacity: 1 }}
+        animate={{
+          x: isFloatingVisible ? 0 : 100,
+          opacity: isFloatingVisible ? 1 : 0,
+        }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
+      >
         <div className="flex flex-col items-center gap-1">
           <StreakFloatingButton userName={userName || "Believer"} />
 
@@ -590,7 +630,7 @@ export default function DevotionalView() {
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Intro Preloader Overlay */}
       <AnimatePresence>
