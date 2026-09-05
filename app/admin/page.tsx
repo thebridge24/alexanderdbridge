@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoArrowBack, IoEyeOutline } from "react-icons/io5";
+import { IoArrowBack } from "react-icons/io5";
 import {
   FaCheck,
   FaTrash,
@@ -12,23 +12,14 @@ import {
   FaSignOutAlt,
   FaBookOpen,
   FaChartLine,
-  FaHeart,
-  FaRegComment,
 } from "react-icons/fa";
 import Link from "next/link";
+import AnalyticsSection, {
+  DevotionalAnalyticsItem,
+} from "../components/AnalyticsSection"; // Adjust path if needed
 
 const CORRECT_PIN = "1961";
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-
-type DevotionalAnalyticsItem = {
-  dateString: string;
-  topic: string;
-  dayNumber: number;
-  displayDate: string;
-  views: number;
-  likes: number;
-  comments: number;
-};
 
 export default function AdminPage() {
   const [pin, setPin] = useState("");
@@ -54,9 +45,7 @@ export default function AdminPage() {
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<DevotionalAnalyticsItem[]>([]);
   const [analyticsTotals, setAnalyticsTotals] = useState({ views: 0, likes: 0, comments: 0 });
-  const [analyticsMetric, setAnalyticsMetric] = useState<"views" | "likes" | "comments">("views");
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const [hoveredBar, setHoveredBar] = useState<DevotionalAnalyticsItem | null>(null);
 
   // Auto-generate display date when dateString changes
   useEffect(() => {
@@ -85,7 +74,6 @@ export default function AdminPage() {
     const formatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setDateString(formatted);
 
-    // Check if already authenticated in session storage
     if (typeof window !== "undefined") {
       const auth = window.sessionStorage.getItem("admin_auth");
       if (auth === "true") {
@@ -94,7 +82,7 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Pre-populate day number and date string with the next sequential values
+  // Pre-populate day number and date string with next sequential values
   useEffect(() => {
     async function loadLatestDevotional() {
       try {
@@ -126,7 +114,7 @@ export default function AdminPage() {
     }
   }, [isAuthenticated]);
 
-  // Fetch Analytics data when analytics tab is opened
+  // Fetch Analytics data
   useEffect(() => {
     async function fetchAnalytics() {
       if (!isAuthenticated) return;
@@ -191,34 +179,24 @@ export default function AdminPage() {
     }
   };
 
-  // Needed Steps actions
-  const handleAddStep = () => {
-    setNeededSteps([...neededSteps, ""]);
-  };
-
+  const handleAddStep = () => setNeededSteps([...neededSteps, ""]);
   const handleStepChange = (index: number, value: string) => {
     const updated = [...neededSteps];
     updated[index] = value;
     setNeededSteps(updated);
   };
-
   const handleRemoveStep = (index: number) => {
     if (neededSteps.length > 1) {
       setNeededSteps(neededSteps.filter((_, i) => i !== index));
     }
   };
 
-  // Prayer Points actions
-  const handleAddPrayer = () => {
-    setPrayerPoints([...prayerPoints, ""]);
-  };
-
+  const handleAddPrayer = () => setPrayerPoints([...prayerPoints, ""]);
   const handlePrayerChange = (index: number, value: string) => {
     const updated = [...prayerPoints];
     updated[index] = value;
     setPrayerPoints(updated);
   };
-
   const handleRemovePrayer = (index: number) => {
     if (prayerPoints.length > 1) {
       setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
@@ -257,7 +235,6 @@ export default function AdminPage() {
 
       setMessage({ type: "success", text: "Devotional saved successfully!" });
 
-      // Reset form fields
       setTopic("");
       setText("");
       setMemoryVerse({ verse: "", reference: "" });
@@ -268,7 +245,6 @@ export default function AdminPage() {
         setDayNumber(String(parseInt(dayNumber, 10) + 1));
       }
 
-      // Auto advance date by 1 day
       if (dateString) {
         const parts = dateString.split("-");
         const nextDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]) + 1);
@@ -282,15 +258,8 @@ export default function AdminPage() {
     }
   };
 
-  // Compute graph height calculations
-  const maxMetricValue = Math.max(
-    ...analyticsData.map((d) => d[analyticsMetric]),
-    1
-  );
-
   return (
     <main className="w-full min-h-screen bg-black text-white selection:bg-neutral-800 relative flex flex-col items-center">
-      {/* Background Neon Glows */}
       <div className="absolute top-0 left-1/4 w-125 h-125 bg-red-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-neutral-900/40 rounded-full blur-[120px] pointer-events-none" />
 
@@ -302,7 +271,6 @@ export default function AdminPage() {
               Enter Passcode
             </p>
 
-            {/* PIN Dots */}
             <div className="flex gap-4">
               {[0, 1, 2, 3].map((i) => (
                 <div
@@ -314,15 +282,11 @@ export default function AdminPage() {
               ))}
             </div>
 
-            {/* Keypad */}
             <div className="flex flex-wrap w-70 justify-center gap-4 relative">
               {KEYS.map((key, i) => (
                 <button
                   key={i}
                   onClick={() => handleKeyPress(key)}
-                  style={{
-                    animationDelay: isError ? `${i * 0.05}s` : `${i * 0.01}s`,
-                  }}
                   className={`w-20 h-20 rounded-full ${isError ? "animate-shake" : ""} text-2xl font-medium bg-black/5 active:rounded-xl active:scale-95 dark:text-white dark:bg-white/10 transition duration-200 active:bg-white/20 active:text-white`}
                 >
                   {key}
@@ -333,9 +297,8 @@ export default function AdminPage() {
                 <button
                   onClick={handleBackspace}
                   aria-label="clear button"
-                  className={`animate-fade absolute left-4 bottom-2 p-4 rounded-full duration-100 `}
+                  className="animate-fade absolute left-4 bottom-2 p-4 rounded-full duration-100"
                 >
-                  {" "}
                   <svg
                     className="size-8"
                     viewBox="0 0 16 16"
@@ -351,15 +314,12 @@ export default function AdminPage() {
               )}
             </div>
 
-            <Link
-              href="/"
-              className="text-sm opacity-50 hover:opacity-100 transition dark:text-white"
-            >
+            <Link href="/" className="text-sm opacity-50 hover:opacity-100 transition dark:text-white">
               Cancel
             </Link>
           </div>
         ) : (
-          /* FORM INTERFACE & DASHBOARD */
+          /* DASHBOARD */
           <motion.div
             key="dashboard"
             initial={{ opacity: 0, y: 15 }}
@@ -372,7 +332,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between mb-8 pb-6 border-b border-neutral-900">
               <div className="flex items-center gap-3">
                 <Link
-                  href="/devotional"
+                  href="/"
                   className="p-2.5 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
                   aria-label="Back to devotionals"
                 >
@@ -401,11 +361,11 @@ export default function AdminPage() {
                 onClick={() => setAdminTab("create")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "create"
-                    ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
                 }`}
               >
-                <FaBookOpen className="size-3.5" /> 1. Add Devotional
+                <FaBookOpen className="size-3.5" /> 1. Add Devo
               </button>
 
               <button
@@ -413,22 +373,21 @@ export default function AdminPage() {
                 onClick={() => setAdminTab("analytics")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "analytics"
-                    ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
                 }`}
               >
-                <FaChartLine className="size-3.5" /> 2. Devotional Analytics
+                <FaChartLine className="size-3.5" /> 2. Analytics
               </button>
             </div>
 
-            {/* TAB CONTENT 1: ADD NEW DEVOTIONAL */}
+            {/* TAB 1: ADD DEVOTIONAL */}
             {adminTab === "create" && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Notification Message */}
                 <AnimatePresence>
                   {message && (
                     <motion.div
@@ -446,9 +405,7 @@ export default function AdminPage() {
                   )}
                 </AnimatePresence>
 
-                {/* Devotional Creation Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Row 1: Date & Day Number */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
@@ -459,7 +416,7 @@ export default function AdminPage() {
                         required
                         value={dateString}
                         onChange={(e) => setDateString(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                       />
                     </div>
 
@@ -473,19 +430,17 @@ export default function AdminPage() {
                         placeholder="e.g. 197"
                         value={dayNumber}
                         onChange={(e) => setDayNumber(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                       />
                     </div>
                   </div>
 
-                  {/* Auto display date feedback */}
                   {displayDate && (
                     <div className="text-xs text-neutral-500 bg-neutral-950/50 px-4 py-2 rounded-lg border border-neutral-900/60">
                       <span className="font-semibold">Generated Display Date:</span> {displayDate}
                     </div>
                   )}
 
-                  {/* Topic & Scripture Reference */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
@@ -497,7 +452,7 @@ export default function AdminPage() {
                         placeholder="e.g. Knowing God Personally"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                       />
                     </div>
 
@@ -511,12 +466,11 @@ export default function AdminPage() {
                         placeholder="e.g. John 17:3"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                       />
                     </div>
                   </div>
 
-                  {/* Memory Verse Block */}
                   <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-850 space-y-4">
                     <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
                       Memory Verse
@@ -530,11 +484,9 @@ export default function AdminPage() {
                         required
                         placeholder="“And this is life eternal, that they might know thee...”"
                         value={memoryVerse.verse}
-                        onChange={(e) =>
-                          setMemoryVerse({ ...memoryVerse, verse: e.target.value })
-                        }
+                        onChange={(e) => setMemoryVerse({ ...memoryVerse, verse: e.target.value })}
                         rows={2}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors resize-none"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors resize-none"
                       />
                     </div>
 
@@ -547,15 +499,12 @@ export default function AdminPage() {
                         required
                         placeholder="e.g. John 17:3, KJV"
                         value={memoryVerse.reference}
-                        onChange={(e) =>
-                          setMemoryVerse({ ...memoryVerse, reference: e.target.value })
-                        }
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                        onChange={(e) => setMemoryVerse({ ...memoryVerse, reference: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                       />
                     </div>
                   </div>
 
-                  {/* Explanation Content */}
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
                       Devotional Body / Explanation
@@ -566,11 +515,10 @@ export default function AdminPage() {
                       value={explanation}
                       onChange={(e) => setExplanation(e.target.value)}
                       rows={6}
-                      className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                     />
                   </div>
 
-                  {/* Needed Steps */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400">
@@ -597,14 +545,13 @@ export default function AdminPage() {
                             placeholder="e.g. Spend 15 minutes in quiet prayer today."
                             value={step}
                             onChange={(e) => handleStepChange(idx, e.target.value)}
-                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                           />
                           {neededSteps.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveStep(idx)}
                               className="p-3 text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
-                              aria-label="Remove step"
                             >
                               <FaTrash className="size-4" />
                             </button>
@@ -614,7 +561,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Prayer Points */}
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400">
@@ -641,14 +587,13 @@ export default function AdminPage() {
                             placeholder="e.g. Lord, grant me the grace to wait on your timing."
                             value={prayer}
                             onChange={(e) => handlePrayerChange(idx, e.target.value)}
-                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-red-500/50 transition-colors"
+                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
                           />
                           {prayerPoints.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemovePrayer(idx)}
                               className="p-3 text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
-                              aria-label="Remove prayer point"
                             >
                               <FaTrash className="size-4" />
                             </button>
@@ -658,12 +603,11 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <div className="pt-6">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-sm tracking-widest uppercase transition-all duration-300 disabled:bg-neutral-800 disabled:text-neutral-500 active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-4 rounded-full bg-red-600 hover:bg-red-600 text-white font-bold text-sm tracking-widest uppercase transition-all duration-300 disabled:bg-neutral-800 disabled:text-neutral-500 active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {loading ? (
                         "Publishing Devotional..."
@@ -678,210 +622,13 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* TAB CONTENT 2: DEVOTIONAL ANALYTICS */}
+            {/* TAB 2: DEVOTIONAL ANALYTICS COMPONENT */}
             {adminTab === "analytics" && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-8"
-              >
-                {/* Metrics Total Stats Grid */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-900 flex flex-col items-center justify-center">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5 mb-1">
-                      <IoEyeOutline className="text-blue-400 size-4" /> Total Views
-                    </span>
-                    <span className="text-2xl md:text-3xl font-black text-white">
-                      {analyticsTotals.views.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-900 flex flex-col items-center justify-center">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5 mb-1">
-                      <FaHeart className="text-red-500 size-3.5" /> Total Likes
-                    </span>
-                    <span className="text-2xl md:text-3xl font-black text-white">
-                      {analyticsTotals.likes.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-900 flex flex-col items-center justify-center">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5 mb-1">
-                      <FaRegComment className="text-amber-400 size-3.5" /> Comments
-                    </span>
-                    <span className="text-2xl md:text-3xl font-black text-white">
-                      {analyticsTotals.comments.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Graph Metric Selector Bar */}
-                <div className="p-5 rounded-3xl bg-neutral-950 border border-neutral-900 shadow-2xl space-y-6">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                      <h3 className="text-base font-bold text-neutral-200">
-                        Devotional Engagement Chart
-                      </h3>
-                      <p className="text-xs text-neutral-500">
-                        Showing breakdown per devotional date
-                      </p>
-                    </div>
-
-                    {/* Metric Selectors */}
-                    <div className="flex gap-2 p-1 rounded-full bg-neutral-900 border border-neutral-800">
-                      <button
-                        type="button"
-                        onClick={() => setAnalyticsMetric("views")}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                          analyticsMetric === "views"
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "text-neutral-400 hover:text-neutral-200"
-                        }`}
-                      >
-                        <IoEyeOutline className="size-3.5" /> Views
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setAnalyticsMetric("likes")}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                          analyticsMetric === "likes"
-                            ? "bg-red-600 text-white shadow-lg"
-                            : "text-neutral-400 hover:text-neutral-200"
-                        }`}
-                      >
-                        <FaHeart className="size-3" /> Likes
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setAnalyticsMetric("comments")}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                          analyticsMetric === "comments"
-                            ? "bg-amber-600 text-white shadow-lg"
-                            : "text-neutral-400 hover:text-neutral-200"
-                        }`}
-                      >
-                        <FaRegComment className="size-3" /> Comments
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Interactive Bar Chart */}
-                  {analyticsLoading ? (
-                    <div className="h-64 flex items-center justify-center text-sm text-neutral-500">
-                      Loading analytics data...
-                    </div>
-                  ) : analyticsData.length === 0 ? (
-                    <div className="h-64 flex items-center justify-center text-sm text-neutral-500">
-                      No devotional analytics recorded yet.
-                    </div>
-                  ) : (() => {
-                    // Dynamic Y-axis scale calculation
-                    const cleanIntervals = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
-                    let niceMax = 5;
-                    for (const val of cleanIntervals) {
-                      if (maxMetricValue <= val) {
-                        niceMax = val;
-                        break;
-                      }
-                    }
-                    if (maxMetricValue > cleanIntervals[cleanIntervals.length - 1]) {
-                      niceMax = Math.ceil(maxMetricValue / 50000) * 50000;
-                    }
-
-                    return (
-                      <div className="space-y-4">
-                        {/* Tooltip Overlay */}
-                        <div className="h-10 flex items-center justify-center">
-                          {hoveredBar ? (
-                            <motion.div
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="px-4 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 flex items-center gap-2 shadow-xl"
-                            >
-                              <span className="font-bold text-white">Day {hoveredBar.dayNumber}:</span>
-                              <span className="text-neutral-400 line-clamp-1 max-w-[200px]">{hoveredBar.topic}</span>
-                              <span className="font-mono font-bold text-red-400">
-                                {hoveredBar[analyticsMetric]} {analyticsMetric}
-                              </span>
-                            </motion.div>
-                          ) : (
-                            <span className="text-xs text-neutral-600 italic">
-                              Hover or tap any bar on the graph for detailed metrics
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Chart Area Container (with Y Axis on the left) */}
-                        <div className="h-64 w-full flex gap-3 pt-6 pb-2">
-                          {/* Y-axis Ticks Column */}
-                          <div className="flex flex-col justify-between h-[calc(100%-24px)] text-[10px] font-mono text-neutral-500 w-10 text-right pr-2 select-none shrink-0">
-                            <span>{niceMax}</span>
-                            <span>{Math.round(niceMax * 0.75)}</span>
-                            <span>{Math.round(niceMax * 0.5)}</span>
-                            <span>{Math.round(niceMax * 0.25)}</span>
-                            <span>0</span>
-                          </div>
-
-                          {/* Chart Grid & Pillars Area */}
-                          <div className="flex-1 h-full relative border-l border-b border-neutral-900/60 overflow-hidden">
-                            {/* Grid Lines */}
-                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none h-[calc(100%-24px)] z-0">
-                              <div className="w-full border-t border-neutral-900/50" />
-                              <div className="w-full border-t border-neutral-900/50" />
-                              <div className="w-full border-t border-neutral-900/50" />
-                              <div className="w-full border-t border-neutral-900/50" />
-                              <div className="w-full" />
-                            </div>
-
-                            {/* Scrollable Pillars Container */}
-                            <div className="absolute inset-0 flex items-end gap-3.5 overflow-x-auto no-scrollbar pt-6 pb-0.5 px-3 z-10 h-full">
-                              {analyticsData.map((item) => {
-                                const val = item[analyticsMetric];
-                                const heightPercent = (val / niceMax) * 100;
-
-                                const barColor =
-                                  analyticsMetric === "views"
-                                    ? "bg-gradient-to-t from-blue-600 to-indigo-500"
-                                    : analyticsMetric === "likes"
-                                    ? "bg-gradient-to-t from-red-600 to-rose-500"
-                                    : "bg-gradient-to-t from-amber-600 to-orange-500";
-
-                                return (
-                                  <div
-                                    key={item.dateString}
-                                    onMouseEnter={() => setHoveredBar(item)}
-                                    onMouseLeave={() => setHoveredBar(null)}
-                                    className="flex flex-col items-center w-8 shrink-0 h-[calc(100%-24px)] justify-end group cursor-pointer relative"
-                                  >
-                                    {/* Value label above bar */}
-                                    <span className="absolute -top-5 text-[9px] font-mono text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {val}
-                                    </span>
-
-                                    {/* Bar Pillar */}
-                                    <div
-                                      style={{ height: `${Math.max(heightPercent, 3)}%` }}
-                                      className={`w-full rounded-t-md transition-all duration-300 group-hover:brightness-125 ${barColor}`}
-                                    />
-
-                                    {/* Day Label Below */}
-                                    <span className="absolute -bottom-5 text-[9px] font-mono text-neutral-500 group-hover:text-white transition-colors">
-                                      D{item.dayNumber}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </motion.div>
+              <AnalyticsSection
+                analyticsData={analyticsData}
+                analyticsTotals={analyticsTotals}
+                analyticsLoading={analyticsLoading}
+              />
             )}
           </motion.div>
         )}

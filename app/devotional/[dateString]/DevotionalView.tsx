@@ -26,6 +26,9 @@ import MonthlyCelebration from "./MonthlyCelebration";
 import BackgroundMusic from "./BackgroundMusic";
 import { BiShare } from "react-icons/bi";
 import StreakFloatingButton from "@/app/components/StreakFloatingButton";
+import StreakDrawer from "@/app/components/StreakDrawer";
+import StreakCelebrationModal from "@/app/components/StreakCelebrationModal";
+import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 
 import { Comment } from "@/app/components/CommentItem";
 import { CommentSlideUpModal } from "@/app/components/CommentSlideUpModal";
@@ -79,6 +82,14 @@ export default function DevotionalView() {
   const urlDateString = params?.dateString as string | undefined;
   const [isFloatingVisible, setIsFloatingVisible] = useState<boolean>(true);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Streak state & hooks
+  const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
+  const {
+    streakData,
+    newlyUnlockedMedal,
+    clearNewMedalAlert,
+  } = useStreakTracker();
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -568,7 +579,9 @@ export default function DevotionalView() {
         className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
       >
         <div className="flex flex-col items-center gap-1">
-          <StreakFloatingButton userName={userName || "Believer"} />
+          <div onClick={() => setIsStreakDrawerOpen(true)}>
+            <StreakFloatingButton />
+          </div>
 
           {/* Like Button & Counter */}
           <button
@@ -813,7 +826,7 @@ export default function DevotionalView() {
           </div>
 
           <div className="text-base md:text-lg text-neutral-300 leading-relaxed font-light space-y-4">
-            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white w-[96%]">
+            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white ">
               {currentDevotional.explanation}
             </p>
           </div>
@@ -856,6 +869,21 @@ export default function DevotionalView() {
           </div>
         </motion.article>
       </div>
+
+      {/* Streak Side-Drawer */}
+      <StreakDrawer
+        isOpen={isStreakDrawerOpen}
+        onClose={() => setIsStreakDrawerOpen(false)}
+        streakData={streakData}
+        userName={userName || "Believer"}
+      />
+
+      {/* Streak Celebration Popup Modal */}
+      <StreakCelebrationModal
+        medal={newlyUnlockedMedal}
+        onClose={clearNewMedalAlert}
+        userName={userName || "Believer"}
+      />
 
       {/* Slide-Up Comment Modal Component */}
       <CommentSlideUpModal
