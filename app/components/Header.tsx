@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { IoArrowBack } from "react-icons/io5";
-import PushNotifications from "@/alexanderdbridge/app/notifications/PushNotifications";
-import AuthButton from "@/alexanderdbridge/app/auth/AuthButton";
+import PushNotifications from "@/app/notifications/PushNotifications";
+import AuthButton from "@/app/auth/AuthButton";
 
 export default function Header() {
   return (
