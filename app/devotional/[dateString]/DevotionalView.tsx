@@ -22,24 +22,21 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
-<<<<<<< HEAD:alexanderdbridge/app/devotional/[dateString]/DevotionalView.tsx
-import { FaPaperPlane } from "react-icons/fa";
-import AuthButton from "@/app/auth/AuthButton";
-import PushNotifications from "@/app/notifications/PushNotifications";
-=======
-import MonthlyCelebration from "./MonthlyCelebration";
-import BackgroundMusic from "./BackgroundMusic";
-import { BiShare } from "react-icons/bi";
-import StreakFloatingButton from "@/app/components/StreakFloatingButton";
-import StreakDrawer from "@/app/components/StreakDrawer";
-import StreakCelebrationModal from "@/app/components/StreakCelebrationModal";
-import { useStreakTracker } from "@/app/hooks/useStreakTracker";
->>>>>>> 48c03f41afc307801cc347c3cf2be224cd67f916:app/devotional/[dateString]/DevotionalView.tsx
+import AuthButton from "@/alexanderdbridge/app/auth/AuthButton";
+import PushNotifications from "@/alexanderdbridge/app/notifications/PushNotifications";
 
 import { Comment } from "@/app/components/CommentItem";
 import { CommentSlideUpModal } from "@/app/components/CommentSlideUpModal";
 import YesterdayPromptCallout from "@/app/components/YesterdayPromptCallout";
 import StreakFooterBanner from "@/app/components/StreakFooterBanner";
+import MonthlyCelebration from "./MonthlyCelebration";
+import StreakFloatingButton from "@/app/components/StreakFloatingButton";
+import { BiShare } from "react-icons/bi";
+import StreakCelebrationModal from "@/app/components/StreakCelebrationModal";
+import StreakDrawer from "@/app/components/StreakDrawer";
+import { useStreakTracker } from "@/app/hooks/useStreakTracker";
+import BackgroundMusic from "./BackgroundMusic";
+import Header from "@/app/components/Header";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -745,31 +742,7 @@ export default function DevotionalView() {
 
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
-      <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50">
-        <div className="flex gap-2">
-          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
-            <Link
-              href="/"
-              className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
-              aria-label="Go back"
-            >
-              <IoArrowBack className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/60 shadow-2xl flex gap-0.5 items-end">
-          <span className="text-2xl font-bold capitalize text-white">
-            Daily Devotional
-          </span>
-          <span className="bg-[#ff0000] size-1.5 sm:size-2 rounded-full mb-1.5 sm:mb-2"></span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <PushNotifications />
-          <AuthButton />
-        </div>
-      </header>
+      <Header />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
         <div className="w-full mx-auto relative z-10">

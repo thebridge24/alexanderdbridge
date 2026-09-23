@@ -10,11 +10,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
-<<<<<<< HEAD:alexanderdbridge/package.json
-    "firebase": "^12.19.0",
-=======
     "canvas-confetti": "^1.9.4",
->>>>>>> 48c03f41afc307801cc347c3cf2be224cd67f916:package.json
+    "firebase": "^12.19.0",
     "framer-motion": "^12.42.2",
     "html-to-image": "^1.11.13",
     "next": "16.2.10",

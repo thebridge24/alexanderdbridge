@@ -1,12 +1,111 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
+
+// Component to handle caching, loading states, error fallbacks, and updates
+function UserAvatar({
+  avatarUrl,
+  userId,
+  className = "size-full",
+}: {
+  avatarUrl?: string;
+  userId: string;
+  className?: string;
+}) {
+  const [cachedSrc, setCachedSrc] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!avatarUrl || !userId) return;
+
+    const storageKey = `user_avatar_${userId}`;
+    const storageMetaKey = `user_avatar_url_${userId}`;
+
+    const storedData = localStorage.getItem(storageKey);
+    const storedOriginalUrl = localStorage.getItem(storageMetaKey);
+
+    // If Google avatar URL has changed, clear old cache and force refresh
+    if (storedOriginalUrl !== avatarUrl) {
+      localStorage.removeItem(storageKey);
+      localStorage.removeItem(storageMetaKey);
+    } else if (storedData) {
+      setCachedSrc(storedData);
+      setIsLoaded(true);
+      return;
+    }
+
+    // Convert live image URL to base64 Data URL and save to localStorage
+    const fetchAndCacheImage = async () => {
+      try {
+        const response = await fetch(avatarUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          try {
+            localStorage.setItem(storageKey, base64data);
+            localStorage.setItem(storageMetaKey, avatarUrl);
+          } catch (e) {
+            console.warn("Storage quota exceeded or unavailable:", e);
+          }
+          setCachedSrc(base64data);
+          setIsLoaded(true);
+        };
+
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error("Failed to load or cache avatar:", err);
+        setHasError(true);
+      }
+    };
+
+    fetchAndCacheImage();
+  }, [avatarUrl, userId]);
+
+  // Fallback icon when loading, missing URL, or broken image
+  if (!avatarUrl || hasError) {
+    return (
+      <div className={`rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-neutral-300 ${className}`}>
+        <FaUser className="size-3.5" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative rounded-full overflow-hidden ${className}`}>
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-400 animate-pulse">
+          <FaUser className="size-3.5 opacity-60" />
+        </div>
+      )}
+
+      <img
+        src={cachedSrc || avatarUrl}
+        alt="User Avatar"
+        loading="eager"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+        className={`size-full object-cover rounded-full transition-opacity duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
+  );
+}
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -38,6 +137,17 @@ export default function AuthButton() {
     };
   }, []);
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSignIn = async () => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
@@ -55,10 +165,11 @@ export default function AuthButton() {
     if (!supabase) return;
 
     await supabase.auth.signOut();
+    setIsOpen(false);
   };
 
   if (loading) {
-    return <div className="h-10 w-10 rounded-full bg-white/5" aria-hidden="true" />;
+    return <div className="size-11 rounded-full bg-white/5 border border-neutral-800/80 animate-pulse" />;
   }
 
   if (!user) {
@@ -66,21 +177,55 @@ export default function AuthButton() {
       <button
         type="button"
         onClick={handleSignIn}
-        className="rounded-full border border-neutral-800 bg-white/5 px-3 py-2 text-xs font-semibold text-neutral-300 backdrop-blur-md transition-colors hover:border-neutral-600 hover:text-white"
+        className="flex items-center gap-2.5 h-11 px-4 rounded-full border border-neutral-800/80 bg-white/5 text-xs font-semibold text-neutral-200 backdrop-blur-md hover:border-neutral-600 hover:bg-neutral-800/80 hover:text-white active:scale-95 transition-all shadow-2xl cursor-pointer"
       >
-        Continue with Google
+        <FaGoogle className="size-3.5 text-neutral-400" />
+        <span className="hidden sm:inline">Continue with Google</span>
+        <span className="sm:hidden">Login</span>
       </button>
     );
   }
 
+  const avatarUrl = user.user_metadata?.avatar_url;
+  const fullName = user.user_metadata?.full_name ?? user.email;
+
   return (
-    <button
-      type="button"
-      onClick={handleSignOut}
-      className="flex max-w-40 items-center gap-2 rounded-full border border-neutral-800 bg-white/5 px-3 py-2 text-xs font-semibold text-neutral-300 backdrop-blur-md transition-colors hover:border-neutral-600 hover:text-white"
-      title="Sign out"
-    >
-      <span className="truncate">{user.user_metadata?.full_name ?? user.email}</span>
-    </button>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex items-center justify-center overflow-hidden size-11 rounded-full border border-neutral-800/80 bg-white/5 backdrop-blur-md hover:border-neutral-600 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
+      >
+        <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-full" />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="absolute right-0 mt-3 w-64 rounded-3xl bg-neutral-950/90 border border-neutral-800 backdrop-blur-2xl p-4 shadow-2xl z-50 text-left space-y-3"
+          >
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/80">
+              <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-10 shrink-0" />
+              <div className="flex flex-col truncate">
+                <span className="text-xs font-bold text-white truncate">{fullName}</span>
+                <span className="text-[11px] text-neutral-500 truncate">{user.email}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="w-full py-2.5 px-4 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 hover:bg-red-500/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-red-500/20"
+            >
+              <FaSignOutAlt className="size-3.5" /> Sign Out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
