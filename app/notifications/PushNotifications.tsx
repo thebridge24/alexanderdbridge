@@ -5,6 +5,16 @@ import { getToken, isSupported } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/lib/firebase/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  timestamp: string;
+  read: boolean;
+  type: "like" | "reply" | "reminder" | "admin";
+  link?: string;
+}
+
 export default function PushNotifications() {
   const [userId, setUserId] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);

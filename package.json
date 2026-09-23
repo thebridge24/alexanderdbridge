@@ -11,8 +11,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
     "canvas-confetti": "^1.9.4",
-    "firebase": "^12.19.0",
-    "framer-motion": "^12.42.2",
+    "firebase": "12.19.0",
+    "framer-motion": "12.42.2",
     "html-to-image": "^1.11.13",
     "next": "16.2.10",
     "react": "19.2.4",
