@@ -38,7 +38,7 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
-import AuthModal from "@/app/auth/AuthModal";
+import AuthModal from "@/app/auth/Authmodal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
