@@ -5,9 +5,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCheck } from "react-icons/fa6";
 import confetti from "canvas-confetti";
+import pkg from "@/package.json";
 
-// Import version directly from package.json
-import { version } from "@/package.json";
+const APP_VERSION = pkg.version;
 
 interface StreakFooterBannerProps {
   currentStreak: number;
@@ -156,7 +156,7 @@ export default function StreakFooterBanner({
             Built By Stackgate International
           </a>
           <span className="text-white/30 text-[10px] font-mono border border-white/10 px-1.5 py-0.5 rounded">
-            v{version}
+            v{APP_VERSION}
           </span>
         </span>
       </p>
