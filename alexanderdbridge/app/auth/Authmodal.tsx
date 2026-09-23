@@ -13,6 +13,10 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  const getAuthRedirectUrl = () => {
+    return (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+  };
+
   const handleSignIn = async () => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
@@ -21,7 +25,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: getAuthRedirectUrl(),
       },
     });
   };

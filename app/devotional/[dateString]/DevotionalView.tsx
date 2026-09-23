@@ -98,7 +98,7 @@ export default function DevotionalView() {
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
   const { streakData, newlyUnlockedMedal, clearNewMedalAlert } =
-    useStreakTracker();
+    useStreakTracker(user?.id ?? null);
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -127,6 +127,13 @@ export default function DevotionalView() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const getAuthRedirectUrl = () => {
+    const configured = process.env.NEXT_PUBLIC_SITE_URL;
+    if (configured) return configured;
+    if (typeof window !== "undefined") return window.location.origin;
+    return "https://alexanderdbridge.com";
+  };
+
   const handleGoogleSignIn = async () => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
@@ -135,7 +142,7 @@ export default function DevotionalView() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: getAuthRedirectUrl(),
       },
     });
   };
@@ -394,6 +401,12 @@ export default function DevotionalView() {
 
   const handleLikeToggle = async (): Promise<void> => {
     if (!currentDevotional) return;
+
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const date = currentDevotional.dateString;
     const sessionId = getSessionId();
 
@@ -443,6 +456,11 @@ export default function DevotionalView() {
     e.preventDefault();
     if (!commentText.trim() || isSubmittingComment) return;
 
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (!userName.trim()) {
       setShowNamePrompt(true);
       return;
@@ -453,6 +471,11 @@ export default function DevotionalView() {
 
   const executePostComment = async (name: string): Promise<void> => {
     if (!currentDevotional) return;
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const date = currentDevotional.dateString;
     setIsSubmittingComment(true);
 
@@ -533,6 +556,11 @@ export default function DevotionalView() {
   };
 
   const handleCommentLike = async (commentId: string) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const sessionId = getSessionId();
 
     setComments((prev) =>
@@ -625,7 +653,8 @@ export default function DevotionalView() {
     return readLogs.includes(yesterdayDateString);
   })();
 
-  const requiresAuthPrompt = introStage === "done" && !isAuthLoading && !user;
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const requiresAuthPrompt = !isAuthLoading && !user;
 
   return (
     <motion.div
@@ -781,8 +810,8 @@ export default function DevotionalView() {
         )}
       </AnimatePresence>
 
-      {/* Mandatory Auth Popup Modal */}
-      <AuthModal isOpen={requiresAuthPrompt} onClose={() => {}} />
+      {/* Sign-in prompt for protected actions */}
+      <AuthModal isOpen={requiresAuthPrompt} onClose={() => setIsAuthModalOpen(false)} />
 
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 

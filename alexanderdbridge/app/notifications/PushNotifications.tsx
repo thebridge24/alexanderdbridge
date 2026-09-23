@@ -4,6 +4,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { getToken, isSupported, onMessage } from "firebase/messaging";
+import type { MessagePayload } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/alexanderdbridge/lib/firebase/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,11 +78,11 @@ export default function PushNotifications() {
     if (!userId) return;
 
     let unsubscribe: (() => void) | undefined;
-    isSupported().then((supported) => {
+    isSupported().then((supported: boolean) => {
       if (!supported) return;
       const messaging = getFirebaseMessaging();
       if (!messaging) return;
-      unsubscribe = onMessage(messaging, (payload) => {
+      unsubscribe = onMessage(messaging, (payload: MessagePayload) => {
         if (Notification.permission === "granted" && payload.notification) {
           new Notification(payload.notification.title ?? "Daily Devotional", {
             body: payload.notification.body,

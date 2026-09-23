@@ -117,6 +117,10 @@ export default function AuthButton() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const getAuthRedirectUrl = () => {
+    return (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+  };
+
   const handleSignIn = async () => {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
@@ -124,7 +128,7 @@ export default function AuthButton() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: getAuthRedirectUrl(),
       },
     });
   };
