@@ -5,25 +5,26 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoArrowBack, IoEyeOutline, IoCheckmark } from "react-icons/io5";
+import { IoEyeOutline, IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
   FaCheck,
   FaDownload,
   FaRegCommentDots,
+  FaGoogle,
+  FaFire,
 } from "react-icons/fa6";
 import {
   DEVOTIONALS_DATA,
   MONTH_THEME,
   Devotional,
 } from "../../data/devotionalData";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
-import AuthButton from "@/alexanderdbridge/app/auth/AuthButton";
-import PushNotifications from "@/alexanderdbridge/app/notifications/PushNotifications";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 import { Comment } from "@/app/components/CommentItem";
 import { CommentSlideUpModal } from "@/app/components/CommentSlideUpModal";
@@ -37,6 +38,7 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
+import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -88,6 +90,11 @@ export default function DevotionalView() {
   const [isFloatingVisible, setIsFloatingVisible] = useState<boolean>(true);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Authentication State
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
   const { streakData, newlyUnlockedMedal, clearNewMedalAlert } =
@@ -99,6 +106,38 @@ export default function DevotionalView() {
     hideTimerRef.current = setTimeout(() => {
       setIsFloatingVisible(false);
     }, delayMs);
+  };
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setIsAuthLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
+    setIsAuthenticating(true);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.href,
+      },
+    });
   };
 
   // 1. Initial load 10s auto-hide timer
@@ -586,6 +625,8 @@ export default function DevotionalView() {
     return readLogs.includes(yesterdayDateString);
   })();
 
+  const requiresAuthPrompt = introStage === "done" && !isAuthLoading && !user;
+
   return (
     <motion.div
       variants={screenVariants}
@@ -739,6 +780,9 @@ export default function DevotionalView() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mandatory Auth Popup Modal */}
+      <AuthModal isOpen={requiresAuthPrompt} onClose={() => {}} />
 
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 

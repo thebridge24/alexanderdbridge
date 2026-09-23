@@ -202,7 +202,7 @@ export default function PushNotifications() {
       >
         <FaBell className="size-4" />
         {(unreadCount > 0 || status !== "enabled") && (
-          <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-red-500" />
         )}
       </button>
 

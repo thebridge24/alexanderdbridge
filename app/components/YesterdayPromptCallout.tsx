@@ -125,7 +125,7 @@ export default function YesterdayPromptCallout({
             stiffness: 380,
             damping: 18, // Bouncy spring effect
           }}
-          className="fixed left-6 bottom-8 z-50 cursor-pointer"
+          className="fixed left-1/2 bottom-8 z-50 cursor-pointer"
           onClick={handleNavigateToYesterday}
         >
           {/* Inner Shake Container */}
@@ -136,16 +136,9 @@ export default function YesterdayPromptCallout({
               x: [0, -2, 2, -1, 1, 0],
             }}
             transition={{ duration: 0.45, ease: "easeInOut" }}
-            className="relative bg-neutral-200 text-neutral-950 font-sans rounded-[22px] px-4 py-2.5 max-w-70 sm:max-w-xs shadow-[0_10px_25px_rgba(0,0,0,0.5)] border border-white/20 select-none flex items-center gap-2 pr-7 group"
+            className="relative bg-neutral-200 text-neutral-950 font-sans rounded-bl-0 rounded-tl-[22px] rounded-tr-[22px] rounded-br-[22px] px-4 py-2.5 max-w-70 sm:max-w-xs shadow-[0_10px_25px_rgba(0,0,0,0.5)] border border-white/20 select-none flex items-center gap-2 pr-7 group"
           >
-            {/* iOS Speech Bubble Tail */}
-            <div
-              className="absolute -bottom-1.5 -left-1.5 size-4 bg-neutral-200"
-              style={{
-                clipPath: "polygon(0 100%, 100% 0, 100% 100%)",
-                borderBottomLeftRadius: "6px",
-              }}
-            />
+
 
             {/* Content Text */}
             <div className="flex flex-col text-left">

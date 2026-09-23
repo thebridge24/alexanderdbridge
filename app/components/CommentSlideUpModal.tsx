@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
 import { Comment, CommentItem } from "./CommentItem";
@@ -18,7 +19,38 @@ interface CommentSlideUpModalProps {
   setReplyingTo: (id: string | null, name: string | null) => void;
   isSubmitting: boolean;
   userInitial?: string;
+  userAvatarUrl?: string;
+  userName?: string;
 }
+
+// Helper Avatar Component for the current user input bar
+const CurrentUserAvatar: React.FC<{
+  avatarUrl?: string;
+  initial?: string;
+  name?: string;
+}> = ({ avatarUrl, initial = "U", name = "User" }) => {
+  const [imgError, setImgError] = useState(false);
+
+  if (avatarUrl && !imgError) {
+    return (
+      <div className="w-9 h-9 rounded-full overflow-hidden bg-neutral-800 border border-neutral-700 shrink-0 mb-1">
+        <img
+          src={avatarUrl}
+          alt={name}
+          referrerPolicy="no-referrer"
+          onError={() => setImgError(true)}
+          className="size-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-white shrink-0 mb-1">
+      {initial}
+    </div>
+  );
+};
 
 export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   isOpen,
@@ -33,6 +65,8 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   setReplyingTo,
   isSubmitting,
   userInitial = "U",
+  userAvatarUrl,
+  userName = "User",
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -97,7 +131,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-5 top-4 p-1 text-neutral-400 hover:text-white transition-colors"
+                className="absolute right-5 top-4 p-1 text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 aria-label="Close comments"
               >
                 <IoClose className="w-6 h-6" />
@@ -131,9 +165,12 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                 onSubmit={onSubmitComment}
                 className="flex items-end gap-3"
               >
-                <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-white shrink-0 mb-1">
-                  {userInitial}
-                </div>
+                {/* User Avatar / Fallback Initial */}
+                <CurrentUserAvatar
+                  avatarUrl={userAvatarUrl}
+                  initial={userInitial}
+                  name={userName}
+                />
 
                 {/* Input Container */}
                 <div className="relative flex-1 bg-neutral-900 border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
@@ -145,7 +182,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                         <button
                           type="button"
                           onClick={handleClearReply}
-                          className="hover:text-red-400 focus:outline-none"
+                          className="hover:text-red-400 focus:outline-none cursor-pointer"
                           aria-label="Remove mention"
                         >
                           <IoCloseCircle className="w-3.5 h-3.5" />
@@ -170,7 +207,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                 <button
                   type="submit"
                   disabled={!commentText.trim() || isSubmitting}
-                  className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:bg-neutral-800 disabled:text-neutral-600 active:scale-90 transition-all mb-0.5"
+                  className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:bg-neutral-800 disabled:text-neutral-600 active:scale-90 transition-all mb-0.5 cursor-pointer"
                   aria-label="Send comment"
                 >
                   <IoSend className="w-4 h-4 ml-0.5" />

@@ -8,7 +8,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
 
-// Component to handle caching, loading states, error fallbacks, and updates
+// Component to handle loading states, error fallbacks, and URL caching
 function UserAvatar({
   avatarUrl,
   userId,
@@ -18,62 +18,30 @@ function UserAvatar({
   userId: string;
   className?: string;
 }) {
-  const [cachedSrc, setCachedSrc] = useState<string | null>(null);
+  const [src, setSrc] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     if (!avatarUrl || !userId) return;
 
-    const storageKey = `user_avatar_${userId}`;
     const storageMetaKey = `user_avatar_url_${userId}`;
+    const storedUrl = localStorage.getItem(storageMetaKey);
 
-    const storedData = localStorage.getItem(storageKey);
-    const storedOriginalUrl = localStorage.getItem(storageMetaKey);
-
-    // If Google avatar URL has changed, clear old cache and force refresh
-    if (storedOriginalUrl !== avatarUrl) {
-      localStorage.removeItem(storageKey);
-      localStorage.removeItem(storageMetaKey);
-    } else if (storedData) {
-      setCachedSrc(storedData);
-      setIsLoaded(true);
-      return;
+    if (storedUrl === avatarUrl) {
+      setSrc(storedUrl);
+    } else {
+      localStorage.setItem(storageMetaKey, avatarUrl);
+      setSrc(avatarUrl);
     }
-
-    // Convert live image URL to base64 Data URL and save to localStorage
-    const fetchAndCacheImage = async () => {
-      try {
-        const response = await fetch(avatarUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          try {
-            localStorage.setItem(storageKey, base64data);
-            localStorage.setItem(storageMetaKey, avatarUrl);
-          } catch (e) {
-            console.warn("Storage quota exceeded or unavailable:", e);
-          }
-          setCachedSrc(base64data);
-          setIsLoaded(true);
-        };
-
-        reader.readAsDataURL(blob);
-      } catch (err) {
-        console.error("Failed to load or cache avatar:", err);
-        setHasError(true);
-      }
-    };
-
-    fetchAndCacheImage();
   }, [avatarUrl, userId]);
 
   // Fallback icon when loading, missing URL, or broken image
   if (!avatarUrl || hasError) {
     return (
-      <div className={`rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-neutral-300 ${className}`}>
+      <div
+        className={`rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-neutral-300 ${className}`}
+      >
         <FaUser className="size-3.5" />
       </div>
     );
@@ -88,9 +56,10 @@ function UserAvatar({
       )}
 
       <img
-        src={cachedSrc || avatarUrl}
+        src={src || avatarUrl}
         alt="User Avatar"
         loading="eager"
+        referrerPolicy="no-referrer"
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={`size-full object-cover rounded-full transition-opacity duration-300 ${
@@ -194,7 +163,7 @@ export default function AuthButton() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-center overflow-hidden size-11 rounded-full border border-neutral-800/80 bg-white/5 backdrop-blur-md hover:border-neutral-600 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
+        className="flex items-center justify-center overflow-hidden size-11 rounded-full border-2 border-red-600 bg-white/5 backdrop-blur-md hover:border-red-700 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
       >
         <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-full" />
       </button>

@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa6";
 
 export interface Reply {
@@ -8,6 +9,7 @@ export interface Reply {
   name: string;
   text: string;
   timestamp: string;
+  avatarUrl?: string;
 }
 
 export interface Comment {
@@ -17,6 +19,7 @@ export interface Comment {
   timestamp: string;
   likes: number;
   liked?: boolean;
+  avatarUrl?: string;
   replies?: Reply[];
 }
 
@@ -26,6 +29,40 @@ interface CommentItemProps {
   onReplySelect: (commentId: string, name: string) => void;
   isSubmitting?: boolean;
 }
+
+// Helper Avatar Component with image error fallback to first letter
+const CommentAvatar: React.FC<{
+  avatarUrl?: string;
+  name: string;
+  className?: string;
+}> = ({ avatarUrl, name, className = "w-9 h-9" }) => {
+  const [imgError, setImgError] = useState(false);
+  const initial = name ? name.charAt(0).toUpperCase() : "U";
+
+  if (avatarUrl && !imgError) {
+    return (
+      <div
+        className={`${className} rounded-full overflow-hidden bg-neutral-800 border border-neutral-700/80 shrink-0 z-10`}
+      >
+        <img
+          src={avatarUrl}
+          alt={name}
+          referrerPolicy="no-referrer"
+          onError={() => setImgError(true)}
+          className="size-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`${className} rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0 z-10`}
+    >
+      {initial}
+    </div>
+  );
+};
 
 export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
@@ -49,9 +86,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       <div className="flex items-start justify-between gap-3 z-10">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0">
-            {comment.name ? comment.name.charAt(0).toUpperCase() : "U"}
-          </div>
+          <CommentAvatar avatarUrl={comment.avatarUrl} name={comment.name} />
 
           {/* Details */}
           <div className="flex-1 min-w-0">
@@ -112,9 +147,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               />
 
               {/* Reply Avatar */}
-              <div className="w-9 h-9 rounded-full bg-neutral-800/80 border border-neutral-700/60 flex items-center justify-center font-bold text-xs text-neutral-300 shrink-0 z-10">
-                {reply.name ? reply.name.charAt(0).toUpperCase() : "U"}
-              </div>
+              <CommentAvatar avatarUrl={reply.avatarUrl} name={reply.name} />
 
               {/* Reply Details */}
               <div className="flex-1 min-w-0">
