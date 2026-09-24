@@ -12,8 +12,6 @@ import {
   FaCheck,
   FaDownload,
   FaRegCommentDots,
-  FaGoogle,
-  FaFire,
 } from "react-icons/fa6";
 import {
   DEVOTIONALS_DATA,
@@ -93,7 +91,6 @@ export default function DevotionalView() {
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
-  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
@@ -126,19 +123,6 @@ export default function DevotionalView() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const handleGoogleSignIn = async () => {
-    const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
-
-    setIsAuthenticating(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.href,
-      },
-    });
-  };
 
   // 1. Initial load 10s auto-hide timer
   useEffect(() => {
