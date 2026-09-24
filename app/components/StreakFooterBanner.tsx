@@ -13,15 +13,17 @@ interface StreakFooterBannerProps {
   currentStreak: number;
   onStreakIncrement?: () => void;
   targetDurationSeconds?: number; // Defaults to 300 (5 minutes)
+  isAlreadyCompleted?: boolean;
 }
 
 export default function StreakFooterBanner({
   currentStreak,
   onStreakIncrement,
   targetDurationSeconds = 300,
+  isAlreadyCompleted = false,
 }: StreakFooterBannerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(targetDurationSeconds);
-  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [isCompleted, setIsCompleted] = useState<boolean>(isAlreadyCompleted);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,6 +58,12 @@ export default function StreakFooterBanner({
 
   // Check on load if today was already completed
   useEffect(() => {
+    if (isAlreadyCompleted) {
+      setIsCompleted(true);
+      setTimeLeft(0);
+      return;
+    }
+
     const today = new Date().toISOString().split("T")[0];
     const lastCelebrated = localStorage.getItem("last_streak_celebration_date");
 
@@ -63,7 +71,7 @@ export default function StreakFooterBanner({
       setIsCompleted(true);
       setTimeLeft(0);
     }
-  }, []);
+  }, [isAlreadyCompleted]);
 
   // 5-Minute Countdown logic
   useEffect(() => {

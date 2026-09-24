@@ -5,6 +5,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getAuthRedirectUrl } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
 
@@ -124,7 +125,7 @@ export default function AuthButton() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: getAuthRedirectUrl(),
       },
     });
   };

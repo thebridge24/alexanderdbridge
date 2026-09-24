@@ -91,11 +91,17 @@ export default function DevotionalView() {
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>("");
 
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
-  const { streakData, newlyUnlockedMedal, clearNewMedalAlert } =
-    useStreakTracker();
+  const {
+    streakData,
+    newlyUnlockedMedal,
+    clearNewMedalAlert,
+    todayCompleted,
+    markTodayComplete,
+  } = useStreakTracker(user?.id);
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -112,6 +118,10 @@ export default function DevotionalView() {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setIsAuthLoading(false);
+      if (data.user?.user_metadata?.full_name && !userName) {
+        setUserName(data.user.user_metadata.full_name);
+        storeUserName(data.user.user_metadata.full_name);
+      }
     });
 
     const {
@@ -119,10 +129,14 @@ export default function DevotionalView() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setIsAuthLoading(false);
+      if (session?.user?.user_metadata?.full_name && !userName) {
+        setUserName(session.user.user_metadata.full_name);
+        storeUserName(session.user.user_metadata.full_name);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [userName]);
 
   // 1. Initial load 10s auto-hide timer
   useEffect(() => {
@@ -156,7 +170,6 @@ export default function DevotionalView() {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
   const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
   // Modal & Reply states
@@ -1003,8 +1016,9 @@ export default function DevotionalView() {
       </AnimatePresence>
       <StreakFooterBanner
         currentStreak={streakData?.currentStreak || 0}
+        isAlreadyCompleted={todayCompleted}
         onStreakIncrement={() => {
-          // Trigger streak hooks or refresh streak data here
+          markTodayComplete();
         }}
       />
     </motion.div>

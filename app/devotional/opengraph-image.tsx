@@ -14,7 +14,11 @@ export const contentType = "image/jpeg";
 
 // Helper to safely load local public assets into a Base64 string for Satori
 async function getBase64Image(relativePath: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://alexanderdbridge.com";
   try {
     const res = await fetch(`${baseUrl}${relativePath}`);
     if (!res.ok) return null;
