@@ -397,8 +397,6 @@ export default function DevotionalView() {
     }
   }, [currentDevotional]);
 
-  if (!currentDevotional) return null;
-
   const handleLikeToggle = async (): Promise<void> => {
     if (!currentDevotional) return;
 
@@ -655,6 +653,22 @@ export default function DevotionalView() {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const requiresAuthPrompt = !isAuthLoading && !user;
+
+  if (!currentDevotional) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
+        <div className="max-w-md space-y-3">
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
+            Daily Devotional
+          </p>
+          <h1 className="text-2xl font-bold text-white">No devotional is available yet.</h1>
+          <p className="text-sm text-neutral-400">
+            Add a devotional entry from the admin screen or refresh once the daily content is created.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
