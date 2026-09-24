@@ -431,6 +431,8 @@ export default function DevotionalView() {
   };
 
   const handleShare = async () => {
+    if (!currentDevotional) return;
+
     const shareData = {
       title: `${currentDevotional.topic} | Daily Devotional`,
       text: `Read today's devotional: "${currentDevotional.topic}"`,
