@@ -8,8 +8,16 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-const getAuthRedirectUrl = () =>
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+const getAuthRedirectUrl = () => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3000";
+    }
+  }
+
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+};
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);

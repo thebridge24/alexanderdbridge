@@ -128,10 +128,14 @@ export default function DevotionalView() {
   }, []);
 
   const getAuthRedirectUrl = () => {
-    const configured = process.env.NEXT_PUBLIC_SITE_URL;
-    if (configured) return configured;
-    if (typeof window !== "undefined") return window.location.origin;
-    return "https://alexanderdbridge.com";
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return "http://localhost:3000";
+      }
+    }
+
+    return process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com";
   };
 
   const handleGoogleSignIn = async () => {
