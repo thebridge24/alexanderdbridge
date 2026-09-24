@@ -9,16 +9,8 @@ interface AuthModalProps {
 }
 
 const getAuthRedirectUrl = () => {
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return "http://localhost:3000";
-    }
-  }
-
-  return (
-    (process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app").replace(/\/$/, "")
-  );
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app";
+  return configured.replace(/\/$/, "");
 };
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {

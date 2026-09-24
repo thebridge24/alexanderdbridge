@@ -128,17 +128,9 @@ export default function DevotionalView() {
   }, []);
 
   const getAuthRedirectUrl = () => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
-        return "http://localhost:3000";
-      }
-    }
-
-    return (
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      "https://personal-library-xi.vercel.app"
-    );
+    const configured =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app";
+    return configured.replace(/\/$/, "");
   };
 
   const handleGoogleSignIn = async () => {
