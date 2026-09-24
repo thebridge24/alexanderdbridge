@@ -9,7 +9,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://alexanderdbridge.com"), // Replace with your domain
+  metadataBase: new URL("https://personal-library-xi.vercel.app"),
 
   title: {
     default: "Alexander D Bridge | Founder, Software Engineer & Writer",
@@ -58,7 +58,7 @@ icons: {
   authors: [
     {
       name: "Alexander D Bridge",
-      url: "https://alexanderdbridge.com",
+      url: "https://personal-library-xi.vercel.app",
     },
   ],
 
@@ -66,13 +66,13 @@ icons: {
   publisher: "Stackgate International",
 
   alternates: {
-    canonical: "https://alexanderdbridge.com",
+    canonical: "https://personal-library-xi.vercel.app",
   },
 
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://alexanderdbridge.com",
+    url: "https://personal-library-xi.vercel.app",
     siteName: "Alexander D Bridge",
     title: "Alexander D Bridge | Founder, Software Engineer & Writer",
     description:

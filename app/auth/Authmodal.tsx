@@ -16,7 +16,9 @@ const getAuthRedirectUrl = () => {
     }
   }
 
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+  return (
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app").replace(/\/$/, "")
+  );
 };
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {

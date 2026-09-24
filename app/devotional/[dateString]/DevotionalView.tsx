@@ -135,7 +135,10 @@ export default function DevotionalView() {
       }
     }
 
-    return process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com";
+    return (
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://personal-library-xi.vercel.app"
+    );
   };
 
   const handleGoogleSignIn = async () => {

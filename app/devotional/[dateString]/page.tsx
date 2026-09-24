@@ -16,7 +16,7 @@ interface Devotional {
 async function getDevotionalData(dateString: string): Promise<Devotional | null> {
   try {
     // Determine host for server-side relative fetch, or hit your external backend endpoint directly
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app";
     const res = await fetch(`${baseUrl}/api/devotionals`, {
       // Revalidate or cache according to your needs
       next: { revalidate: 3600 }, 

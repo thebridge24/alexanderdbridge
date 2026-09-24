@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const getAuthRedirectUrl = () =>
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://alexanderdbridge.com").replace(/\/$/, "");
+const getAuthRedirectUrl = () => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3000";
+    }
+  }
+
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app").replace(/\/$/, "");
+};
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
