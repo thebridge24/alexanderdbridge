@@ -36,6 +36,7 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
+import DailyVisitors from "@/app/components/DailyVisitors";
 import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
@@ -366,11 +367,27 @@ export default function DevotionalView() {
       }
     }
 
-    recordView().then(() => {
+    recordView().then(async () => {
       fetchStats();
+      if (user) {
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+        
+        fetch(`/api/devotionals/${date}/visitors`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            userId: user.id,
+            displayName: user.user_metadata?.full_name || user.user_metadata?.name || '',
+            avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
+          }),
+        }).catch(() => {});
+      }
     });
     fetchComments();
-  }, [currentDevotional]);
+  }, [currentDevotional, user]);
 
   useEffect(() => {
     if (currentDevotional && scrollContainerRef.current) {
@@ -472,6 +489,7 @@ export default function DevotionalView() {
             name: data.reply.author_name,
             text: data.reply.body,
             timestamp: "Just now",
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
           };
 
           setComments((prev) =>
@@ -514,6 +532,7 @@ export default function DevotionalView() {
             likes: 0,
             liked: false,
             replies: [],
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
           };
           setComments([newComment, ...comments]);
           setCommentText("");
@@ -865,6 +884,7 @@ export default function DevotionalView() {
                 </>
               )}
             </div>
+            <DailyVisitors devotionalDate={currentDevotional.dateString} />
             <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
               {currentDevotional.topic}
             </h1>
@@ -960,6 +980,7 @@ export default function DevotionalView() {
         }}
         isSubmitting={isSubmittingComment}
         userInitial={userName ? userName.charAt(0).toUpperCase() : "U"}
+        userAvatarUrl={user?.user_metadata?.avatar_url}
       />
 
       {/* Name Prompt Modal */}

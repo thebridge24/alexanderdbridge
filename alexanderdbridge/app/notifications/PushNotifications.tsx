@@ -127,7 +127,8 @@ export default function PushNotifications() {
       }
 
       const registration = await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js",
+        "/api/firebase-sw",
+        { scope: '/' }
       );
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
