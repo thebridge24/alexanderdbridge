@@ -12,11 +12,13 @@ import {
   FaSignOutAlt,
   FaBookOpen,
   FaChartLine,
+  FaUsers,
 } from "react-icons/fa";
 import Link from "next/link";
 import AnalyticsSection, {
   DevotionalAnalyticsItem,
 } from "../components/AnalyticsSection"; // Adjust path if needed
+import UserAnalyticsSection from "../components/UserAnalyticsSection"; // Import new user component
 
 const CORRECT_PIN = "1961";
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -29,7 +31,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Tab Navigation State
-  const [adminTab, setAdminTab] = useState<"create" | "analytics">("create");
+  const [adminTab, setAdminTab] = useState<"create" | "analytics" | "users">("create");
 
   // Devotional form state
   const [dateString, setDateString] = useState("");
@@ -132,7 +134,7 @@ export default function AdminPage() {
         }
       } catch (err) {
         console.error("Error loading analytics:", err);
-      } finally {
+      } {
         setAnalyticsLoading(false);
       }
     }
@@ -359,7 +361,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setAdminTab("create")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "create"
                     ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
@@ -371,13 +373,25 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setAdminTab("analytics")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "analytics"
                     ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
                 }`}
               >
-                <FaChartLine className="size-3.5" /> 2. Analytics
+                <FaChartLine className="size-3.5" /> 2. Engagement
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAdminTab("users")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  adminTab === "users"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
+                }`}
+              >
+                <FaUsers className="size-3.5" /> 3. User Streaks
               </button>
             </div>
 
@@ -622,7 +636,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {/* TAB 2: DEVOTIONAL ANALYTICS COMPONENT */}
+            {/* TAB 2: DEVOTIONAL ENGAGEMENT ANALYTICS */}
             {adminTab === "analytics" && (
               <AnalyticsSection
                 analyticsData={analyticsData}
@@ -630,6 +644,9 @@ export default function AdminPage() {
                 analyticsLoading={analyticsLoading}
               />
             )}
+
+            {/* TAB 3: USER LEADERBOARD & STREAKS */}
+            {adminTab === "users" && <UserAnalyticsSection />}
           </motion.div>
         )}
       </AnimatePresence>

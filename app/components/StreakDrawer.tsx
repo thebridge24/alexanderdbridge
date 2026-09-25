@@ -5,6 +5,8 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { IoClose, IoLockClosed } from "react-icons/io5";
 import { StreakData, MILESTONE_MEDALS } from "../../lib/types/streak";
 import StreakMiniCalendar from "./StreakMiniCalendar";
+import React from "react";
+import { MdVerified } from "react-icons/md";
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +15,26 @@ interface Props {
   userName?: string;
   onSelectMedalToPreview?: (medalId: string) => void;
 }
+  // Helper function to check if the user is verified
+  const isVerifiedUser = (userName: string): boolean => {
+    if (!userName) return false;
+    const cleanName = userName.trim().toLowerCase();
+    return (
+      cleanName === "alexander christ" || cleanName === "alexander d bridge"
+    );
+  };
+
+  // Verified Badge Icon Component
+  const VerifiedBadge: React.FC<{ userName: string }> = ({ userName }) => {
+    if (!isVerifiedUser(userName)) return null;
+
+    return (
+      <MdVerified
+        className="w-3.5 h-3.5 text-blue-500 inline-block shrink-0"
+        title="Verified User"
+      />
+    );
+  };
 
 export default function StreakDrawer({
   isOpen,
@@ -20,13 +42,11 @@ export default function StreakDrawer({
   streakData,
   userName = "Believer",
 }: Props) {
-  const [, setSelectedMedalPopup] = useState<string | null>(
-    null
-  );
+  const [, setSelectedMedalPopup] = useState<string | null>(null);
 
   // Dynamically calculate the highest unlocked milestone target/name
   const unlockedMilestones = MILESTONE_MEDALS.filter((medal) =>
-    streakData.unlockedMedalIds.includes(medal.id)
+    streakData.unlockedMedalIds.includes(medal.id),
   );
 
   const currentUnlockedMilestone =
@@ -40,7 +60,7 @@ export default function StreakDrawer({
 
   // Find the first uncompleted milestone to mark as active focus
   const activeMilestoneIndex = MILESTONE_MEDALS.findIndex(
-    (medal) => !streakData.unlockedMedalIds.includes(medal.id)
+    (medal) => !streakData.unlockedMedalIds.includes(medal.id),
   );
 
   const activeMilestone =
@@ -50,12 +70,12 @@ export default function StreakDrawer({
   const targetDays = activeMilestone
     ? activeMilestone.targetDays
     : streakData.bestStreak > 0
-    ? streakData.bestStreak
-    : 1;
+      ? streakData.bestStreak
+      : 1;
 
   const mainProgressPercent = Math.min(
     100,
-    Math.round((streakData.currentStreak / targetDays) * 100)
+    Math.round((streakData.currentStreak / targetDays) * 100),
   );
 
   // Big Streak Ring SVG parameters
@@ -97,6 +117,8 @@ export default function StreakDrawer({
       },
     },
   };
+
+
 
   return (
     <AnimatePresence>
@@ -186,8 +208,9 @@ export default function StreakDrawer({
                   <h2 className="text-2xl font-bold text-white tracking-tight pt-1">
                     Day Streak
                   </h2>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[#ff0000]">
-                    {userName} • {currentRankTitle}
+                  <p className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
+                    <VerifiedBadge userName={userName} />
+                    <span className="text-[#ff0000]">{currentRankTitle}</span>
                   </p>
                 </div>
 
@@ -203,7 +226,8 @@ export default function StreakDrawer({
                       All-Time Best
                     </span>
                     <span className="text-xl font-black text-white">
-                      {streakData.bestStreak} Day{streakData.bestStreak > 1 ? "s" : ""}
+                      {streakData.bestStreak} Day
+                      {streakData.bestStreak > 1 ? "s" : ""}
                     </span>
                   </div>
                   <div className="bg-neutral-900/50 border border-neutral-800/80 rounded-2xl p-3">
@@ -231,7 +255,7 @@ export default function StreakDrawer({
                   <div className="grid gap-3">
                     {MILESTONE_MEDALS.map((medal, index) => {
                       const isUnlocked = streakData.unlockedMedalIds.includes(
-                        medal.id
+                        medal.id,
                       );
                       const isActiveTarget = index === activeMilestoneIndex;
                       const MedalIcon = medal.icon;
@@ -245,15 +269,14 @@ export default function StreakDrawer({
                             100,
                             Math.round(
                               (streakData.currentStreak / medal.targetDays) *
-                                100
-                            )
+                                100,
+                            ),
                           )
                         : isUnlocked
-                        ? 100
-                        : 0;
+                          ? 100
+                          : 0;
                       const strokeDashoffset =
-                        circumference -
-                        (progressPercent / 100) * circumference;
+                        circumference - (progressPercent / 100) * circumference;
 
                       return (
                         <div
@@ -267,8 +290,8 @@ export default function StreakDrawer({
                             isUnlocked
                               ? "bg-neutral-900/80 border-[#ff0000]/40 text-white shadow-[0_0_15px_rgba(255,0,0,0.1)] cursor-pointer"
                               : isActiveTarget
-                              ? "bg-neutral-900/40 border-[#ff0000]/60 text-neutral-200"
-                              : "bg-neutral-950 border-neutral-900 text-neutral-600"
+                                ? "bg-neutral-900/40 border-[#ff0000]/60 text-neutral-200"
+                                : "bg-neutral-950 border-neutral-900 text-neutral-600"
                           }`}
                         >
                           {/* Radial Progress Ring */}
@@ -304,22 +327,22 @@ export default function StreakDrawer({
                                 isUnlocked
                                   ? unlockedMedalAnimation
                                   : isActiveTarget
-                                  ? activeMilestoneAnimation
-                                  : undefined
+                                    ? activeMilestoneAnimation
+                                    : undefined
                               }
                               initial={
                                 isUnlocked
                                   ? "animate"
                                   : isActiveTarget
-                                  ? "initial"
-                                  : undefined
+                                    ? "initial"
+                                    : undefined
                               }
                               animate={
                                 isUnlocked
                                   ? "animate"
                                   : isActiveTarget
-                                  ? "animate"
-                                  : undefined
+                                    ? "animate"
+                                    : undefined
                               }
                               whileHover={isUnlocked ? "hover" : undefined}
                               className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
