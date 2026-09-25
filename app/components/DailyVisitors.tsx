@@ -124,7 +124,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IoEyeOutline className="size-3.5 text-neutral-400" />
-                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">                  {visitors.length === 1 ? "view" : "views"} Today
+                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">{visitors.length} {visitors.length === 1 ? "view" : "views"} Today
                 </span>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
