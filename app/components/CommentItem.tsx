@@ -8,7 +8,6 @@ import { MdVerified } from "react-icons/md";
 export interface Reply {
   id: string;
   name: string;
-  email?: string;
   text: string;
   timestamp: string;
   avatarUrl?: string;
@@ -17,7 +16,6 @@ export interface Reply {
 export interface Comment {
   id: string;
   name: string;
-  email?: string;
   text: string;
   timestamp: string;
   likes: number;
@@ -33,23 +31,16 @@ interface CommentItemProps {
   isSubmitting?: boolean;
 }
 
-// Helper function to check if the user is verified by email
-const isVerifiedUser = (email?: string): boolean => {
-  if (!email) return false;
-  const cleanEmail = email.trim().toLowerCase();
-  
-  // Replace these with your target verified emails
-  const VERIFIED_EMAILS = [
-    "alexanderchrist203@gmail.com",
-    "alexanderdbridge@gmail.com",
-  ];
-
-  return VERIFIED_EMAILS.includes(cleanEmail);
+// Helper function to check if the user is verified
+const isVerifiedUser = (name: string): boolean => {
+  if (!name) return false;
+  const cleanName = name.trim().toLowerCase();
+  return cleanName === "alexander christ" || cleanName === "alexander d bridge";
 };
 
 // Verified Badge Icon Component
-const VerifiedBadge: React.FC<{ email?: string }> = ({ email }) => {
-  if (!isVerifiedUser(email)) return null;
+const VerifiedBadge: React.FC<{ name: string }> = ({ name }) => {
+  if (!isVerifiedUser(name)) return null;
 
   return (
     <MdVerified
@@ -123,7 +114,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               <h4 className="text-xs font-semibold text-neutral-400 truncate">
                 {comment.name}
               </h4>
-              <VerifiedBadge email={comment.email} />
+              <VerifiedBadge name={comment.name} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {comment.text}
@@ -187,7 +178,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   <span className="text-xs font-semibold text-neutral-400 truncate">
                     {reply.name}
                   </span>
-                  <VerifiedBadge email={reply.email} />
+                  <VerifiedBadge name={reply.name} />
                   <span className="text-[10px] text-neutral-500">
                     • {reply.timestamp}
                   </span>

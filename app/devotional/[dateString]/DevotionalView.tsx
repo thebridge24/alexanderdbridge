@@ -372,16 +372,23 @@ export default function DevotionalView() {
       if (user) {
         const supabase = createSupabaseBrowserClient();
         const session = (await supabase?.auth.getSession())?.data?.session;
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-        
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (session?.access_token)
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+
         fetch(`/api/devotionals/${date}/visitors`, {
-          method: 'POST',
+          method: "POST",
           headers,
           body: JSON.stringify({
             userId: user.id,
-            displayName: user.user_metadata?.full_name || user.user_metadata?.name || '',
-            avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
+            displayName:
+              user.user_metadata?.full_name || user.user_metadata?.name || "",
+            avatarUrl:
+              user.user_metadata?.avatar_url ||
+              user.user_metadata?.picture ||
+              "",
           }),
         }).catch(() => {});
       }
@@ -702,7 +709,10 @@ export default function DevotionalView() {
             <FaRegCommentDots className="size-6" />
           </button>
           <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
-            {comments.length}
+            {comments.reduce(
+              (total, c) => total + 1 + (c.replies?.length || 0),
+              0,
+            )}{" "}
           </span>
         </div>
 
@@ -861,7 +871,7 @@ export default function DevotionalView() {
           </div>
         </div>
 
-      {/* Reusable Component Insertion */}
+        {/* Reusable Component Insertion */}
         <DevotionalArticle
           devotional={currentDevotional}
           monthTheme={MONTH_THEME}

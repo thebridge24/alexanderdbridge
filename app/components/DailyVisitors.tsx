@@ -10,7 +10,6 @@ import { MdVerified } from 'react-icons/md';
 interface Visitor {
   id: string;
   display_name: string;
-  email?: string;
   avatar_url: string;
   visited_at: string;
 }
@@ -19,17 +18,11 @@ interface DailyVisitorsProps {
   devotionalDate: string;
 }
 
-// Helper function to check if the visitor email is verified
-const isVerifiedUser = (email?: string): boolean => {
-  if (!email) return false;
-  const cleanEmail = email.trim().toLowerCase();
-  
-  const VERIFIED_EMAILS = [
-    'alexanderchrist203@gmail.com',
-    'alexanderdbridge@gmail.com',
-  ];
-
-  return VERIFIED_EMAILS.includes(cleanEmail);
+// Helper function to check if the visitor name is verified
+const isVerifiedUser = (name: string): boolean => {
+  if (!name) return false;
+  const cleanName = name.trim().toLowerCase();
+  return cleanName === 'alexander christ' || cleanName === 'alexander d bridge';
 };
 
 function VisitorAvatar({ visitor }: { visitor: Visitor }) {
@@ -49,7 +42,7 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
   };
 
   const name = visitor.display_name || 'Believer';
-  const isVerified = isVerifiedUser(visitor.email);
+  const isVerified = isVerifiedUser(name);
 
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
@@ -136,7 +129,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <StackedAvatar key={v.id} visitor={v} />
           ))}
           {visitors.length > 5 && (
-            <div className="flex items-center justify-center text-xs font-bold text-neutral-300 ml-4">
+            <div className="flex items-center justify-center text-xs font-bold text-neutral-300 ml-3">
               +{visitors.length - 5} others
             </div>
           )}
