@@ -9,7 +9,7 @@ interface BackgroundMusicProps {
 }
 
 export default function BackgroundMusic({
-  audioSrc = "/audio/videoplayback (1).m4a",
+  audioSrc = "https://res.cloudinary.com/dd5ppwbyi/video/upload/v1790324284/videoplayback_1_ljh0hb.mp4",
 }: BackgroundMusicProps) {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);

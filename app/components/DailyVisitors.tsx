@@ -104,7 +104,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <StackedAvatar key={v.id} visitor={v} />
           ))}
           {visitors.length > 5 && (
-            <div className="flex items-center justify-center text-[9px] font-bold text-neutral-300">
+            <div className="flex items-center justify-center text-xs font-bold text-neutral-300 ml-4">
               +{visitors.length - 5} others
             </div>
           )}
