@@ -70,13 +70,13 @@ export default function ProfilePage() {
     const todayString = `${today.getFullYear()}-${String(
       today.getMonth() + 1
     ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    
+
     setDevotionalUrl(`/devotional/${todayString}`);console.log(todayString)
 
   }, []);
   return (
     <main className="w-full min-h-screen flex flex-col pb-16 bg-black selection:bg-neutral-900">
-      
+
       {/* 1. X / LinkedIn Themed Banner Asset Layer */}
       <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-900/40">
         <Image
