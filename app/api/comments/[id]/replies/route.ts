@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid comment ID" }, { status: 400 });
   }
 
-  let body: { name?: string; text?: string };
+  let body: { name?: string; text?: string; avatarUrl?: string; avatar?: string };
   try {
     body = await request.json();
   } catch {
@@ -26,6 +26,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const name = body.name?.trim();
   const text = body.text?.trim();
+  // Support either `avatarUrl` or `avatar` passed from the client
+  const avatarUrl = (body.avatarUrl || body.avatar)?.trim() || null;
 
   if (!name || name.length > 100) {
     return NextResponse.json(
@@ -48,9 +50,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .insert({
         comment_id: id,
         author_name: name,
+        author_avatar: avatarUrl,
         body: text,
       })
-      .select("id, comment_id, author_name, body, created_at")
+      .select("id, comment_id, author_name, author_avatar, body, created_at")
       .single();
 
     if (error) {
@@ -61,6 +64,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ reply: data }, { status: 201 });
   } catch (err: any) {
     console.error("Exception in POST /api/comments/[id]/replies:", err);
-    return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }
