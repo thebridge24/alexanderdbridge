@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoEyeOutline, IoCheckmark } from "react-icons/io5";
+import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
@@ -36,8 +36,8 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
-import DailyVisitors from "@/app/components/DailyVisitors";
 import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
+import DevotionalArticle from "@/app/components/DevotionalArticle";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -861,87 +861,13 @@ export default function DevotionalView() {
           </div>
         </div>
 
-        <motion.article
-          variants={contentVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
-              <span>Day {currentDevotional.dayNumber}</span>
-              <span>•</span>
-              <span>{currentDevotional.displayDate}</span>
-              <span>•</span>
-              <span>Monthly Theme: {MONTH_THEME}</span>
-              {viewsCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <IoEyeOutline className="size-3.5" /> {viewsCount}{" "}
-                    {viewsCount === 1 ? "view" : "views"}
-                  </span>
-                </>
-              )}
-            </div>
-            <DailyVisitors devotionalDate={currentDevotional.dateString} />
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
-              {currentDevotional.topic}
-            </h1>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-white/5 border border-neutral-800/80 relative overflow-hidden text-center px-8">
-            <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
-              {currentDevotional.memoryVerse.verse}
-            </p>
-            <span className="text-xs font-bold tracking-wide uppercase text-neutral-500 block">
-              — {currentDevotional.memoryVerse.reference}
-            </span>
-          </div>
-
-          <div className="text-base md:text-lg text-neutral-300 leading-relaxed font-light space-y-4">
-            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white ">
-              {currentDevotional.explanation}
-            </p>
-          </div>
-
-          <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
-              <span className="w-4 h-px bg-neutral-700" /> Needed Steps
-            </h3>
-            <ul className="grid gap-3">
-              {currentDevotional.neededSteps.map((step, idx) => (
-                <li
-                  key={idx}
-                  className="flex gap-3 text-sm md:text-base text-neutral-300 items-start"
-                >
-                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span className="leading-relaxed flex-1">{step}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
-              <span className="w-4 h-px bg-neutral-700" /> Prayer Points
-            </h3>
-            <div className="grid gap-3">
-              {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <p className="text-sm md:text-base font-medium text-neutral-300 leading-relaxed flex-1">
-                    {prayer}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.article>
+      {/* Reusable Component Insertion */}
+        <DevotionalArticle
+          devotional={currentDevotional}
+          monthTheme={MONTH_THEME}
+          viewsCount={viewsCount}
+          contentVariants={contentVariants}
+        />
       </div>
 
       {/* Streak Side-Drawer */}
