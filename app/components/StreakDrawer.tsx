@@ -209,7 +209,10 @@ export default function StreakDrawer({
                     Day Streak
                   </h2>
                   <p className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
+                   <div className="flex gap-2">
+                    {userName}
                     <VerifiedBadge userName={userName} />
+                    </div> 
                     <span className="text-[#ff0000]">{currentRankTitle}</span>
                   </p>
                 </div>
