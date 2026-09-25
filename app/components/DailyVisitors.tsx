@@ -5,10 +5,12 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoEyeOutline } from 'react-icons/io5';
+import { MdVerified } from 'react-icons/md';
 
 interface Visitor {
   id: string;
   display_name: string;
+  email?: string;
   avatar_url: string;
   visited_at: string;
 }
@@ -16,6 +18,19 @@ interface Visitor {
 interface DailyVisitorsProps {
   devotionalDate: string;
 }
+
+// Helper function to check if the visitor email is verified
+const isVerifiedUser = (email?: string): boolean => {
+  if (!email) return false;
+  const cleanEmail = email.trim().toLowerCase();
+  
+  const VERIFIED_EMAILS = [
+    'alexanderchrist203@gmail.com',
+    'alexanderdbridge@gmail.com',
+  ];
+
+  return VERIFIED_EMAILS.includes(cleanEmail);
+};
 
 function VisitorAvatar({ visitor }: { visitor: Visitor }) {
   const [imgError, setImgError] = useState(false);
@@ -33,13 +48,16 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
     } catch { return ''; }
   };
 
+  const name = visitor.display_name || 'Believer';
+  const isVerified = isVerifiedUser(visitor.email);
+
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
       <div className="w-9 h-9 rounded-full overflow-hidden bg-neutral-800 border border-neutral-700 shrink-0">
         {visitor.avatar_url && !imgError ? (
           <img
             src={visitor.avatar_url}
-            alt={visitor.display_name}
+            alt={name}
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
             className="size-full object-cover"
@@ -51,7 +69,15 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-neutral-200 truncate">{visitor.display_name || 'Believer'}</p>
+        <div className="flex items-center gap-1 min-w-0">
+          <p className="text-xs font-semibold text-neutral-200 truncate">{name}</p>
+          {isVerified && (
+            <MdVerified
+              className="w-3.5 h-3.5 text-blue-500 shrink-0 inline-block"
+              title="Verified User"
+            />
+          )}
+        </div>
         <p className="text-[10px] text-neutral-500">{formatTime(visitor.visited_at)}</p>
       </div>
     </div>
@@ -63,7 +89,13 @@ function StackedAvatar({ visitor }: { visitor: Visitor }) {
   return (
     <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-black bg-neutral-800 shrink-0">
       {visitor.avatar_url && !err ? (
-        <img src={visitor.avatar_url} alt={visitor.display_name} referrerPolicy="no-referrer" onError={() => setErr(true)} className="size-full object-cover" />
+        <img
+          src={visitor.avatar_url}
+          alt={visitor.display_name}
+          referrerPolicy="no-referrer"
+          onError={() => setErr(true)}
+          className="size-full object-cover"
+        />
       ) : (
         <div className="size-full flex items-center justify-center text-[9px] font-bold text-neutral-300">
           {visitor.display_name?.charAt(0)?.toUpperCase() || '?'}
@@ -96,7 +128,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center gap-2 group"
+        className="flex items-center gap-2 group cursor-pointer"
         aria-label="Show today's visitors"
       >
         <div className="flex -space-x-2">
@@ -124,15 +156,22 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IoEyeOutline className="size-3.5 text-neutral-400" />
-                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">{visitors.length} {visitors.length === 1 ? "view" : "views"} Today
+                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">
+                  {visitors.length} {visitors.length === 1 ? 'view' : 'views'} Today
                 </span>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-neutral-500 hover:text-white transition-colors cursor-pointer"
+              >
                 <IoClose className="size-4" />
               </button>
             </div>
             <div className="max-h-64 overflow-y-auto no-scrollbar">
-              {visitors.map((v) => <VisitorAvatar key={v.id} visitor={v} />)}
+              {visitors.map((v) => (
+                <VisitorAvatar key={v.id} visitor={v} />
+              ))}
             </div>
           </motion.div>
         )}

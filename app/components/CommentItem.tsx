@@ -3,10 +3,12 @@
 
 import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa6";
+import { MdVerified } from "react-icons/md";
 
 export interface Reply {
   id: string;
   name: string;
+  email?: string;
   text: string;
   timestamp: string;
   avatarUrl?: string;
@@ -15,6 +17,7 @@ export interface Reply {
 export interface Comment {
   id: string;
   name: string;
+  email?: string;
   text: string;
   timestamp: string;
   likes: number;
@@ -29,6 +32,32 @@ interface CommentItemProps {
   onReplySelect: (commentId: string, name: string) => void;
   isSubmitting?: boolean;
 }
+
+// Helper function to check if the user is verified by email
+const isVerifiedUser = (email?: string): boolean => {
+  if (!email) return false;
+  const cleanEmail = email.trim().toLowerCase();
+  
+  // Replace these with your target verified emails
+  const VERIFIED_EMAILS = [
+    "alexanderchrist203@gmail.com",
+    "alexanderdbridge@gmail.com",
+  ];
+
+  return VERIFIED_EMAILS.includes(cleanEmail);
+};
+
+// Verified Badge Icon Component
+const VerifiedBadge: React.FC<{ email?: string }> = ({ email }) => {
+  if (!isVerifiedUser(email)) return null;
+
+  return (
+    <MdVerified
+      className="w-3.5 h-3.5 text-blue-500 inline-block shrink-0"
+      title="Verified User"
+    />
+  );
+};
 
 // Helper Avatar Component with image error fallback to first letter
 const CommentAvatar: React.FC<{
@@ -90,9 +119,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
           {/* Details */}
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-semibold text-neutral-400 truncate">
-              {comment.name}
-            </h4>
+            <div className="flex items-center gap-1 min-w-0">
+              <h4 className="text-xs font-semibold text-neutral-400 truncate">
+                {comment.name}
+              </h4>
+              <VerifiedBadge email={comment.email} />
+            </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {comment.text}
             </p>
@@ -151,10 +183,11 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
               {/* Reply Details */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-xs font-semibold text-neutral-400 truncate">
                     {reply.name}
                   </span>
+                  <VerifiedBadge email={reply.email} />
                   <span className="text-[10px] text-neutral-500">
                     • {reply.timestamp}
                   </span>

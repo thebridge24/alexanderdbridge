@@ -8,6 +8,20 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getAuthRedirectUrl } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { MdVerified } from "react-icons/md";
+
+// Helper function to check if the user is verified by email
+const isVerifiedUser = (email?: string): boolean => {
+  if (!email) return false;
+  const cleanEmail = email.trim().toLowerCase();
+  
+  const VERIFIED_EMAILS = [
+    "alexanderchrist203@gmail.com",
+    "alexanderdbridge@gmail.com",
+  ];
+
+  return VERIFIED_EMAILS.includes(cleanEmail);
+};
 
 // Component to handle loading states, error fallbacks, and URL caching
 function UserAvatar({
@@ -158,15 +172,24 @@ export default function AuthButton() {
 
   const avatarUrl = user.user_metadata?.avatar_url;
   const fullName = user.user_metadata?.full_name ?? user.email;
+  const verified = isVerifiedUser(user.email);
 
   return (
     <div className="relative" ref={dropdownRef}>
+      {/* Avatar Button */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-center overflow-hidden size-11 rounded-full border-2 border-red-600 bg-white/5 backdrop-blur-md hover:border-red-700 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
+        className="relative flex items-center justify-center size-11 rounded-full border-2 border-red-600 bg-white/5 backdrop-blur-md hover:border-red-700 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
       >
         <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-full" />
+        
+        {/* Bottom-right verified badge overlay */}
+        {verified && (
+          <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
+            <MdVerified className="size-3.5 text-blue-500" />
+          </div>
+        )}
       </button>
 
       <AnimatePresence>
@@ -179,9 +202,19 @@ export default function AuthButton() {
             className="absolute right-0 mt-3 w-64 rounded-3xl bg-neutral-950/90 border border-neutral-800 backdrop-blur-2xl p-4 shadow-2xl z-50 text-left space-y-3"
           >
             <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/80">
-              <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-10 shrink-0" />
-              <div className="flex flex-col truncate">
-                <span className="text-xs font-bold text-white truncate">{fullName}</span>
+              <div className="relative shrink-0">
+                <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-10" />
+                {verified && (
+                  <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
+                    <MdVerified className="size-3 text-blue-500" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col truncate min-w-0">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="text-xs font-bold text-white truncate">{fullName}</span>
+                  {verified && <MdVerified className="size-3.5 text-blue-500 shrink-0" />}
+                </div>
                 <span className="text-[11px] text-neutral-500 truncate">{user.email}</span>
               </div>
             </div>
