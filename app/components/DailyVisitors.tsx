@@ -4,8 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUsers } from 'react-icons/fa6';
-import { IoClose } from 'react-icons/io5';
+import { IoClose, IoEyeOutline } from 'react-icons/io5';
 
 interface Visitor {
   id: string;
@@ -124,8 +123,9 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <FaUsers className="size-3.5 text-neutral-400" />
-                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Today&apos;s Visitors</span>
+                <IoEyeOutline className="size-3.5 text-neutral-400" />
+                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">                  {visitors.length === 1 ? "view" : "views"} Today
+                </span>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
                 <IoClose className="size-4" />

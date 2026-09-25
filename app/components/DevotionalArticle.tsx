@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { motion, Variants } from "framer-motion";
-import { IoEyeOutline } from "react-icons/io5";
 import DailyVisitors from "@/app/components/DailyVisitors";
-import DevotionalVisitorsModal from "@/app/components/DevotionalVisitorsModal";
 import { Devotional } from "../data/devotionalData";
 
 interface DevotionalArticleProps {
@@ -26,10 +23,8 @@ const defaultContentVariants: Variants = {
 export default function DevotionalArticle({
   devotional,
   monthTheme,
-  viewsCount,
   contentVariants = defaultContentVariants,
 }: DevotionalArticleProps) {
-  const [isVisitorsOpen, setIsVisitorsOpen] = useState(false);
 
   return (
     <>
@@ -46,19 +41,6 @@ export default function DevotionalArticle({
             <span>{devotional.displayDate}</span>
             <span>•</span>
             <span>Monthly Theme: {monthTheme}</span>
-            {viewsCount > 0 && (
-              <>
-                <span>•</span>
-                <button
-                  type="button"
-                  onClick={() => setIsVisitorsOpen(true)}
-                  className="flex items-center gap-1 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <IoEyeOutline className="size-3.5" /> {viewsCount}{" "}
-                  {viewsCount === 1 ? "view" : "views"}
-                </button>
-              </>
-            )}
           </div>
           <DailyVisitors devotionalDate={devotional.dateString} />
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
@@ -118,12 +100,6 @@ export default function DevotionalArticle({
           </div>
         </div>
       </motion.article>
-
-      <DevotionalVisitorsModal
-        isOpen={isVisitorsOpen}
-        onClose={() => setIsVisitorsOpen(false)}
-        devotionalDate={devotional.dateString}
-      />
     </>
   );
 }
