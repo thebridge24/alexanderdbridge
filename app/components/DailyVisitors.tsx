@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
@@ -104,14 +105,11 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <StackedAvatar key={v.id} visitor={v} />
           ))}
           {visitors.length > 5 && (
-            <div className="w-7 h-7 rounded-full border-2 border-black bg-neutral-700 flex items-center justify-center text-[9px] font-bold text-neutral-300">
-              +{visitors.length - 5}
+            <div className="w-5 h-5 rounded-full border-2 border-black bg-neutral-700 flex items-center justify-center text-[9px] font-bold text-neutral-300">
+              +{visitors.length - 5} others
             </div>
           )}
         </div>
-        <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors">
-          {visitors.length} here today
-        </span>
       </button>
 
       {/* Slide-down panel */}
@@ -127,7 +125,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <FaUsers className="size-3.5 text-neutral-400" />
-                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Today's Visitors</span>
+                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Today&apos;s Visitors</span>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
                 <IoClose className="size-4" />
