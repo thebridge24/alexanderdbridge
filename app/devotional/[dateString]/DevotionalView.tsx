@@ -353,11 +353,13 @@ export default function DevotionalView() {
             timestamp: formatRelativeTime(c.created_at),
             likes: c.like_count ?? 0,
             liked: Boolean(c.liked),
+            avatarUrl: c.author_avatar || undefined,
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
               name: r.author_name,
               text: r.body,
               timestamp: formatRelativeTime(r.created_at),
+              avatarUrl: r.author_avatar || undefined,
             })),
           }));
           setComments(mappedComments);
@@ -486,6 +488,7 @@ export default function DevotionalView() {
           body: JSON.stringify({
             name,
             text: commentText,
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
           }),
         });
 
@@ -526,6 +529,7 @@ export default function DevotionalView() {
           body: JSON.stringify({
             name,
             text: commentText,
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
           }),
         });
 
