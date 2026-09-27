@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaBell, FaRegBell } from "react-icons/fa6";
 import { BsCheck2All } from "react-icons/bs";
 import { FirstNotifications } from "@/app/data/notifications";
+import { formatRelativeTime } from "@/lib/utils/date";
 
 export interface NotificationItem {
   id: string;
@@ -32,6 +33,73 @@ export default function PushNotifications() {
 
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(FirstNotifications);
+
+  // Fetch in-app notifications for the current user
+  useEffect(() => {
+    if (!userId) return;
+
+    let mounted = true;
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch("/api/notifications", {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!mounted) return;
+        const items: NotificationItem[] = (data.notifications || []).map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          timestamp: formatRelativeTime(n.created_at),
+          read: Boolean(n.read),
+          type: n.type,
+          link: n.link || undefined,
+        }));
+        if (items.length) setNotifications(items);
+      } catch (err) {
+        console.error("Failed to load notifications:", err);
+      }
+    }
+
+    loadNotifications();
+
+    // Realtime subscription via Supabase so new notifications appear live.
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notification_events",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          const n = payload.new;
+          setNotifications((prev) => [
+            {
+              id: n.id,
+              title: n.title,
+              body: n.body,
+              timestamp: formatRelativeTime(n.created_at),
+              read: Boolean(n.read),
+              type: n.type,
+              link: n.link || undefined,
+            },
+            ...prev,
+          ]);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -179,14 +247,74 @@ export default function PushNotifications() {
     setIsToggling(false);
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, read: true } : item)),
     );
+
+    if (!userId) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ notificationId: id }),
+      });
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+
+    if (!userId) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ markAll: true }),
+      });
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+    }
+  };
+
+  const handleTestNotify = async () => {
+    if (!userId) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/test-notfy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus("enabled");
+      }
+    } catch (err) {
+      console.error("Test notify failed:", err);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -228,15 +356,25 @@ export default function PushNotifications() {
                   </span>
                 )}
               </div>
-              {unreadCount > 0 && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={markAllAsRead}
+                  onClick={handleTestNotify}
                   className="text-[11px] font-medium text-neutral-400 hover:text-white flex gap-1 items-center transition-colors cursor-pointer"
+                  title="Send a test notification to verify push works"
                 >
-                  <BsCheck2All className="size-3" /> Mark all read
+                  Test
                 </button>
-              )}
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllAsRead}
+                    className="text-[11px] font-medium text-neutral-400 hover:text-white flex gap-1 items-center transition-colors cursor-pointer"
+                  >
+                    <BsCheck2All className="size-3" /> Mark all read
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Morning Reminder Banner (Disappears completely once enabled) */}
