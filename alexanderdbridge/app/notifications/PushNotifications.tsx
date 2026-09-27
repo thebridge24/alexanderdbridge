@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -65,48 +64,48 @@ export default function PushNotifications() {
 
     loadNotifications();
 
-  // Realtime subscription via Supabase so new notifications appear live.
-const supabase = createSupabaseBrowserClient();
+    // Realtime subscription via Supabase so new notifications appear live.
+    const supabase = createSupabaseBrowserClient();
 
-if (!supabase) {
-  mounted = false;
-  return;
-}
+    if (!supabase) {
+      mounted = false;
+      return;
+    }
 
-const channel = supabase
-  .channel(`notifications:${userId}`)
-  .on(
-    "postgres_changes",
-    {
-      event: "INSERT",
-      schema: "public",
-      table: "notification_events",
-      filter: `user_id=eq.${userId}`,
-    },
-    (payload: any) => {
-      const n = payload.new;
-
-      setNotifications((prev) => [
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        "postgres_changes",
         {
-          id: n.id,
-          title: n.title,
-          body: n.body,
-          timestamp: formatRelativeTime(n.created_at),
-          read: Boolean(n.read),
-          type: n.type,
-          link: n.link || undefined,
+          event: "INSERT",
+          schema: "public",
+          table: "notification_events",
+          filter: `user_id=eq.${userId}`,
         },
-        ...prev,
-      ]);
-    },
-  )
-  .subscribe();
+        (payload: any) => {
+          const n = payload.new;
 
-return () => {
-  mounted = false;
-  supabase.removeChannel(channel);
-};
-}, [userId]);
+          setNotifications((prev) => [
+            {
+              id: n.id,
+              title: n.title,
+              body: n.body,
+              timestamp: formatRelativeTime(n.created_at),
+              read: Boolean(n.read),
+              type: n.type,
+              link: n.link || undefined,
+            },
+            ...prev,
+          ]);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -216,7 +215,12 @@ return () => {
       }
 
       const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase!.auth.getSession();
+      if (!supabase) {
+        setStatus("error");
+        return false;
+      }
+
+      const { data } = await supabase.auth.getSession();
       const accessToken = data.session?.access_token;
       if (!accessToken) {
         setStatus("error");
@@ -246,7 +250,6 @@ return () => {
     }
   };
 
-
   const handleToggleSwitch = async () => {
     if (isToggling || status === "enabled") return;
     setIsToggling(true);
@@ -262,6 +265,8 @@ return () => {
     if (!userId) return;
     try {
       const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) return;
@@ -284,6 +289,8 @@ return () => {
     if (!userId) return;
     try {
       const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) return;
@@ -304,6 +311,8 @@ return () => {
     if (!userId) return;
     try {
       const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) return;
@@ -315,7 +324,6 @@ return () => {
         },
         body: JSON.stringify({ userId }),
       });
-      const data = await res.json();
       if (res.ok) {
         setStatus("enabled");
       }
