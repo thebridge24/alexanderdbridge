@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   
   const { data: rawComments, error } = await supabase
     .from("devotional_comments")
-    .select("id, devotional_date, author_name, author_avatar, body, created_at, like_count")
+    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count")
     .eq("devotional_date", date)
     .order("created_at", { ascending: false });
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         : Promise.resolve({ data: null, error: null }),
       supabase
         .from("devotional_comment_replies")
-        .select("id, comment_id, author_name, author_avatar, body, created_at")
+        .select("id, comment_id, author_name, author_avatar, author_user_id, body, created_at")
         .in("comment_id", commentIds)
         .order("created_at", { ascending: true }),
     ]);
@@ -64,6 +64,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           id: r.id,
           author_name: r.author_name,
           author_avatar: r.author_avatar,
+          author_user_id: r.author_user_id,
           body: r.body,
           created_at: r.created_at,
         });
@@ -77,6 +78,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     devotional_date: c.devotional_date,
     author_name: c.author_name,
     author_avatar: c.author_avatar,
+    author_user_id: c.author_user_id,
     body: c.body,
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
@@ -85,6 +87,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       id: r.id,
       author_name: r.author_name,
       author_avatar: r.author_avatar,
+      author_user_id: r.author_user_id,
       body: r.body,
       created_at: r.created_at,
     })),
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
   }
 
-  let body: { name?: string; text?: string; avatarUrl?: string };
+  let body: { name?: string; text?: string; avatarUrl?: string; authorUserId?: string };
   try {
     body = await request.json();
   } catch {
@@ -121,6 +124,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const name = body.name?.trim();
   const text = body.text?.trim();
   const avatarUrl = (body.avatarUrl || "").trim() || "";
+  const authorUserId = body.authorUserId?.trim() || null;
 
   if (!name || name.length > 100) {
     return NextResponse.json(
@@ -143,9 +147,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       devotional_date: date,
       author_name: name,
       author_avatar: avatarUrl,
+      author_user_id: authorUserId,
       body: text,
     })
-    .select("id, devotional_date, author_name, author_avatar, body, created_at")
+    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at")
     .single();
 
   if (error) {

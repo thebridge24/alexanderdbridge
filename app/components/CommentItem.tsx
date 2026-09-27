@@ -11,6 +11,7 @@ export interface Reply {
   text: string;
   timestamp: string;
   avatarUrl?: string;
+  authorUserId?: string;
 }
 
 export interface Comment {
@@ -21,6 +22,7 @@ export interface Comment {
   likes: number;
   liked?: boolean;
   avatarUrl?: string;
+  authorUserId?: string;
   replies?: Reply[];
 }
 

@@ -353,12 +353,14 @@ export default function DevotionalView() {
             timestamp: formatRelativeTime(c.created_at),
             likes: c.like_count ?? 0,
             liked: Boolean(c.liked),
+            authorUserId: c.author_user_id || undefined,
             avatarUrl: c.author_avatar || undefined,
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
               name: r.author_name,
               text: r.body,
               timestamp: formatRelativeTime(r.created_at),
+              authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
             })),
           }));
@@ -489,6 +491,7 @@ export default function DevotionalView() {
             name,
             text: commentText,
             avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           }),
         });
 
@@ -500,6 +503,7 @@ export default function DevotionalView() {
             text: data.reply.body,
             timestamp: "Just now",
             avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           };
 
           setComments((prev) =>
@@ -530,6 +534,7 @@ export default function DevotionalView() {
             name,
             text: commentText,
             avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           }),
         });
 
@@ -544,6 +549,7 @@ export default function DevotionalView() {
             liked: false,
             replies: [],
             avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           };
           setComments([newComment, ...comments]);
           setCommentText("");
@@ -580,7 +586,10 @@ export default function DevotionalView() {
       const res = await fetch(`/api/comments/${commentId}/like`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({
+          sessionId,
+          actorUserId: user?.id || undefined,
+        }),
       });
 
       if (res.ok) {
