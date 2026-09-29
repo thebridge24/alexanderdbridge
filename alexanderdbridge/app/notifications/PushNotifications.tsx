@@ -388,14 +388,7 @@ useEffect(() => {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleTestNotify}
-                  className="text-[11px] font-medium text-neutral-400 hover:text-white flex gap-1 items-center transition-colors cursor-pointer"
-                  title="Send a test notification to verify push works"
-                >
-                  Test
-                </button>
+                
                 {unreadCount > 0 && (
                   <button
                     type="button"
