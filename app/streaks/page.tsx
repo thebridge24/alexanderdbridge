@@ -14,6 +14,8 @@ export interface UserAnalyticsItem {
   currentStreak: number;
   highestStreak: number;
   lastActiveDate?: string;
+  createdAt?: string;
+  lastSignedIn?: string;
 }
 
 export default function LeaderboardPage() {
@@ -22,22 +24,22 @@ export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<"september" | "allTime">("september");
 
   useEffect(() => {
-    // 30-Second Continuous Confetti Burst
+    // 30-Second Continuous Confetti (Reduced particle density)
     const duration = 30 * 1000;
     const animationEnd = Date.now() + duration;
 
     const frame = () => {
       confetti({
-        particleCount: 7,
+        particleCount: 3, // Reduced particle density per burst
         angle: 60,
-        spread: 55,
+        spread: 50,
         origin: { x: 0, y: 0.2 },
         colors: ["#ef4444", "#dc2626", "#f59e0b", "#ffffff"],
       });
       confetti({
-        particleCount: 7,
+        particleCount: 3, // Reduced particle density per burst
         angle: 120,
-        spread: 55,
+        spread: 50,
         origin: { x: 1, y: 0.2 },
         colors: ["#ef4444", "#dc2626", "#f59e0b", "#ffffff"],
       });
@@ -56,7 +58,7 @@ export default function LeaderboardPage() {
         if (res.ok) {
           const data = await res.json();
           
-          // Exclude Alexander D Bridge and Alexander Christ
+          // Filter out Alexander D Bridge and Alexander Christ
           const filtered = (data.users || []).filter((u: UserAnalyticsItem) => {
             const nameLower = (u.name || "").toLowerCase().trim();
             return (
@@ -65,12 +67,43 @@ export default function LeaderboardPage() {
             );
           });
 
-          // Sort users by current streak, then highest streak
+          // Sort Users Logic:
+          // 1. Highest currentStreak
+          // 2. Earliest timestamp of last active/visit date (First-come, first-served)
+          // 3. Earliest account creation date
           const sorted = filtered.sort(
-            (a: UserAnalyticsItem, b: UserAnalyticsItem) =>
-              (b.currentStreak || 0) - (a.currentStreak || 0) ||
-              (b.highestStreak || 0) - (a.highestStreak || 0)
+            (a: UserAnalyticsItem, b: UserAnalyticsItem) => {
+              const streakA = a.currentStreak || 0;
+              const streakB = b.currentStreak || 0;
+
+              if (streakB !== streakA) {
+                return streakB - streakA; // Higher streak wins
+              }
+
+              // Tie-breaker: Who recorded/updated their streak earliest?
+              const timeA = a.lastActiveDate
+                ? new Date(a.lastActiveDate).getTime()
+                : Infinity;
+              const timeB = b.lastActiveDate
+                ? new Date(b.lastActiveDate).getTime()
+                : Infinity;
+
+              if (timeA !== timeB) {
+                return timeA - timeB; // Earlier time comes first
+              }
+
+              // Fallback tie-breaker: Account creation date
+              const createdA = a.createdAt
+                ? new Date(a.createdAt).getTime()
+                : Infinity;
+              const createdB = b.createdAt
+                ? new Date(b.createdAt).getTime()
+                : Infinity;
+
+              return createdA - createdB;
+            }
           );
+
           setUsers(sorted);
         }
       } catch (err) {
@@ -139,7 +172,7 @@ export default function LeaderboardPage() {
           </button>
         </div>
 
-        {/* Podium Area (overflow-visible so crown isn't cut off) */}
+        {/* Podium Area */}
         {!loading && users.length > 0 && (
           <div className="pt-6 pb-2 relative overflow-visible">
             <div className="flex items-end justify-center gap-3 sm:gap-6 min-h-[190px]">
