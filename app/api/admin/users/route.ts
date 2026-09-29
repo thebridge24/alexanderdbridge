@@ -61,7 +61,7 @@ export async function GET() {
         highestStreak: streak.best_streak ?? 0,
         lastActiveDate: streak.last_visit_date || "",
         createdAt: streak.created_at || authUser?.created_at,
-        lastSignedIn: authUser?.last_signed_in_at,
+        lastSignedIn: authUser?.last_sign_in_at,
       };
     });
 
@@ -80,7 +80,7 @@ export async function GET() {
           highestStreak: 0,
           lastActiveDate: "",
           createdAt: u.created_at,
-          lastSignedIn: u.last_signed_in_at,
+          lastSignedIn: u.last_sign_in_at,
         };
       });
 
