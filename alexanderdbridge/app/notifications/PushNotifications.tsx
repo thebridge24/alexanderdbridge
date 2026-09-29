@@ -34,78 +34,94 @@ export default function PushNotifications() {
     useState<NotificationItem[]>(FirstNotifications);
 
   // Fetch in-app notifications for the current user
-  useEffect(() => {
-    if (!userId) return;
+  // Fetch in-app notifications for the current user
+useEffect(() => {
+  if (!userId) return;
 
-    let mounted = true;
+  let mounted = true;
 
-    async function loadNotifications() {
-      try {
-        const res = await fetch("/api/notifications", {
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted) return;
-        const items: NotificationItem[] = (data.notifications || []).map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          body: n.body,
-          timestamp: formatRelativeTime(n.created_at),
-          read: Boolean(n.read),
-          type: n.type,
-          link: n.link || undefined,
-        }));
-        if (items.length) setNotifications(items);
-      } catch (err) {
-        console.error("Failed to load notifications:", err);
-      }
-    }
+  async function loadNotifications() {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
 
-    loadNotifications();
+      // Get session access token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
 
-    // Realtime subscription via Supabase so new notifications appear live.
-    const supabase = createSupabaseBrowserClient();
-
-    if (!supabase) {
-      mounted = false;
-      return;
-    }
-
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notification_events",
-          filter: `user_id=eq.${userId}`,
+      const res = await fetch("/api/notifications", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        (payload: any) => {
-          const n = payload.new;
+      });
 
-          setNotifications((prev) => [
-            {
-              id: n.id,
-              title: n.title,
-              body: n.body,
-              timestamp: formatRelativeTime(n.created_at),
-              read: Boolean(n.read),
-              type: n.type,
-              link: n.link || undefined,
-            },
-            ...prev,
-          ]);
-        },
-      )
-      .subscribe();
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!mounted) return;
 
-    return () => {
-      mounted = false;
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
+      const items: NotificationItem[] = (data.notifications || []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        body: n.body,
+        timestamp: formatRelativeTime(n.created_at),
+        read: Boolean(n.read),
+        type: n.type,
+        link: n.link || undefined,
+      }));
+
+      // Always update state (even if empty) to clear default mock data
+      setNotifications(items);
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+    }
+  }
+
+  loadNotifications();
+
+  // Realtime subscription via Supabase so new notifications appear live
+  const supabase = createSupabaseBrowserClient();
+
+  if (!supabase) {
+    mounted = false;
+    return;
+  }
+
+  const channel = supabase
+    .channel(`notifications:${userId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "notification_events",
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload: any) => {
+        const n = payload.new;
+
+        setNotifications((prev) => [
+          {
+            id: n.id,
+            title: n.title,
+            body: n.body,
+            timestamp: formatRelativeTime(n.created_at),
+            read: Boolean(n.read),
+            type: n.type,
+            link: n.link || undefined,
+          },
+          ...prev,
+        ]);
+      },
+    )
+    .subscribe();
+
+  return () => {
+    mounted = false;
+    supabase.removeChannel(channel);
+  };
+}, [userId]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
