@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCheck } from "react-icons/fa6";
 import confetti from "canvas-confetti";
@@ -11,26 +11,27 @@ import { version } from "@/package.json";
 
 interface StreakFooterBannerProps {
   currentStreak: number;
-  onStreakIncrement?: () => void;
-  targetDurationSeconds?: number; // Defaults to 300 (5 minutes)
+  dwellSeconds?: number;
+  minDwellSeconds?: number;
   isAlreadyCompleted?: boolean;
+  onMarkAsRead?: () => void;
 }
 
 export default function StreakFooterBanner({
   currentStreak,
-  onStreakIncrement,
-  targetDurationSeconds = 300,
+  dwellSeconds = 0,
+  minDwellSeconds = 300,
   isAlreadyCompleted = false,
+  onMarkAsRead,
 }: StreakFooterBannerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(targetDurationSeconds);
-  const [isCompleted, setIsCompleted] = useState<boolean>(isAlreadyCompleted);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Compute actual remaining time directly from dwell seconds
+  const remainingSeconds = Math.max(0, minDwellSeconds - dwellSeconds);
+  const isCompleted = isAlreadyCompleted || remainingSeconds === 0;
 
   // Trigger confetti explosion
   const fireConfetti = useCallback(() => {
-    // Center-burst confetti burst matching the image layout
     confetti({
       particleCount: 80,
       spread: 70,
@@ -40,59 +41,29 @@ export default function StreakFooterBanner({
     });
   }, []);
 
-  const handleStreakComplete = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const lastCelebrated = localStorage.getItem("last_streak_celebration_date");
+  // Monitor completion state to trigger celebration once
+  useEffect(() => {
+    if (isCompleted) {
+      const today = new Date().toISOString().split("T")[0];
+      const lastCelebrated = localStorage.getItem("last_streak_celebration_date");
 
-    // Only fire celebration once per calendar day
-    if (lastCelebrated !== today) {
-      localStorage.setItem("last_streak_celebration_date", today);
-      setShowCelebration(true);
-      fireConfetti();
-
-      if (onStreakIncrement) {
-        onStreakIncrement();
+      if (lastCelebrated !== today) {
+        localStorage.setItem("last_streak_celebration_date", today);
+        setShowCelebration(true);
+        fireConfetti();
       }
     }
-  }, [onStreakIncrement, fireConfetti]);
+  }, [isCompleted, fireConfetti]);
 
-  // Check on load if today was already completed
-  useEffect(() => {
-    if (isAlreadyCompleted) {
-      setIsCompleted(true);
-      setTimeLeft(0);
-      return;
+  const handleManualComplete = () => {
+    if (onMarkAsRead) {
+      onMarkAsRead();
     }
-
     const today = new Date().toISOString().split("T")[0];
-    const lastCelebrated = localStorage.getItem("last_streak_celebration_date");
-
-    if (lastCelebrated === today) {
-      setIsCompleted(true);
-      setTimeLeft(0);
-    }
-  }, [isAlreadyCompleted]);
-
-  // 5-Minute Countdown logic
-  useEffect(() => {
-    if (isCompleted) return;
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          setIsCompleted(true);
-          handleStreakComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isCompleted, handleStreakComplete]);
+    localStorage.setItem("last_streak_celebration_date", today);
+    setShowCelebration(true);
+    fireConfetti();
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -103,7 +74,7 @@ export default function StreakFooterBanner({
   // Generate full 7 week day chips (Su - Sa)
   const renderWeekDays = () => {
     const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    const todayIndex = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+    const todayIndex = new Date().getDay();
 
     return days.map((dayLabel, index) => {
       const isPast = index < todayIndex;
@@ -139,27 +110,42 @@ export default function StreakFooterBanner({
   };
 
   return (
-    <footer className="w-full flex flex-col items-center justify-center pt-8 pb-12 px-4 relative z-20 border-t border-white/30">
+    <footer className="w-full flex flex-col items-center justify-center pt-8 pb-12 px-4 relative z-20 border-t border-white/10">
       {/* Footer Text */}
-      <p className="text-center flex flex-col items-center gap-1 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
+      <div className="text-center flex flex-col items-center gap-3 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
         {isCompleted ? (
-          <span className="text-red-600/80 font-medium">
+          <span className="text-red-500 font-medium flex items-center gap-2 text-sm bg-red-950/40 border border-red-800/40 px-4 py-1.5 rounded-full">
+            <FaCheck className="size-3 text-red-500" />
             Daily devotional time completed for today!
           </span>
         ) : (
-          <span>
-            You need to read the devotional and pray for at least{" "}
-            <span className="font-mono text-white/70 font-semibold px-1.5 py-0.5 text-2xl">
-              {formatTime(timeLeft)}
+          <div className="flex flex-col items-center gap-3">
+            <span>
+              Reading timer:{" "}
+              <span className="font-mono text-white font-semibold px-2 py-0.5 text-xl bg-white/5 border border-white/10 rounded-md">
+                {formatTime(remainingSeconds)}
+              </span>
             </span>
-          </span>
+
+            {/* Manual Mark as Read Button */}
+            {onMarkAsRead && (
+              <button
+                type="button"
+                onClick={handleManualComplete}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold shadow-lg transition-all"
+              >
+                <FaCheck className="size-3" /> Mark as Read Now
+              </button>
+            )}
+          </div>
         )}
-        <span className="inline-flex items-center gap-2">
+
+        <span className="inline-flex items-center gap-2 pt-2">
           <a
             href="https://stackgate.net"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white/50 hover:text-white/80 underline decoration-white/20 underline-offset-4 transition-colors font-normal"
+            className="text-white/50 hover:text-white/80 underline decoration-white/20 underline-offset-4 transition-colors font-normal text-xs"
           >
             Built By Stackgate International
           </a>
@@ -167,12 +153,12 @@ export default function StreakFooterBanner({
             v{version}
           </span>
         </span>
-      </p>
+      </div>
 
       {/* Modal Popup matching design */}
       <AnimatePresence>
         {showCelebration && (
-          <div className="fixed inset-0 z-100 flex items-end justify-center p-4 bg-black/60">
+          <div className="fixed inset-0 z-100 flex items-end justify-center p-4 bg-black/70 backdrop-blur-xs">
             <motion.div
               initial={{ scale: 0.85, opacity: 0, y: 300 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -182,9 +168,9 @@ export default function StreakFooterBanner({
             >
               {/* Central Glowing Number Badge */}
               <div className="relative my-4 flex items-center justify-center">
-                <div className="size-24 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center ">
+                <div className="size-24 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center">
                   <span className="text-5xl font-black text-white tracking-tight">
-                    {currentStreak + 1}
+                    {currentStreak > 0 ? currentStreak : 1}
                   </span>
                 </div>
                 <div className="absolute inset-0 rounded-full border border-white/5 animate-ping opacity-25" />
