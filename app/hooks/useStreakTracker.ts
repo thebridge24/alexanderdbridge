@@ -1,7 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/immutability */
-/* eslint-disable react-hooks/set-state-in-effect */
-// hooks/useStreakTracker.ts
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -18,9 +15,7 @@ export function mergeStreakData(
   base: StreakData,
   incoming?: Partial<StreakData> | null,
 ): StreakData {
-  if (!incoming) {
-    return base;
-  }
+  if (!incoming) return base;
 
   const attendanceHistory = {
     ...(base.attendanceHistory || {}),
@@ -70,15 +65,13 @@ export function useStreakTracker(userIdProp?: string | null) {
     null,
   );
 
-  const streakDataRef = useRef(streakData);
-  streakDataRef.current = streakData;
+  const startTimeRef = useRef<number>(Date.now());
 
   const getTodayString = useCallback(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   }, []);
 
-  // Detect Supabase user if userIdProp is omitted
   useEffect(() => {
     if (userIdProp) {
       setActiveUserId(userIdProp);
@@ -103,7 +96,6 @@ export function useStreakTracker(userIdProp?: string | null) {
     return () => subscription.unsubscribe();
   }, [userIdProp]);
 
-  // Sync to database
   const syncToDatabase = useCallback(
     async (dataToSync: StreakData, uid: string) => {
       try {
@@ -136,7 +128,6 @@ export function useStreakTracker(userIdProp?: string | null) {
     [],
   );
 
-  // 1. Load initial data from LocalStorage & sync with Supabase database
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -164,14 +155,10 @@ export function useStreakTracker(userIdProp?: string | null) {
       );
       setStreakData(localMerged);
 
-      const todayRecord = localMerged.attendanceHistory[today];
-      if (todayRecord && todayRecord.completed) {
+      if (localMerged.attendanceHistory[today]?.completed) {
         setTodayCompleted(true);
-      } else {
-        setTodayCompleted(false);
       }
 
-      // If active user is signed in, fetch remote database streak and reconcile
       if (activeUserId) {
         fetch(`/api/streaks?userId=${encodeURIComponent(activeUserId)}`)
           .then((res) => (res.ok ? res.json() : null))
@@ -187,36 +174,8 @@ export function useStreakTracker(userIdProp?: string | null) {
                 setTodayCompleted(true);
               }
 
-              // Update user localStorage
               localStorage.setItem(userKey, JSON.stringify(fullMerged));
               localStorage.setItem(mainKey, JSON.stringify(fullMerged));
-
-              // Sync completed devotionals list
-              if (Array.isArray(remote.completedDevotionals)) {
-                const localCompleted = JSON.parse(
-                  localStorage.getItem("completed_devotionals") || "[]",
-                );
-                const mergedCompleted = Array.from(
-                  new Set([...localCompleted, ...remote.completedDevotionals]),
-                );
-                localStorage.setItem(
-                  "completed_devotionals",
-                  JSON.stringify(mergedCompleted),
-                );
-              }
-
-              // If local had progress not yet in the DB, push update
-              const isAhead =
-                fullMerged.currentStreak > (remote.streakData.currentStreak || 0) ||
-                Object.keys(fullMerged.attendanceHistory).length >
-                  Object.keys(remote.streakData.attendanceHistory || {}).length;
-
-              if (isAhead) {
-                syncToDatabase(fullMerged, activeUserId);
-              }
-            } else if (localMerged.currentStreak > 0) {
-              // Remote has no data yet, push local streak to DB
-              syncToDatabase(localMerged, activeUserId);
             }
           })
           .catch((err) => {
@@ -226,9 +185,8 @@ export function useStreakTracker(userIdProp?: string | null) {
     } catch (err) {
       console.error("Failed to parse streak storage", err);
     }
-  }, [activeUserId, getTodayString, syncToDatabase]);
+  }, [activeUserId, getTodayString]);
 
-  // Mark current day as completed once 5 mins threshold is met or triggered by banner
   const markTodayComplete = useCallback(() => {
     const today = getTodayString();
 
@@ -241,7 +199,6 @@ export function useStreakTracker(userIdProp?: string | null) {
       const newStreak = hadYesterday ? prev.currentStreak + 1 : 1;
       const newBest = Math.max(newStreak, prev.bestStreak);
 
-      // Check for newly unlocked medals
       const newlyWon = MILESTONE_MEDALS.find(
         (m) =>
           m.targetDays <= newStreak && !prev.unlockedMedalIds.includes(m.id),
@@ -268,12 +225,10 @@ export function useStreakTracker(userIdProp?: string | null) {
         },
       };
 
-      // Store in localStorage
       const userKey = getUserStorageKey(activeUserId);
       localStorage.setItem(userKey, JSON.stringify(updatedData));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
 
-      // Also record in completed_devotionals list for missed-yesterday banner
       try {
         const completedList = JSON.parse(
           localStorage.getItem("completed_devotionals") || "[]",
@@ -287,7 +242,6 @@ export function useStreakTracker(userIdProp?: string | null) {
         }
       } catch {}
 
-      // Sync to database if user is logged in
       if (activeUserId) {
         syncToDatabase(updatedData, activeUserId);
       }
@@ -296,42 +250,36 @@ export function useStreakTracker(userIdProp?: string | null) {
     });
 
     setTodayCompleted(true);
+    setDwellSeconds(MIN_DWELL_SECONDS);
   }, [activeUserId, getTodayString, syncToDatabase]);
 
-  // 2. Track 5-Minute Timer Active Dwell Time
+  // Robust Timestamp-Based Interval Tracker
   useEffect(() => {
     if (todayCompleted) return;
 
+    startTimeRef.current = Date.now() - dwellSeconds * 1000;
+
     const interval = setInterval(() => {
-      setDwellSeconds((prev) => {
-        const updated = prev + 1;
-        if (updated >= MIN_DWELL_SECONDS) {
-          markTodayComplete();
-          clearInterval(interval);
-        }
-        return updated;
-      });
+      const elapsedSeconds = Math.floor(
+        (Date.now() - startTimeRef.current) / 1000,
+      );
+
+      if (elapsedSeconds >= MIN_DWELL_SECONDS) {
+        setDwellSeconds(MIN_DWELL_SECONDS);
+        markTodayComplete();
+        clearInterval(interval);
+      } else {
+        setDwellSeconds(elapsedSeconds);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [todayCompleted, markTodayComplete]);
 
-  // Helper to determine active target milestone (e.g. 7, 14, 21...)
-  const getNextMilestone = () => {
-    const current = streakData.currentStreak;
-    const targetMedal =
-      MILESTONE_MEDALS.find((m) => m.targetDays > current) ||
-      MILESTONE_MEDALS[MILESTONE_MEDALS.length - 1];
-    return targetMedal.targetDays;
-  };
-
-  const currentMilestoneTarget = getNextMilestone();
-
   return {
     streakData,
     dwellSeconds,
     todayCompleted,
-    currentMilestoneTarget,
     newlyUnlockedMedal,
     clearNewMedalAlert: () => setNewlyUnlockedMedal(null),
     minDwellSeconds: MIN_DWELL_SECONDS,
