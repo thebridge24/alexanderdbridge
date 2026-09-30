@@ -36,8 +36,16 @@ interface CommentItemProps {
 // Helper function to check if the user is verified
 const isVerifiedUser = (name: string): boolean => {
   if (!name) return false;
+
   const cleanName = name.trim().toLowerCase();
-  return cleanName === "alexander christ" || cleanName === "alexander d bridge";
+
+  return (
+    cleanName === "alexander christ" ||
+    cleanName === "alexander d bridge" ||
+    cleanName === "edith maduku" ||
+    cleanName === "john edheke" ||
+    cleanName === "binah charles-agidigbi"
+  );
 };
 
 // Verified Badge Icon Component
