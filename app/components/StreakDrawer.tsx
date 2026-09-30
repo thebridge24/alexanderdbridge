@@ -17,13 +17,18 @@ interface Props {
 }
   // Helper function to check if the user is verified
   const isVerifiedUser = (userName: string): boolean => {
-    if (!userName) return false;
-    const cleanName = userName.trim().toLowerCase();
-    return (
-      cleanName === "alexander christ" || cleanName === "alexander d bridge"
-    );
-  };
+  if (!userName) return false;
 
+  const cleanName = userName.trim().toLowerCase();
+
+  return (
+    cleanName === "alexander christ" ||
+    cleanName === "alexander d bridge" ||
+    cleanName === "edith maduku" ||
+    cleanName === "john edheke" ||
+    cleanName === "binah charles-agidigbi"
+  );
+};
   // Verified Badge Icon Component
   const VerifiedBadge: React.FC<{ userName: string }> = ({ userName }) => {
     if (!isVerifiedUser(userName)) return null;
@@ -209,7 +214,7 @@ export default function StreakDrawer({
                     Day Streak
                   </h2>
                   <p className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
-                   <div className="flex gap-2">
+                   <div className="flex gap-1">
                     {userName}
                     <VerifiedBadge userName={userName} />
                     </div> 
