@@ -121,8 +121,7 @@ export default function StreakFooterBanner({
       {/* Footer Container */}
       <div className="w-full max-w-sm text-center flex flex-col items-center gap-4 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
         {isCompleted ? (
-          <span className="w-full text-red-500 font-medium flex items-center justify-center gap-2 text-sm bg-red-950/40 border border-red-800/40 px-5 py-2.5 rounded-2xl shadow-inner">
-            <FaCheck className="size-3.5 text-red-500" />
+          <span className="w-full text-red-500 font-medium text-sm">
             Daily devotional time completed for today!
           </span>
         ) : (
@@ -164,19 +163,19 @@ export default function StreakFooterBanner({
           </div>
         )}
 
-        <span className="inline-flex items-center gap-2 pt-1">
+        <div className="inline-flex items-center gap-2 pt-1">
           <a
-            href="https://stackgate.net"
+            href="https://stackgate.online"
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/50 hover:text-white/80 underline decoration-white/20 underline-offset-4 transition-colors font-normal text-xs"
           >
             Built By Stackgate International
           </a>
-          <span className="text-white/30 text-[10px] font-mono border border-white/10 px-1.5 py-0.5 rounded">
+          <div className="text-white/30 text-[10px] font-mono border border-white/10 px-1.5 py-0.5 rounded">
             v{version}
-          </span>
-        </span>
+          </div>
+        </div>
       </div>
 
       {/* Modal Celebration Popup */}
