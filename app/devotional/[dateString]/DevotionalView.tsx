@@ -100,6 +100,8 @@ export default function DevotionalView() {
     streakData,
     newlyUnlockedMedal,
     clearNewMedalAlert,
+dwellSeconds,
+    minDwellSeconds,
     todayCompleted,
     markTodayComplete,
   } = useStreakTracker(user?.id);
