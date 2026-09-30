@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaCheck } from "react-icons/fa6";
+import { FaCheck, FaLock } from "react-icons/fa6";
 import confetti from "canvas-confetti";
 
 // Import version directly from package.json
@@ -12,7 +12,7 @@ import { version } from "@/package.json";
 interface StreakFooterBannerProps {
   currentStreak: number;
   dwellSeconds?: number;
-  minDwellSeconds?: number;
+  minDwellSeconds?: number; // 300 seconds default (5 mins)
   isAlreadyCompleted?: boolean;
   onMarkAsRead?: () => void;
 }
@@ -26,9 +26,14 @@ export default function StreakFooterBanner({
 }: StreakFooterBannerProps) {
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
 
-  // Compute actual remaining time directly from dwell seconds
+  // Compute remaining countdown for the full 5-minute auto-complete
   const remainingSeconds = Math.max(0, minDwellSeconds - dwellSeconds);
   const isCompleted = isAlreadyCompleted || remainingSeconds === 0;
+
+  // Rule: Button remains disabled for the first 3 minutes (180 seconds)
+  const MIN_READ_LOCK_SECONDS = 180;
+  const isMarkAsReadLocked = dwellSeconds < MIN_READ_LOCK_SECONDS;
+  const lockTimeRemaining = Math.max(0, MIN_READ_LOCK_SECONDS - dwellSeconds);
 
   // Trigger confetti explosion
   const fireConfetti = useCallback(() => {
@@ -41,7 +46,7 @@ export default function StreakFooterBanner({
     });
   }, []);
 
-  // Monitor completion state to trigger celebration once
+  // Monitor completion state to trigger celebration once per day
   useEffect(() => {
     if (isCompleted) {
       const today = new Date().toISOString().split("T")[0];
@@ -56,6 +61,8 @@ export default function StreakFooterBanner({
   }, [isCompleted, fireConfetti]);
 
   const handleManualComplete = () => {
+    if (isMarkAsReadLocked) return;
+
     if (onMarkAsRead) {
       onMarkAsRead();
     }
@@ -111,15 +118,15 @@ export default function StreakFooterBanner({
 
   return (
     <footer className="w-full flex flex-col items-center justify-center pt-8 pb-12 px-4 relative z-20 border-t border-white/10">
-      {/* Footer Text */}
-      <div className="text-center flex flex-col items-center gap-3 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
+      {/* Footer Container */}
+      <div className="w-full max-w-sm text-center flex flex-col items-center gap-4 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
         {isCompleted ? (
-          <span className="text-red-500 font-medium flex items-center gap-2 text-sm bg-red-950/40 border border-red-800/40 px-4 py-1.5 rounded-full">
-            <FaCheck className="size-3 text-red-500" />
+          <span className="w-full text-red-500 font-medium flex items-center justify-center gap-2 text-sm bg-red-950/40 border border-red-800/40 px-5 py-2.5 rounded-2xl shadow-inner">
+            <FaCheck className="size-3.5 text-red-500" />
             Daily devotional time completed for today!
           </span>
         ) : (
-          <div className="flex flex-col items-center gap-3">
+          <div className="w-full flex flex-col items-center gap-3.5">
             <span>
               Reading timer:{" "}
               <span className="font-mono text-white font-semibold px-2 py-0.5 text-xl bg-white/5 border border-white/10 rounded-md">
@@ -127,20 +134,37 @@ export default function StreakFooterBanner({
               </span>
             </span>
 
-            {/* Manual Mark as Read Button */}
+            {/* Wide, Red "Mark as Read" Button */}
             {onMarkAsRead && (
               <button
                 type="button"
+                disabled={isMarkAsReadLocked}
                 onClick={handleManualComplete}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold shadow-lg transition-all"
+                className={`w-full py-3.5 px-6 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg transition-all duration-300 border ${
+                  isMarkAsReadLocked
+                    ? "bg-neutral-900 border-neutral-800 text-neutral-500 cursor-not-allowed opacity-60"
+                    : "bg-red-600 hover:bg-red-700 active:scale-[0.98] border-red-500/30 text-white cursor-pointer"
+                }`}
               >
-                <FaCheck className="size-3" /> Mark as Read Now
+                {isMarkAsReadLocked ? (
+                  <>
+                    <FaLock className="size-3.5 text-neutral-500" />
+                    <span>
+                      Mark as Read (Unlock in {formatTime(lockTimeRemaining)})
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <FaCheck className="size-4" />
+                    <span>Mark as Read Now</span>
+                  </>
+                )}
               </button>
             )}
           </div>
         )}
 
-        <span className="inline-flex items-center gap-2 pt-2">
+        <span className="inline-flex items-center gap-2 pt-1">
           <a
             href="https://stackgate.net"
             target="_blank"
@@ -155,7 +179,7 @@ export default function StreakFooterBanner({
         </span>
       </div>
 
-      {/* Modal Popup matching design */}
+      {/* Modal Celebration Popup */}
       <AnimatePresence>
         {showCelebration && (
           <div className="fixed inset-0 z-100 flex items-end justify-center p-4 bg-black/70 backdrop-blur-xs">
