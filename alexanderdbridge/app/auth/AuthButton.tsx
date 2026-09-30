@@ -16,9 +16,12 @@ const isVerifiedUser = (email?: string): boolean => {
   const cleanEmail = email.trim().toLowerCase();
   
   const VERIFIED_EMAILS = [
-    "alexanderchrist203@gmail.com",
-    "alexanderdbridge@gmail.com",
-  ];
+  "alexanderchrist203@gmail.com",
+  "alexanderdbridge@gmail.com",
+  "binahcharlesagidigbi@gmail.com",
+  "johnedheke@gmail.com",
+  "madukuedith@gmail.com",
+];
 
   return VERIFIED_EMAILS.includes(cleanEmail);
 };
