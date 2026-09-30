@@ -985,12 +985,13 @@ export default function DevotionalView() {
         )}
       </AnimatePresence>
       <StreakFooterBanner
-        currentStreak={streakData?.currentStreak || 0}
-        isAlreadyCompleted={todayCompleted}
-        onStreakIncrement={() => {
-          markTodayComplete();
-        }}
-      />
+  currentStreak={streakData?.currentStreak || 0}
+  dwellSeconds={dwellSeconds}
+  minDwellSeconds={minDwellSeconds}
+  isAlreadyCompleted={todayCompleted}
+  onMarkAsRead={markTodayComplete}
+/>
+
     </motion.div>
   );
 }
