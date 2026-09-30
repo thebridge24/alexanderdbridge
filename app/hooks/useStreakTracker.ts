@@ -276,11 +276,24 @@ export function useStreakTracker(userIdProp?: string | null) {
     return () => clearInterval(interval);
   }, [todayCompleted, markTodayComplete]);
 
+  // Helper to calculate the next target milestone (e.g. 7, 14, 21...)
+  const getNextMilestone = () => {
+    const current = streakData.currentStreak;
+    const targetMedal =
+      MILESTONE_MEDALS.find((m) => m.targetDays > current) ||
+      MILESTONE_MEDALS[MILESTONE_MEDALS.length - 1];
+    return targetMedal ? targetMedal.targetDays : 7;
+  };
+
+  const currentMilestoneTarget = getNextMilestone();
+
+
   return {
     streakData,
     dwellSeconds,
     todayCompleted,
     newlyUnlockedMedal,
+currentMilestoneTarget,
     clearNewMedalAlert: () => setNewlyUnlockedMedal(null),
     minDwellSeconds: MIN_DWELL_SECONDS,
     markTodayComplete,
