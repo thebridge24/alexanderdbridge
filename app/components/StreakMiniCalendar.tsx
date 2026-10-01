@@ -170,9 +170,9 @@ export default function StreakMiniCalendar({ attendanceHistory }: Props) {
             /* --- Horizontal Week View --- */
             <motion.div
               key={`week-${weekOffset}`}
-              initial={{ x: direction * 80, opacity: 0 }}
+              initial={{ x: direction * 80, opacity: 0.8}}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -direction * 80, opacity: 0 }}
+              exit={{ x: -direction * 80, opacity: 0.8}}
               transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="flex items-center justify-between gap-1 py-1 w-full"
             >
@@ -226,9 +226,9 @@ export default function StreakMiniCalendar({ attendanceHistory }: Props) {
             /* --- Expanded Month Grid View --- */
             <motion.div
               key={`month-${year}-${month}`}
-              initial={{ x: direction * 80, opacity: 0 }}
+              initial={{ x: direction * 80, opacity: 0.8}}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -direction * 80, opacity: 0 }}
+              exit={{ x: -direction * 80, opacity: 0.8}}
               transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="space-y-2 pt-1 w-full"
             >
