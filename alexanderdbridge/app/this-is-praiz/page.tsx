@@ -241,33 +241,35 @@ export default function BirthdayExperience() {
   }, [currentStep, isOpeningEnvelope, goToNext, goToPrev]);
 
   // Framer motion variants
-  const pageVariants = {
-    initial: (dir: number) => ({
-      opacity: 0,
-      x: dir > 0 ? "8%" : "-8%",
-      scale: 0.99,
-    }),
-    animate: {
-      opacity: 1,
-      x: "0%",
-      scale: 1,
-      transition: {
-        duration: 0.7,
-        ease: [0.16, 1, 0.3, 1],
-        staggerChildren: 0.12,
-        delayChildren: 0.1,
-      },
+  // Framer motion variants with proper TypeScript tuple typing
+const pageVariants = {
+  initial: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? "8%" : "-8%",
+    scale: 0.99,
+  }),
+  animate: {
+    opacity: 1,
+    x: "0%",
+    scale: 1,
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1] as const, // Added 'as const' here
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
     },
-    exit: (dir: number) => ({
-      opacity: 0,
-      x: dir > 0 ? "-8%" : "8%",
-      scale: 0.99,
-      transition: {
-        duration: 0.4,
-        ease: [0.7, 0, 0.84, 0],
-      },
-    }),
-  };
+  },
+  exit: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? "-8%" : "8%",
+    scale: 0.99,
+    transition: {
+      duration: 0.4,
+      ease: [0.7, 0, 0.84, 0] as const, // Added 'as const' here
+    },
+  }),
+};
+
 
   const itemVariants = {
     initial: { opacity: 0, y: 18 },
