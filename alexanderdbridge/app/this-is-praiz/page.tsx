@@ -5,9 +5,10 @@ import { motion, AnimatePresence, Variants} from "framer-motion";
 import {
   ChevronRight,
   RotateCcw,
-  Sparkles,
   Heart,
   Mail,
+Maximize2,
+  Minimize2,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -52,120 +53,137 @@ const SLIDES: SlideData[] = [
     layout: "envelope",
     title: "Before you turn 18...",
     subtitle: "I asked you a few questions.",
-    paragraphs: ["And your answers told me more than I expected."],
-    accentText: "A message for Praiz Imonin",
+    paragraphs: [
+      "And I don't know... your answers stayed with me.",
+    ],
+    accentText: "A little birthday note for Praiz",
   },
+
   {
     id: 2,
     layout: "split",
-    title: "17 left you with a few things.",
+    title: "17 taught you a few things.",
     listItems: [
-      "Learning to feel without being ruled by your feelings.",
-      "Being scared and still trying.",
-      "Taking your health seriously.",
-      "And learning that you're not behind.",
+      "You can be angry without becoming cruel.",
+      "You can be scared and still try.",
+      "You need to take care of yourself too.",
+      "And you're not late. You're just on your own timeline.",
     ],
     image: IMAGES.praiz1,
     imageAlt: "Praiz",
     imagePosition: "right",
   },
+
   {
     id: 3,
     layout: "centered",
     title: "You're not behind.",
     paragraphs: [
-      "Someone may get somewhere before you. Someone else may get there after you.",
-      "Your journey is still yours.",
-      "I hope you remember that when 18 gets loud.",
+      "This one stayed with me.",
+      "Because it's easy to look around and feel like everybody is moving faster than you.",
+      "But you're learning that somebody else's timing doesn't make yours wrong.",
+      "So when 18 gets confusing, I hope you remember what you already know: you're not behind.",
     ],
     image: IMAGES.praiz2,
     imagePosition: "bg",
   },
+
   {
     id: 4,
     layout: "split",
-    title: "You're still learning yourself.",
+    title: "You're learning yourself.",
     paragraphs: [
-      "You're learning that being alone doesn't always mean something is missing.",
-      "Sometimes you just need to sit with yourself, breathe, and become comfortable with your own company.",
-      "And learning not to rush into friendships just because silence feels uncomfortable.",
+      "I actually liked this answer.",
+      "Learning the difference between being alone and being lonely is something a lot of people don't figure out for a long time.",
+      "I hope you get comfortable with your own company. Not because you don't need people, but because you know you don't have to run to people just because it's quiet.",
     ],
     image: IMAGES.praiz3,
     imageAlt: "Praiz reflective moment",
     imagePosition: "left",
   },
+
   {
     id: 5,
     layout: "minimal",
-    title: "Then I asked you who you want to become.",
+    title: "Then you told me who you want to become.",
     listItems: [
-      "A daughter her parents are proud of.",
-      "A sister her siblings love and respect.",
-      "A friend who makes people glad they met her.",
-      "A mother her children can completely trust.",
-      "A wife her partner keeps thanking God for.",
+      "A daughter your parents can be proud of.",
+      "A sister your siblings love and respect.",
+      "A friend who makes people glad they met you.",
+      "A mother your children can always talk to.",
+      "A wife whose presence makes her partner thank God.",
     ],
-    accentText: "The future woman",
+    accentText: "The woman you're becoming",
   },
+
   {
     id: 6,
     layout: "split",
-    title: "And then there's the dream.",
+    title: "And then there's nursing.",
     paragraphs: [
-      "You don't only want to care for people's bodies through nursing and psychology.",
-      "You want your life and your work to point people toward Christ too.",
-      "I think that's a beautiful thing to carry into your future.",
+      "I think there's something really special about wanting to care for people and also wanting to lead them to Christ.",
+      "You want to know your work well, get your qualifications, understand people better through psychology, and eventually build something that cares for children who need a home.",
+      "That's a lot of heart behind one dream.",
     ],
     image: IMAGES.praiz4,
     imageAlt: "Praiz dreaming big",
     imagePosition: "right",
   },
+
   {
     id: 7,
     layout: "centered",
-    title: "You're grateful for two things.",
+    title: "And you're grateful.",
     accentText: "HEALTH & PEOPLE",
     paragraphs: [
-      "Working at UBTH made you see how easy it is to overlook something as precious as being well.",
-      "And then there's the people God has placed around you — the ones who teach you, challenge you, love you, and even the ones who taught you through difficult moments.",
+      "You mentioned good health first, and I understood why when you talked about UBTH.",
+      "Sometimes seeing other people go through difficult things makes you realise how much you've been carrying without even calling it a blessing.",
+      "And then there's your people. The ones who have taught you, challenged you, loved you, and even the ones who taught you through the hard moments.",
+      "I hope you never become too busy to notice those gifts.",
     ],
     image: IMAGES.praiz5,
     imagePosition: "bg",
   },
+
   {
     id: 8,
     layout: "split",
-    title: "18.",
+    title: "So... 18.",
     paragraphs: [
-      "A new year doesn't mean you suddenly have everything figured out.",
-      "Maybe this year is about clarity.",
-      "Clarity about who you are. Clarity about what matters. Clarity about the people you keep close. Clarity about where God is leading you.",
-      "I pray God gives you that clarity.",
+      "You don't have to have everything figured out now.",
+      "Maybe 18 is just another year of learning yourself a little better.",
+      "Learning how to handle money. How to speak when something is wrong. How to apologise. How to choose people. How to take care of yourself.",
+      "And somewhere in all of that, I pray God gives you clarity.",
+      "Clarity for the things you can see, and wisdom for the things you can't see yet.",
     ],
     image: IMAGES.praiz6,
     imageAlt: "Praiz turning 18",
     imagePosition: "right",
   },
+
   {
     id: 9,
     layout: "minimal",
     title: "A little from me...",
     paragraphs: [
-      "Praiz, I don't know everything this next chapter will bring you.",
-      "But I hope you never lose the part of you that keeps asking questions, learning, caring and trying.",
-      "I hope God protects your heart, gives you wisdom for the decisions ahead, and makes you confident enough to become the woman you've been imagining.",
-      "And yes, I hope 18 is really good to you.",
+      "Praiz, I really hope 18 is kind to you.",
+      "I hope you laugh a lot, meet good people, make mistakes you learn from, and have moments you'll look back on and smile about.",
+      "I pray God keeps you, guides you, and gives you the wisdom to know what to hold on to and what to let go.",
+      "And when you don't know what you're doing, I hope you remember that you don't have to figure everything out in one day.",
     ],
   },
+
   {
     id: 10,
     layout: "final",
     title: "Happy 18th, Praiz. ❤️",
     paragraphs: [
-      "May this year bring you clarity, growth, good people, beautiful memories and a deeper walk with God.",
-      "There's a lot ahead of you. Go and meet it.",
+      "I'm genuinely glad I got to know you.",
+      "May God give you clarity, protect your heart, keep you healthy, and lead you into the woman you're becoming.",
+      "There's a lot ahead of you.",
+      "Take it one step at a time.",
     ],
-    footerText: "— Alexander",
+    footerText: "— Alexander D Bridge",
     image: IMAGES.praiz1,
   },
 ];
@@ -179,6 +197,37 @@ export default function BirthdayExperience() {
   const [direction, setDirection] = useState<number>(1);
   const [isOpeningEnvelope, setIsOpeningEnvelope] = useState<boolean>(false);
   const [isClickLocked, setIsClickLocked] = useState<boolean>(false);
+const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+// Toggle Fullscreen state
+  const toggleFullscreen = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents triggering slide change
+
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => {
+          setIsFullscreen(false);
+        });
+      }
+    }
+  };
+
+  // Sync state if user exits full screen using ESC key
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
 
   const totalSteps = SLIDES.length;
   const slide = SLIDES[currentStep];
@@ -302,22 +351,39 @@ const itemVariants: Variants = {
       {/* Subtle Grain Texture */}
       <div className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
 
-      {/* Header Progress Indicator */}
-      <header className="absolute top-6 left-6 right-6 z-30 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase">
-            Praiz Imonin
-          </span>
-          <span className="text-xs text-purple-300">•</span>
-          <span className="text-xs text-purple-900/40 font-medium">18th Birthday</span>
-        </div>
+      {/* Header Progress Indicator & Fullscreen Button */}
+<header className="absolute top-6 left-6 right-6 z-30 flex items-center justify-between pointer-events-none">
+  <div className="flex items-center space-x-2">
+    <span className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase">
+      Praiz Imonin
+    </span>
+    <span className="text-xs text-purple-300">•</span>
+    <span className="text-xs text-purple-900/40 font-medium">18th Birthday</span>
+  </div>
 
-        <div className="flex items-center space-x-3 text-xs font-mono tracking-wider text-purple-950/60 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-purple-100/80 shadow-sm">
-          <span>{String(currentStep + 1).padStart(2, "0")}</span>
-          <span className="text-purple-300">/</span>
-          <span>{String(totalSteps).padStart(2, "0")}</span>
-        </div>
-      </header>
+  <div className="flex items-center space-x-3 pointer-events-auto">
+    {/* Step counter */}
+    <div className="flex items-center space-x-2 text-xs font-mono tracking-wider text-purple-950/70 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-purple-100/80 shadow-sm">
+      <span>{String(currentStep + 1).padStart(2, "0")}</span>
+      <span className="text-purple-300">/</span>
+      <span>{String(totalSteps).padStart(2, "0")}</span>
+    </div>
+
+    {/* Fullscreen Toggle Button */}
+    <button
+      onClick={toggleFullscreen}
+      aria-label="Toggle Fullscreen"
+      className="p-2 rounded-full bg-white/60 backdrop-blur-md border border-purple-100/80 shadow-sm text-purple-950/70 hover:text-[#d81b60] hover:bg-white transition-all active:scale-95"
+    >
+      {isFullscreen ? (
+        <Minimize2 className="w-4 h-4" />
+      ) : (
+        <Maximize2 className="w-4 h-4" />
+      )}
+    </button>
+  </div>
+</header>
+
 
       {/* Main Container */}
       <main className="w-full h-full flex items-center justify-center p-6 md:p-12 lg:p-16">
@@ -567,9 +633,6 @@ const itemVariants: Variants = {
                     alt="Praiz Imonin"
                     className="w-full h-full object-cover rounded-full border-2 border-white"
                   />
-                  <div className="absolute -bottom-1 -right-1 bg-white p-2 rounded-full shadow-md text-[#d81b60]">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
                 </motion.div>
 
                 <motion.h2
