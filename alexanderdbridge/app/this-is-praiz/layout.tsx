@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 const ogImageUrl =
-  "https://res.cloudinary.com/dd5ppwbyi/image/upload/v1790981838/1790981699788_efb9qb.jpg";
+  "https://res.cloudinary.com/dd5ppwbyi/image/upload/v1790982848/Screenshot_20261003-001334_zmsqky.jpg";
 
 export const metadata: Metadata = {
   title: "Happy 18th Birthday, Praiz ❤️",
