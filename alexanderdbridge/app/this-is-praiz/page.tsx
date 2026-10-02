@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants} from "framer-motion";
 import {
   ChevronRight,
   RotateCcw,
@@ -242,7 +242,8 @@ export default function BirthdayExperience() {
 
   // Framer motion variants
   // Framer motion variants with proper TypeScript tuple typing
-const pageVariants = {
+// Framer motion variants explicitly typed
+const pageVariants: Variants = {
   initial: (dir: number) => ({
     opacity: 0,
     x: dir > 0 ? "8%" : "-8%",
@@ -254,7 +255,7 @@ const pageVariants = {
     scale: 1,
     transition: {
       duration: 0.7,
-      ease: [0.16, 1, 0.3, 1] as const, // Added 'as const' here
+      ease: [0.16, 1, 0.3, 1],
       staggerChildren: 0.12,
       delayChildren: 0.1,
     },
@@ -265,20 +266,19 @@ const pageVariants = {
     scale: 0.99,
     transition: {
       duration: 0.4,
-      ease: [0.7, 0, 0.84, 0] as const, // Added 'as const' here
+      ease: [0.7, 0, 0.84, 0],
     },
   }),
 };
 
-
-  const itemVariants = {
-    initial: { opacity: 0, y: 18 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-    },
-  };
+const itemVariants: Variants = {
+  initial: { opacity: 0, y: 18 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
   return (
     <div
