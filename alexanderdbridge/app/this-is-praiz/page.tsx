@@ -119,9 +119,9 @@ const SLIDES: SlideData[] = [
   {
     id: 6,
     layout: "split",
-    title: "And then there's nursing.",
+    title: "And then there's Nursing.",
     paragraphs: [
-      "I think there's something really special about wanting to care for people and also wanting to lead them to Christ.",
+      "This is really amazing wanting to care for people and also wanting to lead them to Christ. I love that! ",
       "You want to know your work well, get your qualifications, understand people better through psychology, and eventually build something that cares for children who need a home.",
       "That's a lot of heart behind one dream.",
     ],
@@ -136,10 +136,10 @@ const SLIDES: SlideData[] = [
     title: "And you're grateful.",
     accentText: "HEALTH & PEOPLE",
     paragraphs: [
-      "You mentioned good health first, and I understood why when you talked about UBTH.",
+      "You mentioned good health first,I can see UBTH has taught you so much.",
       "Sometimes seeing other people go through difficult things makes you realise how much you've been carrying without even calling it a blessing.",
-      "And then there's your people. The ones who have taught you, challenged you, loved you, and even the ones who taught you through the hard moments.",
-      "I hope you never become too busy to notice those gifts.",
+      "I'm happy with your progress",
+      "And I hope you never become too busy to notice those gifts.",
     ],
     image: IMAGES.praiz5,
     imagePosition: "bg",
@@ -167,7 +167,7 @@ const SLIDES: SlideData[] = [
     title: "A little from me...",
     paragraphs: [
       "Praiz, I really hope 18 is kind to you.",
-      "I hope you laugh a lot, meet good people, make mistakes you learn from, and have moments you'll look back on and smile about.",
+      "I hope you become more consistent with your goals, meet new good people, make mistakes you learn from, and have moments you'll look back on and smile about.",
       "I pray God keeps you, guides you, and gives you the wisdom to know what to hold on to and what to let go.",
       "And when you don't know what you're doing, I hope you remember that you don't have to figure everything out in one day.",
     ],
@@ -184,7 +184,7 @@ const SLIDES: SlideData[] = [
       "Take it one step at a time.",
     ],
     footerText: "— Alexander D Bridge",
-    image: IMAGES.praiz1,
+    image: "https://res.cloudinary.com/dd5ppwbyi/image/upload/v1790982848/Screenshot_20261003-001334_zmsqky.jpg"
   },
 ];
 
