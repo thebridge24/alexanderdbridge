@@ -341,7 +341,7 @@ const itemVariants: Variants = {
       className="relative w-screen h-screen overflow-hidden bg-[#faf7f5] text-[#2c2226] select-none font-sans cursor-pointer"
       style={{
         backgroundImage:
-          "radial-gradient(circle at 50% 50%, rgba(216, 27, 96, 0.03) 0%, rgba(250, 247, 245, 0) 70%)",
+          "radial-gradient(circle at 50% 50%, rgba(136, 14, 79, 0.03) 0%, rgba(250, 247, 245, 0) 70%)",
       }}
     >
       {/* Soft Background Accent Glows */}
@@ -352,38 +352,37 @@ const itemVariants: Variants = {
       <div className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
 
       {/* Header Progress Indicator & Fullscreen Button */}
-<header className="absolute top-6 left-6 right-6 z-30 flex items-center justify-between pointer-events-none">
-  <div className="flex items-center space-x-2">
-    <span className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase">
-      Praiz Imonin
-    </span>
-    <span className="text-xs text-purple-300">•</span>
-    <span className="text-xs text-purple-900/40 font-medium">18th Birthday</span>
-  </div>
+      <header className="absolute top-6 left-6 right-6 z-30 flex items-center justify-between pointer-events-none">
+        <div className="flex items-center space-x-2">
+          <span className="text-xs font-semibold tracking-widest text-[#880e4f] uppercase">
+            Praiz Imonin
+          </span>
+          <span className="text-xs text-purple-300">•</span>
+          <span className="text-xs text-purple-900/40 font-medium">18th Birthday</span>
+        </div>
 
-  <div className="flex items-center space-x-3 pointer-events-auto">
-    {/* Step counter */}
-    <div className="flex items-center space-x-2 text-xs font-mono tracking-wider text-purple-950/70 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-purple-100/80 shadow-sm">
-      <span>{String(currentStep + 1).padStart(2, "0")}</span>
-      <span className="text-purple-300">/</span>
-      <span>{String(totalSteps).padStart(2, "0")}</span>
-    </div>
+        <div className="flex items-center space-x-3 pointer-events-auto">
+          {/* Step counter */}
+          <div className="flex items-center space-x-2 text-xs font-mono tracking-wider text-purple-950/70 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-purple-100/80 shadow-sm">
+            <span>{String(currentStep + 1).padStart(2, "0")}</span>
+            <span className="text-purple-300">/</span>
+            <span>{String(totalSteps).padStart(2, "0")}</span>
+          </div>
 
-    {/* Fullscreen Toggle Button */}
-    <button
-      onClick={toggleFullscreen}
-      aria-label="Toggle Fullscreen"
-      className="p-2 rounded-full bg-white/60 backdrop-blur-md border border-purple-100/80 shadow-sm text-purple-950/70 hover:text-[#d81b60] hover:bg-white transition-all active:scale-95"
-    >
-      {isFullscreen ? (
-        <Minimize2 className="w-4 h-4" />
-      ) : (
-        <Maximize2 className="w-4 h-4" />
-      )}
-    </button>
-  </div>
-</header>
-
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            aria-label="Toggle Fullscreen"
+            className="p-2 rounded-full bg-white/60 backdrop-blur-md border border-purple-100/80 shadow-sm text-purple-950/70 hover:text-[#880e4f] hover:bg-white transition-all active:scale-95"
+          >
+            {isFullscreen ? (
+              <Minimize2 className="w-4 h-4" />
+            ) : (
+              <Maximize2 className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </header>
 
       {/* Main Container */}
       <main className="w-full h-full flex items-center justify-center p-6 md:p-12 lg:p-16">
@@ -420,7 +419,7 @@ const itemVariants: Variants = {
                           ? { duration: 0.8 }
                           : { repeat: Infinity, duration: 3, ease: "easeInOut" }
                       }
-                      className="z-10 bg-gradient-to-tr from-[#d81b60] to-purple-600 p-4 rounded-full text-white shadow-md shadow-fuchsia-500/20"
+                      className="z-10 bg-gradient-to-tr from-[#880e4f] to-purple-600 p-4 rounded-full text-white shadow-md shadow-fuchsia-500/20"
                     >
                       <Mail className="w-8 h-8 sm:w-10 sm:h-10" />
                     </motion.div>
@@ -469,7 +468,7 @@ const itemVariants: Variants = {
                   {slide.accentText && (
                     <motion.span
                       variants={itemVariants}
-                      className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase block"
+                      className="text-xs font-semibold tracking-widest text-[#880e4f] uppercase block"
                     >
                       {slide.accentText}
                     </motion.span>
@@ -504,7 +503,7 @@ const itemVariants: Variants = {
                           variants={itemVariants}
                           className="flex items-start space-x-3 text-base sm:text-lg text-purple-950/80 font-light"
                         >
-                          <span className="text-[#d81b60] mt-1.5 text-xs">✦</span>
+                          <span className="text-[#880e4f] mt-1.5 text-xs">✦</span>
                           <span>{item}</span>
                         </motion.li>
                       ))}
@@ -541,7 +540,7 @@ const itemVariants: Variants = {
                 {slide.accentText && (
                   <motion.span
                     variants={itemVariants}
-                    className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase mb-4 block"
+                    className="text-xs font-semibold tracking-widest text-[#880e4f] uppercase mb-4 block"
                   >
                     {slide.accentText}
                   </motion.span>
@@ -561,7 +560,7 @@ const itemVariants: Variants = {
                       variants={itemVariants}
                       className={`text-base sm:text-lg leading-relaxed ${
                         idx === slide.paragraphs!.length - 1
-                          ? "text-[#d81b60] font-medium pt-2"
+                          ? "text-[#880e4f] font-medium pt-2"
                           : "text-purple-950/80 font-light"
                       }`}
                     >
@@ -578,7 +577,7 @@ const itemVariants: Variants = {
                 {slide.accentText && (
                   <motion.span
                     variants={itemVariants}
-                    className="text-xs font-semibold tracking-widest text-[#d81b60] uppercase block"
+                    className="text-xs font-semibold tracking-widest text-[#880e4f] uppercase block"
                   >
                     {slide.accentText}
                   </motion.span>
@@ -592,7 +591,7 @@ const itemVariants: Variants = {
                 </motion.h2>
 
                 {slide.listItems && (
-                  <div className="space-y-4 border-l-2 border-[#d81b60]/30 pl-6 my-6">
+                  <div className="space-y-4 border-l-2 border-[#880e4f]/30 pl-6 my-6">
                     {slide.listItems.map((item, idx) => (
                       <motion.p
                         key={idx}
@@ -626,7 +625,7 @@ const itemVariants: Variants = {
               <div className="flex flex-col items-center justify-center text-center space-y-8 my-auto">
                 <motion.div
                   variants={itemVariants}
-                  className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-tr from-[#d81b60] via-purple-400 to-amber-200 shadow-xl"
+                  className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-tr from-[#880e4f] via-purple-400 to-amber-200 shadow-xl"
                 >
                   <img
                     src={slide.image}
@@ -657,7 +656,7 @@ const itemVariants: Variants = {
                 {slide.footerText && (
                   <motion.p
                     variants={itemVariants}
-                    className="text-lg font-serif italic text-[#d81b60] pt-4"
+                    className="text-lg font-serif italic text-[#880e4f] pt-4"
                   >
                     {slide.footerText}
                   </motion.p>
@@ -691,10 +690,11 @@ const itemVariants: Variants = {
             className="flex items-center space-x-2 text-xs font-medium tracking-widest text-purple-900/40 uppercase bg-white/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/50"
           >
             <span>Tap anywhere to continue</span>
-            <ChevronRight className="w-3.5 h-3.5 animate-pulse text-[#d81b60]" />
+            <ChevronRight className="w-3.5 h-3.5 animate-pulse text-[#880e4f]" />
           </motion.div>
         </footer>
       )}
     </div>
   );
+
 }
