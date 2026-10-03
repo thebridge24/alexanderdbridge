@@ -689,7 +689,7 @@ dwellSeconds,
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
       >
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 z-40 relative">
           <div onClick={() => setIsStreakDrawerOpen(true)}>
             <StreakFloatingButton />
           </div>
@@ -714,7 +714,7 @@ dwellSeconds,
         </div>
 
         {/* Floating Comment Button & Counter */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 z-40 relative">
           <button
             type="button"
             onClick={() => setIsCommentModalOpen(true)}
@@ -735,7 +735,7 @@ dwellSeconds,
         <button
           type="button"
           onClick={handleShare}
-          className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80 flex items-center justify-center"
+          className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80 flex items-center justify-center relative z-40"
           aria-label="Share Devotional"
         >
           {copied ? (
@@ -748,7 +748,7 @@ dwellSeconds,
         <BackgroundMusic />
 
         {showInstallBtn && (
-          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl z-40 relative">
             <button
               onClick={handleInstallClick}
               className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
@@ -758,7 +758,7 @@ dwellSeconds,
           </div>
         )}
 
-<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black via-black/80 to-transparent pointer-events-none z-0" />
+<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
 
       </motion.div>
 
