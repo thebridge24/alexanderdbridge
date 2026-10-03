@@ -1,20 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendNotification, sendTestPushToUser, sendTestPushToAll } from "@/lib/notifications/sender";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { sendNotification, sendTestPushToAll } from "@/lib/notifications/sender";
 
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId")?.trim();
-  if (!userId) {
-    return NextResponse.json(
-      { error: " userId query param is required" },
-      { status: 400 },
-    );
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  if (!accessToken) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
+
+  const supabase = createSupabaseAdmin();
+  const { data: userData } = await supabase.auth.getUser(accessToken);
+  if (!userData?.user) {
+    return NextResponse.json({ error: "Invalid authentication" }, { status: 401 });
+  }
+
+  const userId = userData.user.id;
 
   const result = await sendNotification({
     userId,
     type: "reminder",
-    title: "Test Notification",
-    body: "Push notifications are working!",
+    title: "Test Notification 🔔",
+    body: "Push notifications are working perfectly!",
     link: "/devotional",
     push: true,
   });
@@ -31,31 +41,42 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  if (!accessToken) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  const supabase = createSupabaseAdmin();
+  const { data: userData } = await supabase.auth.getUser(accessToken);
+  if (!userData?.user) {
+    return NextResponse.json({ error: "Invalid authentication" }, { status: 401 });
+  }
+
   let body: { userId?: string; all?: boolean } = {};
   try {
     body = await request.json();
-  } catch {
-    // No body is fine - default to all.
-  }
+  } catch {}
+
+  const targetUserId = body.userId?.trim() || userData.user.id;
 
   if (body.all) {
+    const adminIds = (process.env.ADMIN_USER_IDS || "").split(",").map((s) => s.trim());
+    if (adminIds.length > 0 && !adminIds.includes(userData.user.id)) {
+      return NextResponse.json({ error: "Admin authorization required for broadcasting" }, { status: 403 });
+    }
     const sent = await sendTestPushToAll();
     return NextResponse.json({ ok: true, pushSent: sent, target: "all" });
   }
 
-  const userId = body.userId?.trim();
-  if (!userId) {
-    return NextResponse.json(
-      { error: " userId is required (or send { all: true })" },
-      { status: 400 },
-    );
-  }
-
   const result = await sendNotification({
-    userId,
+    userId: targetUserId,
     type: "reminder",
-    title: "Test Notification",
-    body: "Push notifications are working!",
+    title: "Test Notification 🔔",
+    body: "Push notifications are working perfectly!",
     link: "/devotional",
     push: true,
   });

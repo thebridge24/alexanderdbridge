@@ -38,6 +38,7 @@ import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
 import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 import DevotionalArticle from "@/app/components/DevotionalArticle";
+import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -181,12 +182,66 @@ dwellSeconds,
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
   const [isSubmittingComment, setIsSubmittingComment] =
     useState<boolean>(false);
+  const [isReminderPickerOpen, setIsReminderPickerOpen] =
+    useState<boolean>(false);
 
   // Preloader & Interaction states
   const [introStage, setIntroStage] = useState<IntroStage>("logo");
   const [copied, setCopied] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Deep Link handler for ?comment=... and ?reply=...
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const commentParam = urlParams.get("comment");
+    const replyParam = urlParams.get("reply");
+
+    if (commentParam) {
+      setIsCommentModalOpen(true);
+      if (replyParam) {
+        setReplyingToId(commentParam);
+      }
+    }
+  }, []);
+
+  // Welcome Email Trigger on user authentication (idempotent, sent once via Resend)
+  useEffect(() => {
+    if (!user) return;
+    async function triggerWelcomeEmail() {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+        if (!session?.access_token) return;
+
+        await fetch("/api/email/welcome", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+      } catch (err) {
+        console.error("Welcome email check failed:", err);
+      }
+    }
+    triggerWelcomeEmail();
+  }, [user]);
+
+  // Prompt reminder time picker once after intro finishes if user hasn't configured it yet
+  useEffect(() => {
+    if (introStage !== "done" || !user) return;
+    if (typeof window === "undefined") return;
+
+    const configured = localStorage.getItem("bridge_devotional_reminder_configured");
+    if (!configured) {
+      const timer = setTimeout(() => {
+        setIsReminderPickerOpen(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [introStage, user]);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState<boolean>(true);
@@ -484,11 +539,18 @@ dwellSeconds,
     setIsSubmittingComment(true);
 
     try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       if (replyingToId) {
         // Post Reply
         const res = await fetch(`/api/comments/${replyingToId}/replies`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             name,
             text: commentText,
@@ -531,7 +593,7 @@ dwellSeconds,
         // Post Top-level Comment
         const res = await fetch(`/api/devotionals/${date}/comments`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             name,
             text: commentText,
@@ -585,12 +647,20 @@ dwellSeconds,
     );
 
     try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`/api/comments/${commentId}/like`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           sessionId,
           actorUserId: user?.id || undefined,
+          actorName: user?.user_metadata?.full_name || userName || undefined,
         }),
       });
 
@@ -912,6 +982,13 @@ dwellSeconds,
         medal={newlyUnlockedMedal}
         onClose={clearNewMedalAlert}
         userName={userName || "Believer"}
+      />
+
+      {/* Daily Devotional Reminder Alarm Picker Modal */}
+      <ReminderTimePicker
+        isOpen={isReminderPickerOpen}
+        onClose={() => setIsReminderPickerOpen(false)}
+        userId={user?.id}
       />
 
       {/* Slide-Up Comment Modal Component */}

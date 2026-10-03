@@ -13,16 +13,43 @@ export async function GET() {
 
   const swContent = `importScripts('https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging-compat.js');
+
 firebase.initializeApp(${JSON.stringify(config)});
 const messaging = firebase.messaging();
+
 messaging.onBackgroundMessage((payload) => {
   const notification = payload.notification || {};
+  const data = payload.data || {};
+  const targetLink = (payload.fcmOptions && payload.fcmOptions.link) || data.link || '/devotional';
+
   self.registration.showNotification(notification.title || 'Daily Devotional', {
     body: notification.body || 'Your daily devotional is ready.',
     icon: '/devotional.png',
     badge: '/devotional.png',
-    data: payload.data || {},
+    data: {
+      url: targetLink,
+      ...data,
+    },
   });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = (event.notification.data && event.notification.data.url) || '/devotional';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });
 `;
 

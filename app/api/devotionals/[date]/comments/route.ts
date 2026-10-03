@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
+import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
+import { sendNotification } from "@/lib/notifications/sender";
+import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
 
 type RouteContext = {
   params: Promise<{ date: string }>;
@@ -121,10 +124,29 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const name = body.name?.trim();
+  let name = body.name?.trim();
   const text = body.text?.trim();
   const avatarUrl = (body.avatarUrl || "").trim() || "";
-  const authorUserId = body.authorUserId?.trim() || null;
+  let authorUserId = body.authorUserId?.trim() || null;
+
+  // Extract authenticated user if available
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  const supabase = createSupabaseAdmin();
+
+  if (accessToken) {
+    const { data: authUser } = await supabase.auth.getUser(accessToken);
+    if (authUser?.user) {
+      authorUserId = authUser.user.id;
+      name =
+        authUser.user.user_metadata?.full_name ||
+        authUser.user.user_metadata?.name ||
+        name;
+    }
+  }
 
   if (!name || name.length > 100) {
     return NextResponse.json(
@@ -140,7 +162,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   }
 
-  const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
     .from("devotional_comments")
     .insert({
@@ -155,6 +176,42 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Find devotional topic
+  let topic = "Daily Devotional";
+  const staticDevotional = DEVOTIONALS_DATA.find((d) => d.dateString === date);
+  if (staticDevotional?.topic) {
+    topic = staticDevotional.topic;
+  } else {
+    const { data: dbDevo } = await supabase
+      .from("devotionals")
+      .select("topic")
+      .eq("date_string", date)
+      .maybeSingle();
+    if (dbDevo?.topic) topic = dbDevo.topic;
+  }
+
+  // Notify Admin(s) if configured
+  const adminIdsStr = process.env.ADMIN_USER_IDS || "";
+  const adminIds = adminIdsStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const adminId of adminIds) {
+    if (adminId && adminId !== authorUserId) {
+      const notif = formatDevotionalCommentMessage(name, topic, date, data.id);
+      await sendNotification({
+        userId: adminId,
+        type: "comment",
+        title: notif.title,
+        body: notif.body,
+        link: notif.link,
+        dedupeKey: `admin-comment:${data.id}:${adminId}`,
+        push: true,
+      });
+    }
   }
 
   return NextResponse.json({ comment: data }, { status: 201 });
