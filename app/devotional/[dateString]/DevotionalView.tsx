@@ -757,6 +757,9 @@ dwellSeconds,
             </button>
           </div>
         )}
+
+<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black via-black/80 to-transparent pointer-events-none z-0" />
+
       </motion.div>
 
       {/* Intro Preloader Overlay */}
@@ -828,6 +831,7 @@ dwellSeconds,
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <Header />
+<div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
         <div className="w-full mx-auto relative z-10">
