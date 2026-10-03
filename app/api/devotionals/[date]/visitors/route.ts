@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     .select('id, display_name, avatar_url, visited_at')
     .eq('devotional_date', date)
     .order('visited_at', { ascending: false })
-    .limit(50);
+    .limit(500);
 
   if (error) return NextResponse.json({ visitors: [] });
 
