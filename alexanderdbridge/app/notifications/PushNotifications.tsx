@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getToken, isSupported, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/alexanderdbridge/lib/firebase/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -33,10 +33,79 @@ export default function PushNotifications() {
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(FirstNotifications);
 
+  // In-app floating popup notification banner state
+  const [activeToast, setActiveToast] = useState<{
+    id: string;
+    title: string;
+    body: string;
+    link?: string;
+  } | null>(null);
+
+  // Cross-device native browser notification trigger (works on Android, iOS, Windows, Mac)
+  const displayBrowserNotification = useCallback(
+    async (title: string, body: string, link?: string) => {
+      // 1. Show the sleek in-app floating banner immediately on device
+      setActiveToast({
+        id: Date.now().toString(),
+        title,
+        body,
+        link,
+      });
+
+      // Auto dismiss after 6 seconds
+      setTimeout(() => {
+        setActiveToast((current) => (current?.title === title ? null : current));
+      }, 6000);
+
+      if (
+        typeof window === "undefined" ||
+        !("Notification" in window) ||
+        Notification.permission !== "granted"
+      ) {
+        return;
+      }
+
+      // 2. Service Worker showNotification (standard for Mobile Android & modern PWAs)
+      if ("serviceWorker" in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            const notifOptions: any = {
+              body,
+              icon: "/devotional.png",
+              badge: "/devotional.png",
+              vibrate: [200, 100, 200],
+              tag: `bridge-${Date.now()}`,
+              data: { url: link || "/devotional" },
+            };
+            await reg.showNotification(title, notifOptions);
+            return;
+          }
+        } catch (swErr) {
+          console.warn("ServiceWorker showNotification fallback:", swErr);
+        }
+      }
+
+      // 3. Fallback to desktop Notification constructor
+      try {
+        const n = new Notification(title, {
+          body,
+          icon: "/devotional.png",
+        });
+        n.onclick = () => {
+          window.focus();
+          if (link) window.location.href = link;
+        };
+      } catch (err) {
+        console.warn("Browser notification constructor error:", err);
+      }
+    },
+    [],
+  );
+
   // Fetch in-app notifications for the current user
-  // Fetch in-app notifications for the current user
-useEffect(() => {
-  if (!userId) return;
+  useEffect(() => {
+    if (!userId) return;
 
   let mounted = true;
 
@@ -100,13 +169,16 @@ useEffect(() => {
       },
       (payload: any) => {
         const n = payload.new;
+        if (!n) return;
+
+        displayBrowserNotification(n.title, n.body, n.link);
 
         setNotifications((prev) => [
           {
             id: n.id,
             title: n.title,
             body: n.body,
-            timestamp: formatRelativeTime(n.created_at),
+            timestamp: "Just now",
             read: Boolean(n.read),
             type: n.type,
             link: n.link || undefined,
@@ -121,7 +193,7 @@ useEffect(() => {
     mounted = false;
     supabase.removeChannel(channel);
   };
-}, [userId]);
+}, [userId, displayBrowserNotification]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -172,29 +244,29 @@ useEffect(() => {
       const messaging = getFirebaseMessaging();
       if (!messaging) return;
       unsubscribe = onMessage(messaging, (payload) => {
-        if (Notification.permission === "granted" && payload.notification) {
-          new Notification(payload.notification.title ?? "Daily Devotional", {
-            body: payload.notification.body,
-            icon: "/devotional.png",
-          });
+        const title = payload.notification?.title || "Daily Devotional";
+        const body = payload.notification?.body || "";
+        const link = payload.data?.link || payload.fcmOptions?.link;
 
-          setNotifications((prev) => [
-            {
-              id: Date.now().toString(),
-              title: payload.notification?.title || "New Alert",
-              body: payload.notification?.body || "",
-              timestamp: "Just now",
-              read: false,
-              type: "admin",
-            },
-            ...prev,
-          ]);
-        }
+        displayBrowserNotification(title, body, link);
+
+        setNotifications((prev) => [
+          {
+            id: Date.now().toString(),
+            title,
+            body,
+            timestamp: "Just now",
+            read: false,
+            type: "admin",
+            link,
+          },
+          ...prev,
+        ]);
       });
     });
 
     return () => unsubscribe?.();
-  }, [userId]);
+  }, [userId, displayBrowserNotification]);
 
   const enableNotifications = async () => {
     if (!userId || !("Notification" in window)) return false;
@@ -498,6 +570,40 @@ useEffect(() => {
                   ))}
                 </motion.div>
               )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating System-Style Browser Popup Banner for Mobile & Desktop */}
+      <AnimatePresence>
+        {activeToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            onClick={() => {
+              if (activeToast.link) {
+                window.location.href = activeToast.link;
+              }
+              setActiveToast(null);
+            }}
+            className="fixed top-5 left-4 right-4 max-w-sm mx-auto z-100 bg-neutral-950/95 border border-red-500/30 rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl flex items-start gap-3 cursor-pointer text-left pointer-events-auto"
+          >
+            <div className="size-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-red-500 mt-0.5">
+              <FaBell className="size-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h5 className="text-xs font-bold text-white truncate">
+                  {activeToast.title}
+                </h5>
+                <span className="text-[10px] text-neutral-400 shrink-0">Just now</span>
+              </div>
+              <p className="text-xs text-neutral-300 mt-0.5 line-clamp-2 leading-relaxed">
+                {activeToast.body}
+              </p>
             </div>
           </motion.div>
         )}

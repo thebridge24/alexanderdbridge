@@ -26,11 +26,48 @@ messaging.onBackgroundMessage((payload) => {
     body: notification.body || 'Your daily devotional is ready.',
     icon: '/devotional.png',
     badge: '/devotional.png',
+    vibrate: [200, 100, 200],
     data: {
       url: targetLink,
       ...data,
     },
   });
+});
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  try {
+    const raw = event.data.json();
+    const notification = raw.notification || (raw.data && raw.data.notification) || {};
+    const data = raw.data || {};
+    const title = notification.title || data.title || 'Daily Devotional';
+    const body = notification.body || data.body || 'You have a new notification';
+    const link = (raw.fcmOptions && raw.fcmOptions.link) || data.link || '/devotional';
+
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: '/devotional.png',
+        badge: '/devotional.png',
+        vibrate: [200, 100, 200],
+        data: {
+          url: link,
+          ...data,
+        },
+      })
+    );
+  } catch (e) {
+    // Fallback if data is not JSON
+    const text = event.data.text();
+    event.waitUntil(
+      self.registration.showNotification('Daily Devotional', {
+        body: text || 'You have a new notification',
+        icon: '/devotional.png',
+        badge: '/devotional.png',
+        data: { url: '/devotional' },
+      })
+    );
+  }
 });
 
 self.addEventListener('notificationclick', (event) => {
