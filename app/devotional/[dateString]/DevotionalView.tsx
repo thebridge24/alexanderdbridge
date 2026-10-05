@@ -180,6 +180,7 @@ dwellSeconds,
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   const [isSubmittingComment, setIsSubmittingComment] =
     useState<boolean>(false);
   const [isReminderPickerOpen, setIsReminderPickerOpen] =
@@ -200,9 +201,14 @@ dwellSeconds,
 
     if (commentParam) {
       setIsCommentModalOpen(true);
+      setHighlightedCommentId(commentParam);
       if (replyParam) {
         setReplyingToId(commentParam);
       }
+      const timer = setTimeout(() => {
+        setHighlightedCommentId(null);
+      }, 5000);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -547,13 +553,20 @@ dwellSeconds,
       }
 
       if (replyingToId) {
+        // Format reply text with recipient handle if not already prefixed
+        const formattedReplyText =
+          replyingToName &&
+          !commentText.trim().toLowerCase().startsWith(`@${replyingToName.toLowerCase()}`)
+            ? `@${replyingToName} ${commentText.trim()}`
+            : commentText.trim();
+
         // Post Reply
         const res = await fetch(`/api/comments/${replyingToId}/replies`, {
           method: "POST",
           headers,
           body: JSON.stringify({
             name,
-            text: commentText,
+            text: formattedReplyText,
             avatarUrl: user?.user_metadata?.avatar_url || undefined,
             authorUserId: user?.id || undefined,
           }),
@@ -1013,6 +1026,7 @@ dwellSeconds,
         isSubmitting={isSubmittingComment}
         userInitial={userName ? userName.charAt(0).toUpperCase() : "U"}
         userAvatarUrl={user?.user_metadata?.avatar_url}
+        highlightedCommentId={highlightedCommentId}
       />
 
       {/* Name Prompt Modal */}
