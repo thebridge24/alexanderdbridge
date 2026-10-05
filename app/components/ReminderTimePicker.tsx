@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaClock, FaChevronUp, FaChevronDown, FaCheck, FaBell } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getToken, isSupported } from "firebase/messaging";
+import { getFirebaseMessaging } from "@/lib/firebase/client";
 
 interface ReminderTimePickerProps {
   isOpen: boolean;
@@ -89,6 +91,44 @@ export default function ReminderTimePicker({
       if (typeof window !== "undefined") {
         localStorage.setItem("bridge_devotional_reminder_configured", "true");
         localStorage.setItem("bridge_devotional_reminder_time", formattedTime);
+
+        // Prompt browser push permission and subscribe device to FCM
+        if ("Notification" in window) {
+          try {
+            if (Notification.permission === "default") {
+              await Notification.requestPermission();
+            }
+            if (Notification.permission === "granted") {
+              const supported = await isSupported();
+              if (supported) {
+                const messaging = getFirebaseMessaging();
+                const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+                if (messaging && vapidKey) {
+                  const registration = await navigator.serviceWorker.register(
+                    "/api/firebase-sw",
+                    { scope: "/" }
+                  );
+                  const token = await getToken(messaging, {
+                    vapidKey,
+                    serviceWorkerRegistration: registration,
+                  });
+                  if (token && accessToken) {
+                    await fetch("/api/notifications/subscribe", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                      },
+                      body: JSON.stringify({ token }),
+                    });
+                  }
+                }
+              }
+            }
+          } catch (pushErr) {
+            console.error("Push registration error in reminder picker:", pushErr);
+          }
+        }
       }
 
       onSuccess?.(formattedTime);
