@@ -7,6 +7,7 @@ import { IoClose } from "react-icons/io5";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getToken, isSupported } from "firebase/messaging";
 import { getFirebaseMessaging } from "@/lib/firebase/client";
+import { playAlarmSound } from "@/lib/utils/sound";
 
 interface ReminderTimePickerProps {
   isOpen: boolean;
@@ -131,6 +132,7 @@ export default function ReminderTimePicker({
         }
       }
 
+      playAlarmSound();
       onSuccess?.(formattedTime);
       onClose();
     } catch (err) {
@@ -160,10 +162,15 @@ export default function ReminderTimePicker({
               <IoClose className="size-5" />
             </button>
 
-            {/* Header Icon */}
-            <div className="mx-auto size-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[#ff0000] mb-3 shadow-inner">
+            {/* Header Icon with Alarm Audio Preview */}
+            <button
+              type="button"
+              onClick={() => playAlarmSound()}
+              title="Test alarm beep sound"
+              className="mx-auto size-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[#ff0000] mb-3 shadow-inner hover:scale-105 active:scale-95 transition-transform"
+            >
               <FaBell className="size-5" />
-            </div>
+            </button>
 
             <h3 className="text-lg font-bold text-neutral-100 mb-1">
               Daily Devotional Alarm

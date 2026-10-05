@@ -10,6 +10,7 @@ import { FaBell, FaRegBell } from "react-icons/fa6";
 import { BsCheck2All } from "react-icons/bs";
 import { FirstNotifications } from "@/app/data/notifications";
 import { formatRelativeTime } from "@/lib/utils/date";
+import { playNotificationSound, playAlarmSound, stopAlarmSound } from "@/lib/utils/sound";
 
 export interface NotificationItem {
   id: string;
@@ -43,7 +44,21 @@ export default function PushNotifications() {
 
   // Cross-device native browser notification trigger (works on Android, iOS, Windows, Mac)
   const displayBrowserNotification = useCallback(
-    async (title: string, body: string, link?: string) => {
+    async (title: string, body: string, link?: string, type?: string) => {
+      // Sound feature:
+      // notification-ring for comment/reply/general notifications
+      // alarm-beep for devotional alarms and reminders
+      const isAlarm =
+        type === "reminder" ||
+        title.toLowerCase().includes("alarm") ||
+        title.toLowerCase().includes("reminder");
+
+      if (isAlarm) {
+        playAlarmSound();
+      } else {
+        playNotificationSound();
+      }
+
       // 1. Show the sleek in-app floating banner immediately on device
       setActiveToast({
         id: Date.now().toString(),
@@ -55,6 +70,9 @@ export default function PushNotifications() {
       // Auto dismiss after 6 seconds
       setTimeout(() => {
         setActiveToast((current) => (current?.title === title ? null : current));
+        if (isAlarm) {
+          stopAlarmSound();
+        }
       }, 6000);
 
       if (
@@ -94,6 +112,7 @@ export default function PushNotifications() {
         });
         n.onclick = () => {
           window.focus();
+          stopAlarmSound();
           if (link) window.location.href = link;
         };
       } catch (err) {
@@ -171,7 +190,7 @@ export default function PushNotifications() {
         const n = payload.new;
         if (!n) return;
 
-        displayBrowserNotification(n.title, n.body, n.link);
+        displayBrowserNotification(n.title, n.body, n.link, n.type);
 
         setNotifications((prev) => [
           {
@@ -247,8 +266,9 @@ export default function PushNotifications() {
         const title = payload.notification?.title || "Daily Devotional";
         const body = payload.notification?.body || "";
         const link = payload.data?.link || payload.fcmOptions?.link;
+        const type = (payload.data?.type as string) || "reminder";
 
-        displayBrowserNotification(title, body, link);
+        displayBrowserNotification(title, body, link, type);
 
         setNotifications((prev) => [
           {
@@ -257,7 +277,7 @@ export default function PushNotifications() {
             body,
             timestamp: "Just now",
             read: false,
-            type: "admin",
+            type: (type as any) || "admin",
             link,
           },
           ...prev,
@@ -267,6 +287,45 @@ export default function PushNotifications() {
 
     return () => unsubscribe?.();
   }, [userId, displayBrowserNotification]);
+
+  // Devotional Alarm Scheduler: checks local alarm time and rings alarm-beep if matched
+  useEffect(() => {
+    const checkDevotionalAlarm = () => {
+      try {
+        if (typeof window === "undefined") return;
+        const configured = localStorage.getItem("bridge_devotional_reminder_configured");
+        const reminderTime = localStorage.getItem("bridge_devotional_reminder_time");
+        if (!configured || !reminderTime) return;
+
+        const now = new Date();
+        const currentH = String(now.getHours()).padStart(2, "0");
+        const currentM = String(now.getMinutes()).padStart(2, "0");
+        const currentTime = `${currentH}:${currentM}`;
+
+        const [rH, rM] = reminderTime.split(":");
+        const targetTime = `${(rH || "").padStart(2, "0")}:${(rM || "").padStart(2, "0")}`;
+
+        const dateKey = now.toISOString().slice(0, 10);
+        const alarmDoneKey = `bridge_alarm_triggered_${dateKey}`;
+
+        if (currentTime === targetTime && !localStorage.getItem(alarmDoneKey)) {
+          localStorage.setItem(alarmDoneKey, "true");
+          displayBrowserNotification(
+            "Daily Devotional Alarm",
+            "It's time for your daily devotional with God! Tap to read.",
+            "/devotional",
+            "reminder"
+          );
+        }
+      } catch (err) {
+        console.warn("Devotional alarm scheduler error:", err);
+      }
+    };
+
+    const interval = setInterval(checkDevotionalAlarm, 30000);
+    checkDevotionalAlarm();
+    return () => clearInterval(interval);
+  }, [displayBrowserNotification]);
 
   const enableNotifications = async () => {
     if (!userId || !("Notification" in window)) return false;
@@ -584,6 +643,7 @@ export default function PushNotifications() {
             exit={{ opacity: 0, y: -30, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
             onClick={() => {
+              stopAlarmSound();
               if (activeToast.link) {
                 window.location.href = activeToast.link;
               }
