@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { SurveyEngine } from "@/components/survey/SurveyEngine";
-import { devotionalSurveyConfig } from "@/config/devotionalSurvey";
+import { SurveyEngine } from "../components/survey/SurveyEngine";
+import { devotionalSurveyConfig } from "../config/devotionalSurvey";
 
 export default function DevotionalPage() {
   const [isSurveyOpen, setIsSurveyOpen] = useState<boolean>(true);
