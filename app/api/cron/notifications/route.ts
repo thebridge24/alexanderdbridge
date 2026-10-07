@@ -109,8 +109,11 @@ export async function POST(request: NextRequest) {
 
       // Parse user's reminder time (e.g. "05:00:00")
       const [rHourStr, rMinStr] = (pref.reminder_time || "05:00:00").split(":");
-      const reminderHour = parseInt(rHourStr, 10) || 5;
-      const reminderMinute = parseInt(rMinStr, 10) || 0;
+      // Use isNaN rather than `||` so a midnight reminder (hour 0) isn't treated as missing
+      const parsedHour = parseInt(rHourStr, 10);
+      const parsedMinute = parseInt(rMinStr, 10);
+      const reminderHour = Number.isNaN(parsedHour) ? 5 : parsedHour;
+      const reminderMinute = Number.isNaN(parsedMinute) ? 0 : parsedMinute;
       const reminderMinutesFromMidnight = reminderHour * 60 + reminderMinute;
 
       const userStreak = streaksMap.get(pref.user_id);

@@ -26,8 +26,10 @@ export default function ReminderTimePicker({
   // Parse initial hour, minute, and period (AM/PM)
   const parseTime = (timeStr: string) => {
     const [hStr, mStr] = (timeStr || "05:00").split(":");
-    let h = parseInt(hStr, 10) || 5;
-    const m = parseInt(mStr, 10) || 0;
+    const parsedH = parseInt(hStr, 10);
+    const parsedM = parseInt(mStr, 10);
+    let h = Number.isNaN(parsedH) ? 5 : parsedH;
+    const m = Number.isNaN(parsedM) ? 0 : parsedM;
     const isPm = h >= 12;
     if (h === 0) h = 12;
     else if (h > 12) h = h - 12;
@@ -39,6 +41,7 @@ export default function ReminderTimePicker({
   const [minute, setMinute] = useState<number>(initial.minute);
   const [isPm, setIsPm] = useState<boolean>(initial.isPm);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const incrementHour = () => {
     setHour((prev) => (prev === 12 ? 1 : prev + 1));
@@ -58,6 +61,7 @@ export default function ReminderTimePicker({
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
 
     // Convert 12h to 24h format string
     let h24 = hour;
@@ -73,19 +77,26 @@ export default function ReminderTimePicker({
       const session = (await supabase?.auth.getSession())?.data?.session;
       const accessToken = session?.access_token;
 
-      if (accessToken) {
-        await fetch("/api/notifications/preferences", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            reminder_time: formattedTime,
-            timezone,
-            reminder_enabled: true,
-          }),
-        });
+      if (!accessToken) {
+        throw new Error("Please sign in to set a reminder.");
+      }
+
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          reminder_time: formattedTime,
+          timezone,
+          reminder_enabled: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Could not save your reminder. Please try again.");
       }
 
       if (typeof window !== "undefined") {
@@ -103,6 +114,9 @@ export default function ReminderTimePicker({
       onClose();
     } catch (err) {
       console.error("Error saving reminder preference:", err);
+      setSaveError(
+        err instanceof Error ? err.message : "Could not save your reminder. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -233,6 +247,9 @@ export default function ReminderTimePicker({
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2">
+              {saveError && (
+                <p className="text-center text-[11px] text-red-400">{saveError}</p>
+              )}
               <button
                 type="button"
                 onClick={handleSave}

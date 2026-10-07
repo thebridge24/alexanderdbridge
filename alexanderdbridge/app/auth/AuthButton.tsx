@@ -5,7 +5,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { getAuthRedirectUrl } from "@/lib/utils/auth";
+import { signInWithGoogle } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { MdVerified } from "react-icons/md";
@@ -104,9 +104,11 @@ export default function AuthButton() {
 
     let mounted = true;
 
-    supabase.auth.getUser().then(({ data }) => {
+    // getSession reads the persisted session locally (refreshing if needed), so a flaky
+    // network request can't make a signed-in user look signed out
+    supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
-        setUser(data.user);
+        setUser(data.session?.user ?? null);
         setLoading(false);
       }
     });
@@ -139,12 +141,7 @@ export default function AuthButton() {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
 
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: getAuthRedirectUrl(),
-      },
-    });
+    await signInWithGoogle(supabase);
   };
 
   const handleSignOut = async () => {

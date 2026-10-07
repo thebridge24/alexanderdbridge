@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { storeUserName } from "@/lib/session";
+import { consumePostLoginRedirect } from "@/lib/utils/auth";
 import type { User } from "@supabase/supabase-js";
 
 // Configuration for link array mapping
@@ -84,21 +85,28 @@ export default function ProfilePage() {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
 
+    // getSession and onAuthStateChange both fire on load; only redirect once so the
+    // consumed redirect path isn't overridden by a second call
+    let hasRedirected = false;
+
     const handleSessionRedirect = (currentUser: User) => {
       setUser(currentUser);
       const name =
         currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
       if (name) storeUserName(name);
 
-      // Redirect immediately to today's devotional view after successful auth
-      const todayString = getTodayString();
-      router.replace(`/devotional/${todayString}`);
+      if (hasRedirected) return;
+      hasRedirected = true;
+
+      // Send the user back to where they started sign-in (?redirectto= or saved path), else today's devotional
+      const redirectPath = consumePostLoginRedirect();
+      router.replace(redirectPath ?? `/devotional/${getTodayString()}`);
     };
 
     // 1. Initial check (catches parsed OAuth hash tokens on redirect mount)
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        handleSessionRedirect(data.user);
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) {
+        handleSessionRedirect(data.session.user);
       }
     });
 

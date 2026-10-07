@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { getAuthRedirectUrl } from "@/lib/utils/auth";
+import { signInWithGoogle } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaFire } from "react-icons/fa";
 
@@ -19,12 +19,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (!supabase) return;
 
     setIsAuthenticating(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: getAuthRedirectUrl(),
-      },
-    });
+    await signInWithGoogle(supabase);
   };
 
   return (

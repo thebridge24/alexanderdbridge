@@ -119,12 +119,13 @@ dwellSeconds,
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user ?? null;
+      setUser(sessionUser);
       setIsAuthLoading(false);
-      if (data.user?.user_metadata?.full_name && !userName) {
-        setUserName(data.user.user_metadata.full_name);
-        storeUserName(data.user.user_metadata.full_name);
+      if (sessionUser?.user_metadata?.full_name && !userName) {
+        setUserName(sessionUser.user_metadata.full_name);
+        storeUserName(sessionUser.user_metadata.full_name);
       }
     });
 

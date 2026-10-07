@@ -81,9 +81,9 @@ export function useStreakTracker(userIdProp?: string | null) {
     const supabase = createSupabaseBrowserClient();
     if (!supabase) return;
 
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.id) {
-        setActiveUserId(data.user.id);
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id) {
+        setActiveUserId(data.session.user.id);
       }
     });
 
