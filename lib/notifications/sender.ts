@@ -161,7 +161,8 @@ export async function sendPushToAll(
   try {
     const res = await beams.publishToInterests(
       [BEAMS_BROADCAST_INTEREST],
-      buildWebPush(title, body, link, type),
+      // Broadcasts don't emit a Channels event, so show the push even if the site is open
+      buildWebPush(title, body, link, type, false),
     );
     return { ok: true, publishId: res.publishId };
   } catch (err: any) {

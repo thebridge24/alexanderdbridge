@@ -56,7 +56,14 @@ export function absoluteUrl(path: string): string {
 }
 
 /** Builds the Beams web publish body shared by user and interest publishes. */
-export function buildWebPush(title: string, body: string, link?: string, type?: string) {
+export function buildWebPush(
+  title: string,
+  body: string,
+  link?: string,
+  type?: string,
+  // Only hide when a Channels event also shows an in-app toast; broadcasts have no such fallback
+  hideIfSiteHasFocus = true,
+) {
   const deepLink = absoluteUrl(link || "/devotional");
   return {
     web: {
@@ -65,8 +72,7 @@ export function buildWebPush(title: string, body: string, link?: string, type?: 
         body,
         icon: absoluteUrl("/devotional.png"),
         deep_link: deepLink,
-        // When the site is open, the Channels event already shows an in-app toast.
-        hide_notification_if_site_has_focus: true,
+        hide_notification_if_site_has_focus: hideIfSiteHasFocus,
       },
       data: { link: deepLink, type: type || "admin" },
     },
