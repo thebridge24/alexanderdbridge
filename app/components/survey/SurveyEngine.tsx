@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { SurveyConfig, Answers } from "../../types/survey";
+import { SurveyConfig, Answers } from "@/types/survey";
 import { FieldRenderer } from "./FieldRenderers";
 
 interface SurveyEngineProps {
