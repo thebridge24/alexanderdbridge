@@ -434,7 +434,9 @@ export default function PushNotifications() {
                   <p className="text-[10px] text-neutral-400 font-light">
                     {status === "blocked"
                       ? "Blocked in browser settings"
-                      : "Daily push alerts"}
+                      : status === "error"
+                        ? "Couldn't enable push on this device. Tap to retry."
+                        : "Daily push alerts"}
                   </p>
                 </div>
 

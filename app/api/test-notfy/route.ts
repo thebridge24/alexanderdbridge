@@ -33,6 +33,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 500 });
   }
 
+  if (result.pushError) {
+    return NextResponse.json(
+      { error: `Push notification failed: ${result.pushError}`, notificationId: result.notificationId },
+      { status: 502 },
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     notificationId: result.notificationId,
@@ -68,8 +75,14 @@ export async function POST(request: NextRequest) {
     if (adminIds.length > 0 && !adminIds.includes(userData.user.id)) {
       return NextResponse.json({ error: "Admin authorization required for broadcasting" }, { status: 403 });
     }
-    const sent = await sendTestPushToAll();
-    return NextResponse.json({ ok: true, pushSent: sent, target: "all" });
+    const broadcast = await sendTestPushToAll();
+    if (!broadcast.ok) {
+      return NextResponse.json(
+        { error: broadcast.error || "Push broadcast failed", target: "all" },
+        { status: 502 },
+      );
+    }
+    return NextResponse.json({ ok: true, publishId: broadcast.publishId, target: "all" });
   }
 
   const result = await sendNotification({
@@ -83,6 +96,13 @@ export async function POST(request: NextRequest) {
 
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 500 });
+  }
+
+  if (result.pushError) {
+    return NextResponse.json(
+      { error: `Push notification failed: ${result.pushError}`, notificationId: result.notificationId },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json({

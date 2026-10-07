@@ -31,6 +31,8 @@ export interface SendNotificationResult {
   ok: boolean;
   notificationId?: string;
   pushSent?: number;
+  /** Set when a device push was requested but Pusher Beams rejected it or is not configured. */
+  pushError?: string;
   skipped?: boolean;
   error?: string;
 }
@@ -102,12 +104,17 @@ export async function sendNotification({
     }
 
     // Live in-app delivery and device push run in parallel; neither failing should fail the call.
-    const [, pushSent] = await Promise.all([
+    const [, pushResult] = await Promise.all([
       emitInAppNotification(userId, inserted),
-      push ? sendPushToUser(userId, title, body, link, type) : Promise.resolve(0),
+      push ? publishPushToUser(userId, title, body, link, type) : Promise.resolve(null),
     ]);
 
-    return { ok: true, notificationId: inserted.id, pushSent };
+    return {
+      ok: true,
+      notificationId: inserted.id,
+      pushSent: pushResult?.ok ? 1 : 0,
+      pushError: pushResult && !pushResult.ok ? pushResult.error : undefined,
+    };
   } catch (err: any) {
     console.error("sendNotification failed:", err);
     return { ok: false, error: err.message || "Internal server error" };
@@ -125,10 +132,27 @@ async function emitInAppNotification(userId: string, notification: Record<string
   }
 }
 
-/**
- * Sends a Pusher Beams push to every device registered for a user.
- * Returns 1 when Beams accepted the publish, 0 otherwise.
- */
+/** Sends a Pusher Beams push to every device registered for a user, reporting why it failed if it did. */
+export async function publishPushToUser(
+  userId: string,
+  title: string,
+  body: string,
+  link?: string,
+  type?: string,
+): Promise<{ ok: boolean; publishId?: string; error?: string }> {
+  const beams = getPusherBeams();
+  if (!beams) return { ok: false, error: "Pusher Beams is not configured" };
+
+  try {
+    const res = await beams.publishToUsers([userId], buildWebPush(title, body, link, type));
+    return { ok: true, publishId: res.publishId };
+  } catch (err: any) {
+    console.error(`Pusher Beams publish failed for user ${userId}:`, err);
+    return { ok: false, error: err?.message || "Push publish failed" };
+  }
+}
+
+/** Returns 1 when Beams accepted the publish, 0 otherwise. */
 export async function sendPushToUser(
   userId: string,
   title: string,
@@ -136,16 +160,8 @@ export async function sendPushToUser(
   link?: string,
   type?: string,
 ): Promise<number> {
-  const beams = getPusherBeams();
-  if (!beams) return 0;
-
-  try {
-    await beams.publishToUsers([userId], buildWebPush(title, body, link, type));
-    return 1;
-  } catch (err) {
-    console.error(`Pusher Beams publish failed for user ${userId}:`, err);
-    return 0;
-  }
+  const res = await publishPushToUser(userId, title, body, link, type);
+  return res.ok ? 1 : 0;
 }
 
 /** Broadcasts a push to every device subscribed to the devotional interest. */
@@ -180,11 +196,10 @@ export async function sendTestPushToUser(userId: string): Promise<number> {
   );
 }
 
-export async function sendTestPushToAll(): Promise<number> {
-  const res = await sendPushToAll(
+export async function sendTestPushToAll(): Promise<{ ok: boolean; publishId?: string; error?: string }> {
+  return sendPushToAll(
     "Test Notification",
     "Push notifications are working!",
     "/devotional",
   );
-  return res.ok ? 1 : 0;
 }

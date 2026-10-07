@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     let remindersSent = 0;
     let streakAlertsSent = 0;
     let winbacksSent = 0;
+    const pushFailures: { userId: string; error: string }[] = [];
 
     const nowUtc = new Date();
 
@@ -144,6 +145,10 @@ export async function POST(request: NextRequest) {
           push: true,
         });
 
+        if (res.pushError) {
+          pushFailures.push({ userId: pref.user_id, error: res.pushError });
+        }
+
         if (res.ok) {
           remindersSent += 1;
           await supabase
@@ -175,6 +180,10 @@ export async function POST(request: NextRequest) {
           dedupeKey: msg.dedupeKey,
           push: true,
         });
+
+        if (res.pushError) {
+          pushFailures.push({ userId: pref.user_id, error: res.pushError });
+        }
 
         if (res.ok) {
           streakAlertsSent += 1;
@@ -211,6 +220,10 @@ export async function POST(request: NextRequest) {
           push: true,
         });
 
+        if (res.pushError) {
+          pushFailures.push({ userId: pref.user_id, error: res.pushError });
+        }
+
         if (res.ok) {
           winbacksSent += 1;
           await supabase
@@ -227,6 +240,7 @@ export async function POST(request: NextRequest) {
       remindersSent,
       streakAlertsSent,
       winbacksSent,
+      pushFailures,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
