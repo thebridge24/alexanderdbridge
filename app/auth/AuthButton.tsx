@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useEffect, useState } from "react";
@@ -55,3 +56,6 @@ export default function AuthButton() {
     {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} alt="Your profile" className="size-full object-cover" /> : "You"}
   </button>;
 }
+=======
+export { default } from "@/alexanderdbridge/app/auth/AuthButton";
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5

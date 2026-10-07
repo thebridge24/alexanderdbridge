@@ -5,6 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { storeUserName } from "@/lib/session";
+import type { User } from "@supabase/supabase-js";
 
 // Configuration for link array mapping
 const SERVICES_LINKS = [
@@ -62,21 +66,66 @@ const itemVariants: Variants = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [devotionalUrl, setDevotionalUrl] = useState("/devotional");
+  const [user, setUser] = useState<User | null>(null);
 
-  // Calculate the current client-side date format on mount to prevent hydration mismatch
-  useEffect(() => {
+  // Helper function to format today's date into YYYY-MM-DD
+  const getTodayString = () => {
     const today = new Date();
-    const todayString = `${today.getFullYear()}-${String(
-      today.getMonth() + 1
-    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    
-    setDevotionalUrl(`/devotional/${todayString}`);console.log(todayString)
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(today.getDate()).padStart(2, "0")}`;
+  };
 
+  // Catch Google Auth redirect session, store name, and route to today's devotional
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const handleSessionRedirect = (currentUser: User) => {
+      setUser(currentUser);
+      const name =
+        currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
+      if (name) storeUserName(name);
+
+      // Redirect immediately to today's devotional view after successful auth
+      const todayString = getTodayString();
+      router.replace(`/devotional/${todayString}`);
+    };
+
+    // 1. Initial check (catches parsed OAuth hash tokens on redirect mount)
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        handleSessionRedirect(data.user);
+      }
+    });
+
+    // 2. Auth state change listener (catches real-time auth events)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        handleSessionRedirect(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  // Calculate client-side date format on mount for static link display
+  useEffect(() => {
+    const todayString = getTodayString();
+    setDevotionalUrl(`/devotional/${todayString}`);
+    console.log(todayString);
   }, []);
+
   return (
     <main className="w-full min-h-screen flex flex-col pb-16 bg-black selection:bg-neutral-900">
-      
+
       {/* 1. X / LinkedIn Themed Banner Asset Layer */}
       <div className="w-full h-48 relative bg-neutral-900 border-b border-neutral-900/40">
         <Image

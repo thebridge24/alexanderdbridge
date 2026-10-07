@@ -14,7 +14,15 @@ export const contentType = "image/jpeg";
 
 // Helper to safely load local public assets into a Base64 string for Satori
 async function getBase64Image(relativePath: string) {
+<<<<<<< HEAD
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app";
+=======
+  const baseUrl =
+    process.env.NEXT_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://alexanderdbridge.com";
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
   try {
     const res = await fetch(`${baseUrl}${relativePath}`);
     if (!res.ok) return null;

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
+import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
+import { sendNotification } from "@/lib/notifications/sender";
+import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
 
 type RouteContext = {
   params: Promise<{ date: string }>;
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   
   const { data: rawComments, error } = await supabase
     .from("devotional_comments")
-    .select("id, devotional_date, author_name, body, created_at, like_count")
+    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count")
     .eq("devotional_date", date)
     .order("created_at", { ascending: false });
 
@@ -48,7 +51,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         : Promise.resolve({ data: null, error: null }),
       supabase
         .from("devotional_comment_replies")
-        .select("id, comment_id, author_name, body, created_at")
+        .select("id, comment_id, author_name, author_avatar, author_user_id, body, created_at")
         .in("comment_id", commentIds)
         .order("created_at", { ascending: true }),
     ]);
@@ -63,6 +66,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         currentList.push({
           id: r.id,
           author_name: r.author_name,
+          author_avatar: r.author_avatar,
+          author_user_id: r.author_user_id,
           body: r.body,
           created_at: r.created_at,
         });
@@ -75,11 +80,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
     id: c.id,
     devotional_date: c.devotional_date,
     author_name: c.author_name,
+    author_avatar: c.author_avatar,
+    author_user_id: c.author_user_id,
     body: c.body,
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
     liked: likedSet.has(c.id),
-    replies: repliesMap.get(c.id) || [],
+    replies: (repliesMap.get(c.id) || []).map((r) => ({
+      id: r.id,
+      author_name: r.author_name,
+      author_avatar: r.author_avatar,
+      author_user_id: r.author_user_id,
+      body: r.body,
+      created_at: r.created_at,
+    })),
   }));
 
   return NextResponse.json(
@@ -103,15 +117,36 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
   }
 
-  let body: { name?: string; text?: string };
+  let body: { name?: string; text?: string; avatarUrl?: string; authorUserId?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const name = body.name?.trim();
+  let name = body.name?.trim();
   const text = body.text?.trim();
+  const avatarUrl = (body.avatarUrl || "").trim() || "";
+  let authorUserId = body.authorUserId?.trim() || null;
+
+  // Extract authenticated user if available
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  const supabase = createSupabaseAdmin();
+
+  if (accessToken) {
+    const { data: authUser } = await supabase.auth.getUser(accessToken);
+    if (authUser?.user) {
+      authorUserId = authUser.user.id;
+      name =
+        authUser.user.user_metadata?.full_name ||
+        authUser.user.user_metadata?.name ||
+        name;
+    }
+  }
 
   if (!name || name.length > 100) {
     return NextResponse.json(
@@ -127,19 +162,56 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   }
 
-  const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
     .from("devotional_comments")
     .insert({
       devotional_date: date,
       author_name: name,
+      author_avatar: avatarUrl,
+      author_user_id: authorUserId,
       body: text,
     })
-    .select("id, devotional_date, author_name, body, created_at")
+    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at")
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Find devotional topic
+  let topic = "Daily Devotional";
+  const staticDevotional = DEVOTIONALS_DATA.find((d) => d.dateString === date);
+  if (staticDevotional?.topic) {
+    topic = staticDevotional.topic;
+  } else {
+    const { data: dbDevo } = await supabase
+      .from("devotionals")
+      .select("topic")
+      .eq("date_string", date)
+      .maybeSingle();
+    if (dbDevo?.topic) topic = dbDevo.topic;
+  }
+
+  // Notify Admin(s) if configured
+  const adminIdsStr = process.env.ADMIN_USER_IDS || "";
+  const adminIds = adminIdsStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const adminId of adminIds) {
+    if (adminId && adminId !== authorUserId) {
+      const notif = formatDevotionalCommentMessage(name, topic, date, data.id);
+      await sendNotification({
+        userId: adminId,
+        type: "comment",
+        title: notif.title,
+        body: notif.body,
+        link: notif.link,
+        dedupeKey: `admin-comment:${data.id}:${adminId}`,
+        push: true,
+      });
+    }
   }
 
   return NextResponse.json({ comment: data }, { status: 201 });

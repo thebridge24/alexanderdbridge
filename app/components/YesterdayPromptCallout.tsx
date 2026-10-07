@@ -125,7 +125,7 @@ export default function YesterdayPromptCallout({
             stiffness: 380,
             damping: 18, // Bouncy spring effect
           }}
-          className="fixed left-1/2 bottom-8 z-50 cursor-pointer"
+          className="fixed left-6 bottom-8 z-50 cursor-pointer"
           onClick={handleNavigateToYesterday}
         >
           {/* Inner Shake Container */}
@@ -145,7 +145,7 @@ export default function YesterdayPromptCallout({
               <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">
                 Missed Yesterday?
               </span>
-              <p className="text-xs font-semibold leading-tight text-neutral-900 truncate">
+              <p className="text-xs font-semibold leading-tight text-neutral-900 truncate max-w-[60vw]">
                 {yesterdayTopic}
               </p>
             </div>

@@ -12,11 +12,16 @@ import {
   FaSignOutAlt,
   FaBookOpen,
   FaChartLine,
+  FaUsers,
+  FaPencilAlt,
+  FaTimes,
+  FaBell,
 } from "react-icons/fa";
 import Link from "next/link";
 import AnalyticsSection, {
   DevotionalAnalyticsItem,
 } from "../components/AnalyticsSection"; // Adjust path if needed
+import UserAnalyticsSection from "../components/UserAnalyticsSection"; // Import new user component
 
 const CORRECT_PIN = "1961";
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -29,7 +34,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Tab Navigation State
-  const [adminTab, setAdminTab] = useState<"create" | "analytics">("create");
+  const [adminTab, setAdminTab] = useState<"create" | "analytics" | "users">("create");
 
   // Devotional form state
   const [dateString, setDateString] = useState("");
@@ -46,6 +51,12 @@ export default function AdminPage() {
   const [analyticsData, setAnalyticsData] = useState<DevotionalAnalyticsItem[]>([]);
   const [analyticsTotals, setAnalyticsTotals] = useState({ views: 0, likes: 0, comments: 0 });
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  // Devotionals list state (for editing / deleting)
+  const [dbDevotionals, setDbDevotionals] = useState<DevotionalAnalyticsItem[]>([]);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [deletingDate, setDeletingDate] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auto-generate display date when dateString changes
   useEffect(() => {
@@ -114,6 +125,29 @@ export default function AdminPage() {
     }
   }, [isAuthenticated]);
 
+  // Load the full list of DB devotionals for editing / deleting
+  useEffect(() => {
+    async function loadDbDevotionals() {
+      if (!isAuthenticated) return;
+      try {
+        const res = await fetch("/api/devotionals");
+        if (res.ok) {
+          const data = await res.json();
+          const list = (data.devotionals || [])
+            .filter((d: any) => d && d.dateString)
+            .sort((a: any, b: any) => a.dateString.localeCompare(b.dateString));
+          setDbDevotionals(list);
+        }
+      } catch (err) {
+        console.error("Error loading devotionals list:", err);
+      }
+    }
+
+    if (isAuthenticated) {
+      loadDbDevotionals();
+    }
+  }, [isAuthenticated]);
+
   // Fetch Analytics data
   useEffect(() => {
     async function fetchAnalytics() {
@@ -132,7 +166,7 @@ export default function AdminPage() {
         }
       } catch (err) {
         console.error("Error loading analytics:", err);
-      } finally {
+      } {
         setAnalyticsLoading(false);
       }
     }
@@ -179,6 +213,31 @@ export default function AdminPage() {
     }
   };
 
+  const [isSendingPush, setIsSendingPush] = useState(false);
+  const [pushResult, setPushResult] = useState<{ sent: number; removed: number } | null>(null);
+
+  const handleSendPush = async () => {
+    if (isSendingPush) return;
+    setIsSendingPush(true);
+    setPushResult(null);
+    try {
+      const res = await fetch("/api/admin/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send push notifications");
+      }
+      setPushResult({ sent: data.sent ?? 0, removed: data.removed ?? 0 });
+      setMessage({ type: "success", text: "Push broadcast sent to all subscribed devices." });
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Failed to send push." });
+    } finally {
+      setIsSendingPush(false);
+    }
+  };
+
   const handleAddStep = () => setNeededSteps([...neededSteps, ""]);
   const handleStepChange = (index: number, value: string) => {
     const updated = [...neededSteps];
@@ -221,8 +280,12 @@ export default function AdminPage() {
     };
 
     try {
-      const response = await fetch("/api/devotionals", {
-        method: "POST",
+      const isEditing = Boolean(editingDate);
+      const url = isEditing
+        ? `/api/devotionals/${encodeURIComponent(dateString)}`
+        : "/api/devotionals";
+      const response = await fetch(url, {
+        method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -233,28 +296,113 @@ export default function AdminPage() {
         throw new Error(data.error || "Failed to save devotional");
       }
 
-      setMessage({ type: "success", text: "Devotional saved successfully!" });
+      setMessage({
+        type: "success",
+        text: isEditing
+          ? "Devotional updated successfully!"
+          : "Devotional saved successfully!",
+      });
 
-      setTopic("");
-      setText("");
-      setMemoryVerse({ verse: "", reference: "" });
-      setExplanation("");
-      setNeededSteps([""]);
-      setPrayerPoints([""]);
-      if (dayNumber) {
-        setDayNumber(String(parseInt(dayNumber, 10) + 1));
-      }
+      // Refresh the management list
+      setDbDevotionals((prev) => {
+        const exists = prev.some((d) => d.dateString === dateString);
+        const updated = {
+          dateString,
+          dayNumber: parseInt(dayNumber, 10) || 0,
+          displayDate,
+          topic,
+          text,
+          views: prev.find((d) => d.dateString === dateString)?.views ?? 0,
+          likes: prev.find((d) => d.dateString === dateString)?.likes ?? 0,
+          comments: prev.find((d) => d.dateString === dateString)?.comments ?? 0,
+        };
+        return exists
+          ? prev.map((d) => (d.dateString === dateString ? updated : d))
+          : [...prev, updated];
+      });
 
-      if (dateString) {
-        const parts = dateString.split("-");
-        const nextDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]) + 1);
-        const formatted = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, "0")}-${String(nextDate.getDate()).padStart(2, "0")}`;
-        setDateString(formatted);
+      if (isEditing) {
+        setEditingDate(null);
+      } else {
+        setTopic("");
+        setText("");
+        setMemoryVerse({ verse: "", reference: "" });
+        setExplanation("");
+        setNeededSteps([""]);
+        setPrayerPoints([""]);
+        if (dayNumber) {
+          setDayNumber(String(parseInt(dayNumber, 10) + 1));
+        }
+
+        if (dateString) {
+          const parts = dateString.split("-");
+          const nextDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]) + 1);
+          const formatted = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, "0")}-${String(nextDate.getDate()).padStart(2, "0")}`;
+          setDateString(formatted);
+        }
       }
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "An error occurred." });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditClick = async (d: DevotionalAnalyticsItem) => {
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/devotionals/${encodeURIComponent(d.dateString)}`);
+      const data = await res.json();
+      if (!res.ok || !data.devotional) {
+        throw new Error(data.error || "Failed to load devotional");
+      }
+      const full = data.devotional;
+      setEditingDate(d.dateString);
+      setDateString(d.dateString);
+      setDayNumber(String(full.dayNumber));
+      setDisplayDate(full.displayDate);
+      setTopic(full.topic);
+      setText(full.text || "");
+      setMemoryVerse(full.memoryVerse || { verse: "", reference: "" });
+      setExplanation(full.explanation || "");
+      setNeededSteps(Array.isArray(full.neededSteps) && full.neededSteps.length ? full.neededSteps : [""]);
+      setPrayerPoints(Array.isArray(full.prayerPoints) && full.prayerPoints.length ? full.prayerPoints : [""]);
+      setMessage({ type: "success", text: `Editing Day ${d.dayNumber}. Update fields and publish to overwrite.` });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Failed to load devotional for editing." });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDate(null);
+    setMessage(null);
+  };
+
+  const handleDeleteClick = (d: DevotionalAnalyticsItem) => {
+    setDeletingDate(d.dateString);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingDate) return;
+    setIsDeleting(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/devotionals/${deletingDate}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete devotional");
+      }
+      setMessage({ type: "success", text: `Devotional for ${deletingDate} deleted.` });
+      setDbDevotionals((prev) => prev.filter((d) => d.dateString !== deletingDate));
+      setAnalyticsData((prev) => prev.filter((d) => d.dateString !== deletingDate));
+      setDeletingDate(null);
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "An error occurred." });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -346,12 +494,25 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-800 bg-neutral-950 text-xs font-semibold text-neutral-400 hover:text-white hover:border-neutral-700 transition-all cursor-pointer"
-              >
-                <FaSignOutAlt className="size-3" /> Lock Portal
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSendPush}
+                  disabled={isSendingPush}
+                  title="Send a test push notification to all subscribed devices"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-800 bg-neutral-950 text-xs font-semibold text-neutral-400 hover:text-white hover:border-neutral-700 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaBell className="size-3" />{" "}
+                  {isSendingPush ? "Sending..." : "Send Push"}
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-800 bg-neutral-950 text-xs font-semibold text-neutral-400 hover:text-white hover:border-neutral-700 transition-all cursor-pointer"
+                >
+                  <FaSignOutAlt className="size-3" /> Lock Portal
+                </button>
+              </div>
             </div>
 
             {/* Sub-Navigation Tabs */}
@@ -359,7 +520,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setAdminTab("create")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "create"
                     ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
@@ -371,13 +532,25 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setAdminTab("analytics")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   adminTab === "analytics"
                     ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
                 }`}
               >
-                <FaChartLine className="size-3.5" /> 2. Analytics
+                <FaChartLine className="size-3.5" /> 2. Engagement
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAdminTab("users")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  adminTab === "users"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
+                }`}
+              >
+                <FaUsers className="size-3.5" /> 3. User Streaks
               </button>
             </div>
 
@@ -404,6 +577,65 @@ export default function AdminPage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Devotionals Management List */}
+                <div className="mb-8 p-5 rounded-2xl bg-neutral-950 border border-neutral-900">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
+                      Manage Devotionals
+                    </h3>
+                    <span className="text-[11px] text-neutral-500">
+                      {dbDevotionals.length} published
+                    </span>
+                  </div>
+
+                  {dbDevotionals.length === 0 ? (
+                    <p className="text-xs text-neutral-500 py-4 text-center">
+                      No devotionals published yet. Create your first one below.
+                    </p>
+                  ) : (
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar">
+                      {dbDevotionals.map((d) => (
+                        <div
+                          key={d.dateString}
+                          className="flex items-center justify-between gap-3 p-3 rounded-xl bg-neutral-900/50 border border-neutral-800"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] font-bold text-neutral-500">
+                                Day {d.dayNumber}
+                              </span>
+                              <span className="text-[10px] text-neutral-600">
+                                {d.dateString}
+                              </span>
+                            </div>
+                            <p className="text-xs font-semibold text-neutral-200 truncate">
+                              {d.topic}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEditClick(d)}
+                              className="p-2 rounded-lg bg-neutral-800/60 text-neutral-300 hover:text-white hover:bg-neutral-700 transition-colors cursor-pointer"
+                              title="Edit devotional"
+                            >
+                              <FaPencilAlt className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteClick(d)}
+                              className="p-2 rounded-lg bg-neutral-800/60 text-neutral-300 hover:text-red-500 hover:bg-red-950/40 transition-colors cursor-pointer"
+                              title="Delete devotional"
+                            >
+                              <FaTrash className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -603,14 +835,32 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="pt-6">
+                  <div className="pt-6 flex flex-col sm:flex-row gap-3">
+                    {editingDate && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        disabled={loading}
+                        className="flex-1 py-4 rounded-full border border-neutral-800 bg-neutral-950 text-neutral-300 font-bold text-sm tracking-widest uppercase transition-all hover:bg-neutral-900 disabled:opacity-50 cursor-pointer"
+                      >
+                        Cancel Edit
+                      </button>
+                    )}
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-4 rounded-full bg-red-600 hover:bg-red-600 text-white font-bold text-sm tracking-widest uppercase transition-all duration-300 disabled:bg-neutral-800 disabled:text-neutral-500 active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 cursor-pointer"
+                      className={`flex-1 py-4 rounded-full font-bold text-sm tracking-widest uppercase transition-all duration-300 disabled:bg-neutral-800 disabled:text-neutral-500 active:scale-[0.98] shadow-2xl flex items-center justify-center gap-2 cursor-pointer ${
+                        editingDate
+                          ? "bg-amber-600 hover:bg-amber-600 text-white"
+                          : "bg-red-600 hover:bg-red-600 text-white"
+                      }`}
                     >
                       {loading ? (
-                        "Publishing Devotional..."
+                        "Saving Devotional..."
+                      ) : editingDate ? (
+                        <>
+                          <FaPencilAlt className="size-4" /> Update Devotional
+                        </>
                       ) : (
                         <>
                           <FaCheck className="size-4" /> Publish Devotional
@@ -619,10 +869,68 @@ export default function AdminPage() {
                     </button>
                   </div>
                 </form>
+
+                {/* Delete Confirmation Modal */}
+                <AnimatePresence>
+                  {deletingDate && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="w-full max-w-sm p-6 rounded-4xl bg-neutral-950 border border-neutral-900 shadow-2xl text-left"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2.5 rounded-full bg-red-950/40 border border-red-900/60">
+                            <FaTrash className="size-5 text-red-500" />
+                          </div>
+                          <h4 className="text-base font-bold text-neutral-200">
+                            Delete Devotional
+                          </h4>
+                        </div>
+                        <p className="text-sm text-neutral-400 mb-1">
+                          Are you sure you want to permanently delete the devotional for{" "}
+                          <span className="text-white font-semibold">
+                            {deletingDate}
+                          </span>
+                          ?
+                        </p>
+                        <p className="text-xs text-neutral-500 mb-5">
+                          This also removes all comments, views, and visitor records for
+                          this date. This action cannot be undone.
+                        </p>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setDeletingDate(null)}
+                            disabled={isDeleting}
+                            className="px-5 py-2.5 rounded-full text-xs font-semibold text-neutral-400 hover:text-neutral-300 transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold bg-red-600 text-white disabled:bg-neutral-800 disabled:text-neutral-600 transition-all cursor-pointer"
+                          >
+                            <FaTrash className="size-3" />{" "}
+                            {isDeleting ? "Deleting..." : "Delete"}
+                          </button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 
-            {/* TAB 2: DEVOTIONAL ANALYTICS COMPONENT */}
+            {/* TAB 2: DEVOTIONAL ENGAGEMENT ANALYTICS */}
             {adminTab === "analytics" && (
               <AnalyticsSection
                 analyticsData={analyticsData}
@@ -630,6 +938,9 @@ export default function AdminPage() {
                 analyticsLoading={analyticsLoading}
               />
             )}
+
+            {/* TAB 3: USER LEADERBOARD & STREAKS */}
+            {adminTab === "users" && <UserAnalyticsSection />}
           </motion.div>
         )}
       </AnimatePresence>

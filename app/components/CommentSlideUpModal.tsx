@@ -21,6 +21,7 @@ interface CommentSlideUpModalProps {
   userInitial?: string;
   userAvatarUrl?: string;
   userName?: string;
+  highlightedCommentId?: string | null;
 }
 
 // Helper Avatar Component for the current user input bar
@@ -67,6 +68,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   userInitial = "U",
   userAvatarUrl,
   userName = "User",
+  highlightedCommentId,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -87,6 +89,19 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
       textareaRef.current.setSelectionRange(length, length);
     }
   }, [replyingToName, replyingToId]);
+
+  // Auto-scroll to highlighted comment when opened via deep-link
+  useEffect(() => {
+    if (isOpen && highlightedCommentId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`comment-${highlightedCommentId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, highlightedCommentId]);
 
   const handleReplySelect = (id: string, name: string) => {
     setReplyingTo(id, name);
@@ -154,10 +169,32 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     onLike={onLikeComment}
                     onReplySelect={handleReplySelect}
                     isSubmitting={isSubmitting}
+                    activeReplyId={replyingToId}
+                    activeReplyName={replyingToName}
+                    isHighlighted={highlightedCommentId === comment.id}
                   />
                 ))
               )}
             </div>
+
+            {/* Replying Status Indicator Bar */}
+            {replyingToName && (
+              <div className="px-5 py-2 flex items-center justify-between text-xs bg-neutral-900 border-t border-neutral-800 text-neutral-300 shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                  <span className="truncate">
+                    Replying to <strong className="text-white font-semibold">@{replyingToName}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearReply}
+                  className="text-xs text-neutral-400 hover:text-white font-medium ml-3 shrink-0 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
 
             {/* Input Section */}
             <div className="p-4 border-t border-neutral-900 bg-neutral-950/90 backdrop-blur-md shrink-0">

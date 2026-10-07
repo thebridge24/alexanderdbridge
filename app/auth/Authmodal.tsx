@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useState } from "react";
@@ -52,3 +53,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     </div>
   );
 }
+=======
+export { default } from "@/alexanderdbridge/app/auth/Authmodal";
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5

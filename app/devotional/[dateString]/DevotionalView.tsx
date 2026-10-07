@@ -5,15 +5,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { IoEyeOutline, IoCheckmark } from "react-icons/io5";
+import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
   FaCheck,
   FaDownload,
   FaRegCommentDots,
-  FaGoogle,
-  FaFire,
 } from "react-icons/fa6";
 import {
   DEVOTIONALS_DATA,
@@ -38,7 +36,13 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
+<<<<<<< HEAD
 import AuthModal from "@/app/auth/Authmodal";
+=======
+import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
+import DevotionalArticle from "@/app/components/DevotionalArticle";
+import ReminderTimePicker from "@/app/components/ReminderTimePicker";
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -93,12 +97,24 @@ export default function DevotionalView() {
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
-  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>("");
 
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
+<<<<<<< HEAD
   const { streakData, newlyUnlockedMedal, clearNewMedalAlert } =
     useStreakTracker(user?.id ?? null);
+=======
+  const {
+    streakData,
+    newlyUnlockedMedal,
+    clearNewMedalAlert,
+dwellSeconds,
+    minDwellSeconds,
+    todayCompleted,
+    markTodayComplete,
+  } = useStreakTracker(user?.id);
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -115,6 +131,10 @@ export default function DevotionalView() {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setIsAuthLoading(false);
+      if (data.user?.user_metadata?.full_name && !userName) {
+        setUserName(data.user.user_metadata.full_name);
+        storeUserName(data.user.user_metadata.full_name);
+      }
     });
 
     const {
@@ -122,9 +142,14 @@ export default function DevotionalView() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setIsAuthLoading(false);
+      if (session?.user?.user_metadata?.full_name && !userName) {
+        setUserName(session.user.user_metadata.full_name);
+        storeUserName(session.user.user_metadata.full_name);
+      }
     });
 
     return () => subscription.unsubscribe();
+<<<<<<< HEAD
   }, []);
 
   const getAuthRedirectUrl = () => {
@@ -145,6 +170,9 @@ export default function DevotionalView() {
       },
     });
   };
+=======
+  }, [userName]);
+>>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
   // 1. Initial load 10s auto-hide timer
   useEffect(() => {
@@ -178,14 +206,16 @@ export default function DevotionalView() {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
   const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
   // Modal & Reply states
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   const [isSubmittingComment, setIsSubmittingComment] =
+    useState<boolean>(false);
+  const [isReminderPickerOpen, setIsReminderPickerOpen] =
     useState<boolean>(false);
 
   // Preloader & Interaction states
@@ -193,6 +223,63 @@ export default function DevotionalView() {
   const [copied, setCopied] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Deep Link handler for ?comment=... and ?reply=...
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const commentParam = urlParams.get("comment");
+    const replyParam = urlParams.get("reply");
+
+    if (commentParam) {
+      setIsCommentModalOpen(true);
+      setHighlightedCommentId(commentParam);
+      if (replyParam) {
+        setReplyingToId(commentParam);
+      }
+      const timer = setTimeout(() => {
+        setHighlightedCommentId(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Welcome Email Trigger on user authentication (idempotent, sent once via Resend)
+  useEffect(() => {
+    if (!user) return;
+    async function triggerWelcomeEmail() {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+        if (!session?.access_token) return;
+
+        await fetch("/api/email/welcome", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+      } catch (err) {
+        console.error("Welcome email check failed:", err);
+      }
+    }
+    triggerWelcomeEmail();
+  }, [user]);
+
+  // Prompt reminder time picker once after intro finishes if user hasn't configured it yet
+  useEffect(() => {
+    if (introStage !== "done" || !user) return;
+    if (typeof window === "undefined") return;
+
+    const configured = localStorage.getItem("bridge_devotional_reminder_configured");
+    if (!configured) {
+      const timer = setTimeout(() => {
+        setIsReminderPickerOpen(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [introStage, user]);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState<boolean>(true);
@@ -361,11 +448,15 @@ export default function DevotionalView() {
             timestamp: formatRelativeTime(c.created_at),
             likes: c.like_count ?? 0,
             liked: Boolean(c.liked),
+            authorUserId: c.author_user_id || undefined,
+            avatarUrl: c.author_avatar || undefined,
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
               name: r.author_name,
               text: r.body,
               timestamp: formatRelativeTime(r.created_at),
+              authorUserId: r.author_user_id || undefined,
+              avatarUrl: r.author_avatar || undefined,
             })),
           }));
           setComments(mappedComments);
@@ -375,11 +466,34 @@ export default function DevotionalView() {
       }
     }
 
-    recordView().then(() => {
+    recordView().then(async () => {
       fetchStats();
+      if (user) {
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (session?.access_token)
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+
+        fetch(`/api/devotionals/${date}/visitors`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            userId: user.id,
+            displayName:
+              user.user_metadata?.full_name || user.user_metadata?.name || "",
+            avatarUrl:
+              user.user_metadata?.avatar_url ||
+              user.user_metadata?.picture ||
+              "",
+          }),
+        }).catch(() => {});
+      }
     });
     fetchComments();
-  }, [currentDevotional]);
+  }, [currentDevotional, user]);
 
   useEffect(() => {
     if (currentDevotional && scrollContainerRef.current) {
@@ -479,14 +593,30 @@ export default function DevotionalView() {
     setIsSubmittingComment(true);
 
     try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       if (replyingToId) {
+        // Format reply text with recipient handle if not already prefixed
+        const formattedReplyText =
+          replyingToName &&
+          !commentText.trim().toLowerCase().startsWith(`@${replyingToName.toLowerCase()}`)
+            ? `@${replyingToName} ${commentText.trim()}`
+            : commentText.trim();
+
         // Post Reply
         const res = await fetch(`/api/comments/${replyingToId}/replies`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             name,
-            text: commentText,
+            text: formattedReplyText,
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           }),
         });
 
@@ -497,6 +627,8 @@ export default function DevotionalView() {
             name: data.reply.author_name,
             text: data.reply.body,
             timestamp: "Just now",
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           };
 
           setComments((prev) =>
@@ -522,10 +654,12 @@ export default function DevotionalView() {
         // Post Top-level Comment
         const res = await fetch(`/api/devotionals/${date}/comments`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             name,
             text: commentText,
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           }),
         });
 
@@ -539,6 +673,8 @@ export default function DevotionalView() {
             likes: 0,
             liked: false,
             replies: [],
+            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            authorUserId: user?.id || undefined,
           };
           setComments([newComment, ...comments]);
           setCommentText("");
@@ -577,10 +713,21 @@ export default function DevotionalView() {
     );
 
     try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       const res = await fetch(`/api/comments/${commentId}/like`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId }),
+        headers,
+        body: JSON.stringify({
+          sessionId,
+          actorUserId: user?.id || undefined,
+          actorName: user?.user_metadata?.full_name || userName || undefined,
+        }),
       });
 
       if (res.ok) {
@@ -695,7 +842,7 @@ export default function DevotionalView() {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
       >
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 z-40 relative">
           <div onClick={() => setIsStreakDrawerOpen(true)}>
             <StreakFloatingButton />
           </div>
@@ -720,7 +867,7 @@ export default function DevotionalView() {
         </div>
 
         {/* Floating Comment Button & Counter */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 z-40 relative">
           <button
             type="button"
             onClick={() => setIsCommentModalOpen(true)}
@@ -730,7 +877,10 @@ export default function DevotionalView() {
             <FaRegCommentDots className="size-6" />
           </button>
           <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
-            {comments.length}
+            {comments.reduce(
+              (total, c) => total + 1 + (c.replies?.length || 0),
+              0,
+            )}{" "}
           </span>
         </div>
 
@@ -738,7 +888,7 @@ export default function DevotionalView() {
         <button
           type="button"
           onClick={handleShare}
-          className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80 flex items-center justify-center"
+          className="p-3 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all border border-white/10 backdrop-blur-xl hover:bg-neutral-800/80 flex items-center justify-center relative z-40"
           aria-label="Share Devotional"
         >
           {copied ? (
@@ -751,7 +901,7 @@ export default function DevotionalView() {
         <BackgroundMusic />
 
         {showInstallBtn && (
-          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
+          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl z-40 relative">
             <button
               onClick={handleInstallClick}
               className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
@@ -760,6 +910,9 @@ export default function DevotionalView() {
             </button>
           </div>
         )}
+
+<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
+
       </motion.div>
 
       {/* Intro Preloader Overlay */}
@@ -831,6 +984,7 @@ export default function DevotionalView() {
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <Header />
+<div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
         <div className="w-full mx-auto relative z-10">
@@ -889,86 +1043,13 @@ export default function DevotionalView() {
           </div>
         </div>
 
-        <motion.article
-          variants={contentVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
-              <span>Day {currentDevotional.dayNumber}</span>
-              <span>•</span>
-              <span>{currentDevotional.displayDate}</span>
-              <span>•</span>
-              <span>Monthly Theme: {MONTH_THEME}</span>
-              {viewsCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <IoEyeOutline className="size-3.5" /> {viewsCount}{" "}
-                    {viewsCount === 1 ? "view" : "views"}
-                  </span>
-                </>
-              )}
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-100">
-              {currentDevotional.topic}
-            </h1>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-white/5 border border-neutral-800/80 relative overflow-hidden text-center px-8">
-            <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
-              {currentDevotional.memoryVerse.verse}
-            </p>
-            <span className="text-xs font-bold tracking-wide uppercase text-neutral-500 block">
-              — {currentDevotional.memoryVerse.reference}
-            </span>
-          </div>
-
-          <div className="text-base md:text-lg text-neutral-300 leading-relaxed font-light space-y-4">
-            <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-white ">
-              {currentDevotional.explanation}
-            </p>
-          </div>
-
-          <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
-              <span className="w-4 h-px bg-neutral-700" /> Needed Steps
-            </h3>
-            <ul className="grid gap-3">
-              {currentDevotional.neededSteps.map((step, idx) => (
-                <li
-                  key={idx}
-                  className="flex gap-3 text-sm md:text-base text-neutral-300 items-start"
-                >
-                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span className="leading-relaxed flex-1">{step}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase flex items-center gap-2">
-              <span className="w-4 h-px bg-neutral-700" /> Prayer Points
-            </h3>
-            <div className="grid gap-3">
-              {currentDevotional.prayerPoints.map((prayer, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <span className="font-mono text-xs font-bold text-neutral-400 h-6 w-6 rounded-full flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <p className="text-sm md:text-base font-medium text-neutral-300 leading-relaxed flex-1">
-                    {prayer}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.article>
+        {/* Reusable Component Insertion */}
+        <DevotionalArticle
+          devotional={currentDevotional}
+          monthTheme={MONTH_THEME}
+          viewsCount={viewsCount}
+          contentVariants={contentVariants}
+        />
       </div>
 
       {/* Streak Side-Drawer */}
@@ -984,6 +1065,13 @@ export default function DevotionalView() {
         medal={newlyUnlockedMedal}
         onClose={clearNewMedalAlert}
         userName={userName || "Believer"}
+      />
+
+      {/* Daily Devotional Reminder Alarm Picker Modal */}
+      <ReminderTimePicker
+        isOpen={isReminderPickerOpen}
+        onClose={() => setIsReminderPickerOpen(false)}
+        userId={user?.id}
       />
 
       {/* Slide-Up Comment Modal Component */}
@@ -1007,6 +1095,8 @@ export default function DevotionalView() {
         }}
         isSubmitting={isSubmittingComment}
         userInitial={userName ? userName.charAt(0).toUpperCase() : "U"}
+        userAvatarUrl={user?.user_metadata?.avatar_url}
+        highlightedCommentId={highlightedCommentId}
       />
 
       {/* Name Prompt Modal */}
@@ -1062,11 +1152,13 @@ export default function DevotionalView() {
         )}
       </AnimatePresence>
       <StreakFooterBanner
-        currentStreak={streakData?.currentStreak || 0}
-        onStreakIncrement={() => {
-          // Trigger streak hooks or refresh streak data here
-        }}
-      />
+  currentStreak={streakData?.currentStreak || 0}
+  dwellSeconds={dwellSeconds}
+  minDwellSeconds={minDwellSeconds}
+  isAlreadyCompleted={todayCompleted}
+  onMarkAsRead={markTodayComplete}
+/>
+
     </motion.div>
   );
 }

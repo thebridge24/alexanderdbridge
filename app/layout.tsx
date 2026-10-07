@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-bricolage",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://personal-library-xi.vercel.app"),
@@ -124,7 +117,7 @@ export default function RootLayout({
       className="dark selection:bg-neutral-800 selection:text-white"
     >
       <body
-        className={`${bricolage.className} bg-black text-white antialiased min-h-screen tracking-tight`}
+        className="font-sans bg-black text-white antialiased min-h-screen tracking-tight"
       >
         {children}
       </body>
