@@ -36,13 +36,9 @@ import StreakDrawer from "@/app/components/StreakDrawer";
 import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import BackgroundMusic from "./BackgroundMusic";
 import Header from "@/app/components/Header";
-<<<<<<< HEAD
-import AuthModal from "@/app/auth/Authmodal";
-=======
 import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -101,10 +97,6 @@ export default function DevotionalView() {
 
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
-<<<<<<< HEAD
-  const { streakData, newlyUnlockedMedal, clearNewMedalAlert } =
-    useStreakTracker(user?.id ?? null);
-=======
   const {
     streakData,
     newlyUnlockedMedal,
@@ -114,7 +106,6 @@ dwellSeconds,
     todayCompleted,
     markTodayComplete,
   } = useStreakTracker(user?.id);
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -149,30 +140,7 @@ dwellSeconds,
     });
 
     return () => subscription.unsubscribe();
-<<<<<<< HEAD
-  }, []);
-
-  const getAuthRedirectUrl = () => {
-    const configured =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app";
-    return configured.replace(/\/$/, "");
-  };
-
-  const handleGoogleSignIn = async () => {
-    const supabase = createSupabaseBrowserClient();
-    if (!supabase) return;
-
-    setIsAuthenticating(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: getAuthRedirectUrl(),
-      },
-    });
-  };
-=======
   }, [userName]);
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
   // 1. Initial load 10s auto-hide timer
   useEffect(() => {

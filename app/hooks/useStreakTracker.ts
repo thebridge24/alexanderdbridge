@@ -1,27 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-import { StreakData, MILESTONE_MEDALS, Medal } from "../../lib/types/streak";
-=======
 import { useState, useEffect, useCallback, useRef } from "react";
 import { StreakData, MILESTONE_MEDALS, Medal } from "../../lib/types/streak";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
 const STORAGE_KEY = "bridge_devotional_streak_v1";
 const MIN_DWELL_SECONDS = 300; // 5 minutes
 
-<<<<<<< HEAD
-const getUserStorageKey = (userId?: string | null) =>
-  userId ? `bridge_devotional_streak_user_${userId}` : STORAGE_KEY;
-
-const mergeStreakData = (base: StreakData, incoming?: Partial<StreakData> | null): StreakData => {
-  if (!incoming) {
-    return base;
-  }
-=======
 const getUserStorageKey = (uid?: string | null) =>
   uid ? `bridge_devotional_streak_user_${uid}` : STORAGE_KEY;
 
@@ -30,33 +16,12 @@ export function mergeStreakData(
   incoming?: Partial<StreakData> | null,
 ): StreakData {
   if (!incoming) return base;
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
   const attendanceHistory = {
     ...(base.attendanceHistory || {}),
     ...(incoming.attendanceHistory || {}),
   };
 
-<<<<<<< HEAD
-  const merged: StreakData = {
-    currentStreak: Math.max(base.currentStreak || 0, incoming.currentStreak || 0),
-    bestStreak: Math.max(base.bestStreak || 0, incoming.bestStreak || 0),
-    lastVisitDate: incoming.lastVisitDate || base.lastVisitDate || "",
-    unlockedMedalIds: Array.from(
-      new Set([...(base.unlockedMedalIds || []), ...(incoming.unlockedMedalIds || [])]),
-    ),
-    attendanceHistory,
-  };
-
-  if (!merged.lastVisitDate && base.lastVisitDate) {
-    merged.lastVisitDate = base.lastVisitDate;
-  }
-
-  return merged;
-};
-
-export function useStreakTracker(userId?: string | null) {
-=======
   const currentStreak = Math.max(
     base.currentStreak || 0,
     incoming.currentStreak || 0,
@@ -86,7 +51,6 @@ export function useStreakTracker(userIdProp?: string | null) {
   const [activeUserId, setActiveUserId] = useState<string | null>(
     userIdProp ?? null,
   );
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
   const [streakData, setStreakData] = useState<StreakData>({
     currentStreak: 0,
     bestStreak: 0,
@@ -106,51 +70,8 @@ export function useStreakTracker(userIdProp?: string | null) {
   const getTodayString = useCallback(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-<<<<<<< HEAD
-  };
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mainKey = STORAGE_KEY;
-    const userKey = getUserStorageKey(userId);
-
-    try {
-      const baseRaw = localStorage.getItem(mainKey);
-      const userRaw = localStorage.getItem(userKey);
-      const baseParsed = baseRaw ? (JSON.parse(baseRaw) as StreakData) : null;
-      const userParsed = userRaw ? (JSON.parse(userRaw) as StreakData) : null;
-      const merged = mergeStreakData(baseParsed || {
-        currentStreak: 0,
-        bestStreak: 0,
-        lastVisitDate: "",
-        unlockedMedalIds: [],
-        attendanceHistory: {},
-      }, userParsed);
-
-      setStreakData(merged);
-
-      const today = getTodayString();
-      const todayRecord = merged.attendanceHistory[today];
-      if (todayRecord && todayRecord.completed) {
-        setTodayCompleted(true);
-      } else {
-        setTodayCompleted(false);
-      }
-
-      localStorage.setItem(userKey, JSON.stringify(merged));
-      if (!userId) {
-        localStorage.setItem(mainKey, JSON.stringify(merged));
-      }
-    } catch (err) {
-      console.error("Failed to parse or sync streak storage", err);
-    }
-  }, [userId]);
-
-=======
   }, []);
 
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
   useEffect(() => {
     if (userIdProp) {
       setActiveUserId(userIdProp);
@@ -187,14 +108,6 @@ export function useStreakTracker(userIdProp?: string | null) {
           headers["Authorization"] = `Bearer ${session.access_token}`;
         }
 
-<<<<<<< HEAD
-    return () => clearInterval(interval);
-  }, [todayCompleted, streakData, userId]);
-
-  const markTodayComplete = () => {
-    const today = getTodayString();
-
-=======
         const completedDevotionals = JSON.parse(
           localStorage.getItem("completed_devotionals") || "[]",
         );
@@ -277,7 +190,6 @@ export function useStreakTracker(userIdProp?: string | null) {
   const markTodayComplete = useCallback(() => {
     const today = getTodayString();
 
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
     setStreakData((prev) => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -288,12 +200,8 @@ export function useStreakTracker(userIdProp?: string | null) {
       const newBest = Math.max(newStreak, prev.bestStreak);
 
       const newlyWon = MILESTONE_MEDALS.find(
-<<<<<<< HEAD
-        (m) => m.targetDays <= newStreak && !prev.unlockedMedalIds.includes(m.id),
-=======
         (m) =>
           m.targetDays <= newStreak && !prev.unlockedMedalIds.includes(m.id),
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
       );
 
       const updatedUnlocked = [...prev.unlockedMedalIds];
@@ -317,20 +225,6 @@ export function useStreakTracker(userIdProp?: string | null) {
         },
       };
 
-<<<<<<< HEAD
-      const userKey = getUserStorageKey(userId);
-      localStorage.setItem(userKey, JSON.stringify(updatedData));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeStreakData(
-        JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {
-          currentStreak: 0,
-          bestStreak: 0,
-          lastVisitDate: "",
-          unlockedMedalIds: [],
-          attendanceHistory: {},
-        },
-        updatedData,
-      )));
-=======
       const userKey = getUserStorageKey(activeUserId);
       localStorage.setItem(userKey, JSON.stringify(updatedData));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
@@ -351,7 +245,6 @@ export function useStreakTracker(userIdProp?: string | null) {
       if (activeUserId) {
         syncToDatabase(updatedData, activeUserId);
       }
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
       return updatedData;
     });
@@ -360,8 +253,6 @@ export function useStreakTracker(userIdProp?: string | null) {
     setDwellSeconds(MIN_DWELL_SECONDS);
   }, [activeUserId, getTodayString, syncToDatabase]);
 
-<<<<<<< HEAD
-=======
   // Robust Timestamp-Based Interval Tracker
   useEffect(() => {
     if (todayCompleted) return;
@@ -386,17 +277,12 @@ export function useStreakTracker(userIdProp?: string | null) {
   }, [todayCompleted, markTodayComplete]);
 
   // Helper to calculate the next target milestone (e.g. 7, 14, 21...)
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
   const getNextMilestone = () => {
     const current = streakData.currentStreak;
     const targetMedal =
       MILESTONE_MEDALS.find((m) => m.targetDays > current) ||
       MILESTONE_MEDALS[MILESTONE_MEDALS.length - 1];
-<<<<<<< HEAD
-    return targetMedal.targetDays;
-=======
     return targetMedal ? targetMedal.targetDays : 7;
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
   };
 
   const currentMilestoneTarget = getNextMilestone();

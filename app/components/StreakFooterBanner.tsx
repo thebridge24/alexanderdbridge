@@ -135,17 +135,7 @@ export default function StreakFooterBanner({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             className="pointer-events-auto absolute top-6 right-6 flex items-center gap-2.5 px-3.5 py-2 bg-neutral-950/90 backdrop-blur-md border border-neutral-800 rounded-full shadow-2xl cursor-grab active:cursor-grabbing hover:border-neutral-700 transition-colors select-none"
           >
-<<<<<<< HEAD
-            Built By Stackgate International
-          </a>
-          <span className="text-white/30 text-[10px] font-mono border border-white/10 px-1.5 py-0.5 rounded">
-            v{APP_VERSION}
-          </span>
-        </span>
-      </p>
-=======
             <FaGripLines className="size-3 text-neutral-500 shrink-0" />
->>>>>>> eaef6b6b211422249ada03b6b8a7c5bee68c5de5
 
             <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
               <FaClock className="size-3 text-red-500 animate-pulse" />
@@ -207,7 +197,7 @@ export default function StreakFooterBanner({
               Built By Stackgate International
             </a>
             <div className="text-white/30 text-[10px] font-mono border border-white/10 px-1.5 py-0.5 rounded">
-              v{version}
+              v{APP_VERSION}
             </div>
           </div>
         </div>
