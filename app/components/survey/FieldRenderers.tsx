@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Question, Option } from "../../types/survey";
+import { Question, Option } from "@/types/survey";
 import { Star, Check } from "lucide-react";
 
 interface FieldProps {
