@@ -7,8 +7,8 @@ export const devotionalSurveyConfig: SurveyConfig = {
     heading: "Help us understand what this has become for you. ❤️",
     subheading: "A note from Alexander",
     description: [
-      "We're approaching 200 people on the devotional platform, and before we enter this next phase, I want to hear from you.",
-      "This isn't just about features or money. I want to know whether these devotionals are actually helping you, what you love, what needs to improve, and what you would like us to build next.",
+      "We're approaching 200+ people on the devotional platform, and before we enter this next phase, I want to hear from you.",
+      "This isn't just about features. I want to know whether these devotionals are actually helping you, what you love, what needs to improve, and what you would like us to build next.",
       "It will take about 2 minutes. Your honest answers will help shape the next chapter of the platform."
     ],
     buttonText: "Let's begin"
@@ -21,7 +21,7 @@ export const devotionalSurveyConfig: SurveyConfig = {
     {
       id: "rating_overall",
       type: "rating",
-      title: "How would you rate your overall experience with AlexanderTheBridge Devotional?",
+      title: "How would you rate your overall experience with Bridge Daily Devotional?",
       description: "1 = Poor, 5 = Life-changing",
       min: 1,
       max: 5,
