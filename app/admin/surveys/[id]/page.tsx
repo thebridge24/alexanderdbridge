@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Star, Calendar, User, Mail, DollarSign, HeartHandshake } from "lucide-react";
-import { devotionalSurveyConfig } from "../../../../config/devotionalSurvey";
+import { devotionalSurveyConfig } from "../../../config/devotionalSurvey";
 
 // Mock database lookup (Replace with Supabase or API call)
 const MOCK_SUBMISSIONS_DB: Record<string, any> = {
