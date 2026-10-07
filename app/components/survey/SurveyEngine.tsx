@@ -123,7 +123,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
               </div>
             ) : (
               <div className="text-[11px] font-mono uppercase tracking-widest text-neutral-500">
-                AlexanderTheBridge
+             Bridge Daily.
               </div>
             )}
 
@@ -150,7 +150,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
                   transition={{ duration: 0.25, ease: "easeInOut" }}
                   className="space-y-3.5"
                 >
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-red-500 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-red-500 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full mb-2">
                     {config.intro.subheading}
                   </span>
                   <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
