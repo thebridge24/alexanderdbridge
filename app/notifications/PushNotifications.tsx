@@ -177,7 +177,20 @@ export default function PushNotifications() {
 
   loadNotifications();
 
+  // Synchronize document title with unread notifications count
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const unreadCount = notifications.filter((n) => !n.read).length;
+    const baseTitle = "Alexander D. Bridge";
+    if (unreadCount > 0) {
+      document.title = `(${unreadCount}) ${baseTitle}`;
+    } else {
+      document.title = baseTitle;
+    }
+  }, [notifications]);
+
   // Live in-app delivery over the user's private Pusher Channels channel
+
   const pusher = getPusherClient();
   let channel: Channel | null = null;
 
