@@ -40,6 +40,7 @@ import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
+import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -1128,6 +1129,18 @@ dwellSeconds,
   isAlreadyCompleted={todayCompleted}
   onMarkAsRead={markTodayComplete}
 />
+      <AuthorMessageModal
+        messageId="v1.0_october_welcome"
+        delayMs={2000}
+        title="A Little Message From Me"
+        authorImage="/alexander_logo.png"
+        paragraphs={[
+          "Hey, I just wanted to personally welcome you and say thank you for being part of Bridge Daily. What started as something small has grown into a community of people showing up every day to study God's Word, and I'm genuinely grateful for that.",
+          "Over the next few days, I'll be sharing a few more messages with you as we prepare for the next season of the platform. I also want to hear from you, not just tell you what we're building.",
+          "You'll soon see a short questionnaire asking about your experience, what has impacted you, what you enjoy, and what you'd love to see on the platform. Please be honest with me. Your answers will help me understand the people I'm building this for and make better decisions for the future.",
+          "Thank you for being here. This is only the beginning, and I'm excited about where we're going together.",
+        ]}
+      />
       <Survey />
     </motion.div>
   );
