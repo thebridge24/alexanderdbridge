@@ -19,12 +19,36 @@ export async function POST(request: NextRequest) {
       ctaUrl = "/devotional",
     } = body || {};
 
-    if (!subject || !paragraphs || !Array.isArray(paragraphs) || paragraphs.length === 0) {
+    if (!subject || typeof subject !== "string" || subject.trim().length === 0) {
       return NextResponse.json(
-        { error: "subject and paragraphs array are required" },
+        { error: "A valid subject string is required" },
         { status: 400 },
       );
     }
+
+    if (!paragraphs || !Array.isArray(paragraphs) || paragraphs.length === 0) {
+      return NextResponse.json(
+        { error: "Paragraphs array must contain at least one text block" },
+        { status: 400 },
+      );
+    }
+
+    const cleanSubject = subject.trim().slice(0, 200);
+    const cleanParagraphs = paragraphs
+      .map((p) => (typeof p === "string" ? p.trim() : ""))
+      .filter((p) => p.length > 0)
+      .slice(0, 20);
+
+    if (cleanParagraphs.length === 0) {
+      return NextResponse.json(
+        { error: "At least one non-empty paragraph is required" },
+        { status: 400 },
+      );
+    }
+
+    const cleanCtaText = (typeof ctaText === "string" ? ctaText.trim() : "Open Daily Devotional").slice(0, 100);
+    const cleanCtaUrl = (typeof ctaUrl === "string" ? ctaUrl.trim() : "/devotional").slice(0, 500);
+
 
     const supabase = createSupabaseAdmin();
     const recipientEmails = new Set<string>();
@@ -85,17 +109,17 @@ export async function POST(request: NextRequest) {
           "Alexander D. Bridge <devotional@alexanderdbridge.com>";
 
         const htmlContent = getBroadcastEmailHtml({
-          subject,
-          paragraphs,
-          ctaText,
-          ctaUrl,
+          subject: cleanSubject,
+          paragraphs: cleanParagraphs,
+          ctaText: cleanCtaText,
+          ctaUrl: cleanCtaUrl,
         });
 
         const textContent = getBroadcastEmailText({
-          subject,
-          paragraphs,
-          ctaText,
-          ctaUrl,
+          subject: cleanSubject,
+          paragraphs: cleanParagraphs,
+          ctaText: cleanCtaText,
+          ctaUrl: cleanCtaUrl,
         });
 
         // Send email to each recipient
@@ -104,7 +128,7 @@ export async function POST(request: NextRequest) {
             const res = await resend.emails.send({
               from: fromEmail,
               to: [email],
-              subject,
+              subject: cleanSubject,
               html: htmlContent,
               text: textContent,
             });
@@ -122,27 +146,28 @@ export async function POST(request: NextRequest) {
 
     // 2. Send Bulk Push & Insert In-App Notifications if push channel requested
     if (channels.includes("push")) {
-      const summaryText = paragraphs[0] || subject;
+      const summaryText = cleanParagraphs[0] || cleanSubject;
 
       // Insert in-app notification rows into notification_events for each recipient user
       if (userIdList.length > 0) {
         const notifInserts = userIdList.map((uid) => ({
           user_id: uid,
           type: "admin",
-          title: subject,
+          title: cleanSubject,
           body: summaryText,
-          link: ctaUrl,
+          link: cleanCtaUrl,
         }));
 
         await supabase.from("notification_events").insert(notifInserts);
       }
 
       // Broadcast device push to all devices via Pusher Beams
-      const pushRes = await sendPushToAll(subject, summaryText, ctaUrl, "admin");
+      const pushRes = await sendPushToAll(cleanSubject, summaryText, cleanCtaUrl, "admin");
       if (pushRes.ok) {
         pushSentCount = userIdList.length || 1;
       }
     }
+
 
     return NextResponse.json({
       ok: true,
