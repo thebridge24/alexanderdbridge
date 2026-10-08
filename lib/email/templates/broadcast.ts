@@ -46,7 +46,7 @@ export function getBroadcastEmailHtml({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
+  <title>${safeSubject}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #030303; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #030303; width: 100%;">
@@ -67,7 +67,7 @@ export function getBroadcastEmailHtml({
                 </tr>
               </table>
               <span style="display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #ef4444; margin-bottom: 6px;">The Bridge Daily Devotional</span>
-              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; line-height: 1.3;">${subject}</h1>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; line-height: 1.3;">${safeSubject}</h1>
             </td>
           </tr>
 
@@ -92,7 +92,7 @@ export function getBroadcastEmailHtml({
                 <tr>
                   <td align="center">
                     <a href="${ctaUrl}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 9999px; box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);">
-                      ${ctaText} →
+                      ${escapeHtml(ctaText)} →
                     </a>
                   </td>
                 </tr>
@@ -149,3 +149,6 @@ export function getBroadcastEmailText({
   const bodyText = paragraphs.join("\n\n");
   return `${subject}\n\n${greeting}\n\n${bodyText}\n\n${ctaText}: ${ctaUrl}\n\n---\n“Your word is a lamp for my feet, a light for my path.” - Psalm 119:105\nThe Bridge Daily Devotional`;
 }
+
+export const renderBroadcastEmail = getBroadcastEmailHtml;
+
