@@ -38,7 +38,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Fallback email and name from survey answer fields if anonymous
+    if (!userEmail && typeof answers.email === "string" && answers.email.includes("@")) {
+      userEmail = answers.email.trim().toLowerCase();
+    }
+    if (!userName && typeof answers.name === "string" && answers.name.trim().length > 0) {
+      userName = answers.name.trim();
+    }
+
     const rating = Number(answers.rating_overall);
+
 
     const { error } = await supabase.from("survey_responses").insert({
       survey_id: surveyId,
