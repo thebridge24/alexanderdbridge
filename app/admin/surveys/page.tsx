@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Sparkles } from "lucide-react";
+import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Sparkles, Download } from "lucide-react";
+
 import AdminPinGuard from "../AdminPinGuard";
 import SurveyBroadcasterModal from "./SurveyBroadcasterModal";
 
@@ -310,11 +311,21 @@ export default function SurveySubmissionsPage() {
             <div className="flex items-center flex-wrap gap-3">
               <button
                 type="button"
+                onClick={handleExportCSV}
+                disabled={totalSubmissions === 0}
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 text-neutral-300 hover:text-white border border-neutral-800 font-medium text-xs tracking-wide transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" /> Export CSV
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setIsBroadcasterOpen(true)}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" /> Broadcast Bulk Message
               </button>
+
 
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
                 <span className="text-[10px] font-mono text-neutral-500 uppercase block">
