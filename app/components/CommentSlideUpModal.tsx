@@ -103,6 +103,19 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     }
   }, [isOpen, highlightedCommentId]);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+
   const handleReplySelect = (id: string, name: string) => {
     setReplyingTo(id, name);
     setTimeout(() => {
