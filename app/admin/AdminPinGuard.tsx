@@ -28,6 +28,22 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
     setChecking(false);
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (KEYS.includes(e.key)) {
+        handleKeyPress(e.key);
+      } else if (e.key === "Backspace") {
+        handleBackspace();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pin, isAuthenticated]);
+
+
   const handleKeyPress = (key: string) => {
     if (pin.length < 4) {
       const newPin = pin + key;
