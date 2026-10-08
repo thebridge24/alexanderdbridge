@@ -122,27 +122,43 @@ export async function POST(request: NextRequest) {
           ctaUrl: cleanCtaUrl,
         });
 
-        // Send email to each recipient
-        for (const email of emailList) {
-          try {
-            const res = await resend.emails.send({
-              from: fromEmail,
-              to: [email],
-              subject: cleanSubject,
-              html: htmlContent,
-              text: textContent,
-            });
-            if (res.data?.id) {
-              emailsSentCount++;
-            }
-          } catch (e: any) {
-            console.error(`Failed to send email to ${email}:`, e);
-          }
+        // Send emails in batches to optimize throughput while respecting provider rate limits
+        const BATCH_SIZE = 5;
+        const failedEmails: string[] = [];
+
+        for (let i = 0; i < emailList.length; i += BATCH_SIZE) {
+          const batch = emailList.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map(async (email) => {
+              try {
+                const res = await resend.emails.send({
+                  from: fromEmail,
+                  to: [email],
+                  subject: cleanSubject,
+                  html: htmlContent,
+                  text: textContent,
+                });
+                if (res.data?.id) {
+                  emailsSentCount++;
+                } else if (res.error) {
+                  failedEmails.push(email);
+                }
+              } catch (e: any) {
+                console.error(`Failed to send email to ${email}:`, e);
+                failedEmails.push(email);
+              }
+            }),
+          );
+        }
+
+        if (failedEmails.length > 0) {
+          emailError = `Delivered to ${emailsSentCount} recipients; failed for ${failedEmails.length} addresses.`;
         }
       } else {
         emailError = "RESEND_API_KEY is not configured";
       }
     }
+
 
     // 2. Send Bulk Push & Insert In-App Notifications if push channel requested
     if (channels.includes("push")) {
