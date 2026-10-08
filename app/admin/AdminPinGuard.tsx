@@ -16,6 +16,7 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isError, setIsError] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -39,8 +40,10 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
             window.sessionStorage.setItem("admin_auth", "true");
           }
           setIsAuthenticated(true);
+          setFailedAttempts(0);
         } else {
           setIsError(true);
+          setFailedAttempts((prev) => prev + 1);
           setTimeout(() => {
             setPin("");
             setIsError(false);
@@ -54,6 +57,7 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
     setPin((prev) => prev.slice(0, -1));
     setIsError(false);
   };
+
 
   if (checking) {
     return (
