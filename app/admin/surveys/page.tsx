@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { Star, Eye, Search, ArrowUpDown, Filter, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Star, Search, Filter } from "lucide-react";
 
 // Mock submission type mirroring survey answers structure
 export interface SurveySubmission {
@@ -15,6 +15,7 @@ export interface SurveySubmission {
 }
 
 export default function SurveySubmissionsPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState<string>("all");
   const [submissions, setSubmissions] = useState<SurveySubmission[]>([]);
@@ -53,10 +54,17 @@ export default function SurveySubmissionsPage() {
     ? (submissions.reduce((acc, item) => acc + item.overallRating, 0) / totalSubmissions).toFixed(1)
     : "–";
 
+  const formatPrice = (amount?: string | number) => {
+    if (!amount || amount === "keep_free") return "Keep Free";
+    const num = Number(amount);
+    if (isNaN(num)) return String(amount);
+    return `₦${num.toLocaleString()}`;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        
+
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
           <div>
@@ -130,12 +138,12 @@ export default function SurveySubmissionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-900/50 text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
+                <tr className="border-b border-neutral-800 bg-neutral-900/50 text-[11px] font-mono text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                   <th className="py-3.5 px-4">User</th>
                   <th className="py-3.5 px-4">Rating</th>
-                  <th className="py-3.5 px-4">Willingness to Pay</th>
-                  <th className="py-3.5 px-4">Date Submitted</th>
-                  <th className="py-3.5 px-4 text-right">Action</th>
+                  <th className="py-3.5 px-4">Willingness</th>
+                  <th className="py-3.5 px-4">Agreed Price</th>
+                  <th className="py-3.5 px-4 text-right">Date Submitted</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-900 text-xs">
@@ -143,11 +151,14 @@ export default function SurveySubmissionsPage() {
                   filteredSubmissions.map((sub) => (
                     <tr
                       key={sub.id}
-                      className="hover:bg-neutral-900/40 transition-colors group"
+                      onClick={() => router.push(`/admin/surveys/${sub.id}`)}
+                      className="hover:bg-neutral-900/60 transition-colors cursor-pointer group whitespace-nowrap"
                     >
                       {/* User Info */}
                       <td className="py-3.5 px-4">
-                        <div className="font-medium text-white">{sub.userName || "Anonymous"}</div>
+                        <div className="font-medium text-white group-hover:text-red-400 transition-colors">
+                          {sub.userName || "Anonymous"}
+                        </div>
                         <div className="text-[11px] text-neutral-500">{sub.userEmail || sub.id}</div>
                       </td>
 
@@ -174,29 +185,24 @@ export default function SurveySubmissionsPage() {
                         </span>
                       </td>
 
-                      {/* Date */}
-                      <td className="py-3.5 px-4 text-neutral-400 font-mono text-[11px]">
+                      {/* Agreed Price */}
+                      <td className="py-3.5 px-4 font-mono text-neutral-200">
+                        {formatPrice(sub.answers.monthly_amount)}
+                      </td>
+
+                      {/* Date Submitted */}
+                      <td className="py-3.5 px-4 text-right text-neutral-400 font-mono text-[11px]">
                         {new Date(sub.submittedAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
                         })}
                       </td>
-
-                      {/* Action View Button */}
-                      <td className="py-3.5 px-4 text-right">
-                        <Link
-                          href={`/admin/surveys/${sub.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-red-600/20 hover:border-red-600/50 border border-neutral-800 text-neutral-300 hover:text-white rounded-lg transition-all text-xs"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View Details
-                        </Link>
-                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs">
+                    <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs whitespace-nowrap">
                       No survey responses found matching your filter.
                     </td>
                   </tr>
