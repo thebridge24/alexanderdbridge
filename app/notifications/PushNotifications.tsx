@@ -97,10 +97,16 @@ export default function PushNotifications() {
               badge: "/devotional.png",
               vibrate: [200, 100, 200],
               tag: `bridge-${Date.now()}`,
+              renotify: true,
               data: { url: link || "/devotional" },
+              actions: [
+                { action: "open", title: "Open" },
+                { action: "close", title: "Dismiss" },
+              ],
             };
             await reg.showNotification(title, notifOptions);
             return;
+
           }
         } catch (swErr) {
           console.warn("ServiceWorker showNotification fallback:", swErr);
