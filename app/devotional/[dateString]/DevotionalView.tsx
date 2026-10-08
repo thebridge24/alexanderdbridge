@@ -39,6 +39,7 @@ import Header from "@/app/components/Header";
 import AuthModal from "@/alexanderdbridge/app/auth/Authmodal";
 import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
+import Survey from "@/app/components/Survey";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -1127,7 +1128,7 @@ dwellSeconds,
   isAlreadyCompleted={todayCompleted}
   onMarkAsRead={markTodayComplete}
 />
-
+      <Survey />
     </motion.div>
   );
 }
