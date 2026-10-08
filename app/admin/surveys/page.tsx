@@ -247,6 +247,47 @@ export default function SurveySubmissionsPage() {
     return `₦${num.toLocaleString()}`;
   };
 
+  const handleExportCSV = () => {
+    if (!submissions.length) return;
+    const headers = [
+      "Submission ID",
+      "User Name",
+      "User Email",
+      "Overall Rating",
+      "Membership Willingness",
+      "Proposed Price",
+      "Favorite Feature",
+      "Submitted At",
+    ];
+
+    const rows = submissions.map((s) => [
+      `"${s.id}"`,
+      `"${(s.userName || "Anonymous").replace(/"/g, '""')}"`,
+      `"${(s.userEmail || "–").replace(/"/g, '""')}"`,
+      s.overallRating,
+      `"${s.answers.membership_willingness || "–"}"`,
+      `"${formatPrice(s.answers.monthly_amount)}"`,
+      `"${(s.answers.feature_favorite || "").replace(/"/g, '""')}"`,
+      `"${new Date(s.submittedAt).toISOString()}"`,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `devotional_survey_export_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   return (
     <AdminPinGuard>
       <div className="min-h-screen bg-black text-white p-4 sm:p-8">
