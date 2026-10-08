@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Star, Calendar, User, Mail, DollarSign, HeartHandshake } from "lucide-react";
 import { devotionalSurveyConfig } from "../../../config/devotionalSurvey";
+import AdminPinGuard from "../../AdminPinGuard";
 
 export default function SubmissionDetailPage() {
   const params = useParams();
@@ -76,19 +77,22 @@ export default function SubmissionDetailPage() {
 
   if (loading || !submission) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
-        <Link href="/admin/surveys" className="text-sm text-neutral-400 hover:text-white">
-          ← Back to responses
-        </Link>
-        <p className="mt-6 text-sm text-neutral-500">
-          {loading ? "Loading response..." : "Response not found."}
-        </p>
-      </div>
+      <AdminPinGuard>
+        <div className="min-h-screen bg-black text-white p-8">
+          <Link href="/admin/surveys" className="text-sm text-neutral-400 hover:text-white">
+            ← Back to responses
+          </Link>
+          <p className="mt-6 text-sm text-neutral-500">
+            {loading ? "Loading response..." : "Response not found."}
+          </p>
+        </div>
+      </AdminPinGuard>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-8">
+    <AdminPinGuard>
+      <div className="min-h-screen bg-black text-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         
         {/* Navigation Top Bar */}
@@ -177,5 +181,6 @@ export default function SubmissionDetailPage() {
 
       </div>
     </div>
+    </AdminPinGuard>
   );
 }

@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Filter, PieChart as PieIcon, DollarSign } from "lucide-react";
+import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Sparkles } from "lucide-react";
+import AdminPinGuard from "../AdminPinGuard";
+import SurveyBroadcasterModal from "./SurveyBroadcasterModal";
 
 // Mock submission type mirroring survey answers structure
 export interface SurveySubmission {
@@ -119,6 +121,7 @@ export default function SurveySubmissionsPage() {
   const [submissions, setSubmissions] = useState<SurveySubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBroadcasterOpen, setIsBroadcasterOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -245,40 +248,49 @@ export default function SurveySubmissionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <AdminPinGuard>
+      <div className="min-h-screen bg-black text-white p-4 sm:p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
-          <div>
-            <span className="text-xs font-mono uppercase tracking-widest text-red-500">
-              Admin Portal
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
-              Devotional Survey Responses
-            </h1>
-            <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
-              Review feedback and feature requests from platform members.
-            </p>
-          </div>
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
+            <div>
+              <span className="text-xs font-mono uppercase tracking-widest text-red-500">
+                Admin Portal
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
+                Devotional Survey Responses
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
+                Review feedback and feature requests from platform members.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
-              <span className="text-[10px] font-mono text-neutral-500 uppercase block">
-                Total Feedback
-              </span>
-              <span className="text-lg font-bold text-white">{totalSubmissions}</span>
-            </div>
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
-              <span className="text-[10px] font-mono text-neutral-500 uppercase block">
-                Avg Rating
-              </span>
-              <span className="text-lg font-bold text-red-500 flex items-center justify-center gap-1">
-                {avgRating} <Star className="w-3.5 h-3.5 fill-red-500" />
-              </span>
+            <div className="flex items-center flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setIsBroadcasterOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" /> Broadcast Bulk Message
+              </button>
+
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
+                <span className="text-[10px] font-mono text-neutral-500 uppercase block">
+                  Total Feedback
+                </span>
+                <span className="text-lg font-bold text-white">{totalSubmissions}</span>
+              </div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
+                <span className="text-[10px] font-mono text-neutral-500 uppercase block">
+                  Avg Rating
+                </span>
+                <span className="text-lg font-bold text-red-500 flex items-center justify-center gap-1">
+                  {avgRating} <Star className="w-3.5 h-3.5 fill-red-500" />
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
         {loading && <p className="text-sm text-neutral-500">Loading responses...</p>}
         {error && <p className="text-sm text-red-500">{error}</p>}
@@ -513,7 +525,14 @@ export default function SurveySubmissionsPage() {
           </div>
         </div>
 
+        {/* Survey Broadcaster Modal */}
+        <SurveyBroadcasterModal
+          isOpen={isBroadcasterOpen}
+          onClose={() => setIsBroadcasterOpen(false)}
+          totalRespondents={totalSubmissions}
+        />
       </div>
     </div>
-  );
+  </AdminPinGuard>
+);
 }
