@@ -776,17 +776,12 @@ dwellSeconds,
   if (!currentDevotional) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
-        <div className="max-w-md space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
-            Daily Devotional
-          </p>
-          <h1 className="text-2xl font-bold text-white">No devotional is available yet.</h1>
-          <p className="text-sm text-neutral-400">
-            Add a devotional entry from the admin screen or refresh once the daily content is created.
-          </p>
-        </div>
-      </div>
-    );
+  <div className="flex flex-col items-center justify-center space-y-4">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+    <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
+      Loading Devotional...
+    </p>
+  </div>    );
   }
 
   return (
