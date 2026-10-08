@@ -56,6 +56,15 @@ export function getPusherClient(): Pusher | null {
   return pusherClient;
 }
 
+/** Disconnects the active Pusher Channels instance if connected. */
+export function disconnectPusherClient(): void {
+  if (pusherClient) {
+    pusherClient.disconnect();
+    pusherClient = null;
+  }
+}
+
+
 let beamsClientPromise: Promise<BeamsClient | null> | null = null;
 
 function getBeamsClient(): Promise<BeamsClient | null> {
