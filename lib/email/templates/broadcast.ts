@@ -10,6 +10,18 @@ export interface BroadcastEmailOptions {
   ctaUrl?: string;
 }
 
+/**
+ * Escapes sensitive HTML entities to prevent markup injection in user-entered email content.
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function getBroadcastEmailHtml({
   subject,
   paragraphs,
@@ -17,14 +29,16 @@ export function getBroadcastEmailHtml({
   ctaText = "Open Daily Devotional",
   ctaUrl = "https://alexanderdbridge.com/devotional",
 }: BroadcastEmailOptions): string {
-  const greeting = recipientName ? `Dear ${recipientName},` : "Hello Dear Believer,";
+  const safeSubject = escapeHtml(subject);
+  const greeting = recipientName ? `Dear ${escapeHtml(recipientName)},` : "Hello Dear Believer,";
 
   const paragraphsHtml = paragraphs
     .map(
       (p) =>
-        `<p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.75; color: #d4d4d8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">${p.trim()}</p>`,
+        `<p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.75; color: #d4d4d8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">${escapeHtml(p.trim())}</p>`,
     )
     .join("");
+
 
   return `
 <!DOCTYPE html>
