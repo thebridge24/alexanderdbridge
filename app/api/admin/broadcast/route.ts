@@ -188,12 +188,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       recipientsTargeted: Math.max(emailList.length, userIdList.length),
+      totalTargeted: Math.max(emailList.length, userIdList.length),
       emailsSent: emailsSentCount,
       pushSent: pushSentCount,
+      inAppNotificationsInserted: channels.includes("push") ? userIdList.length : 0,
       emailError,
+      timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
     console.error("Bulk broadcast API error:", err);
     return NextResponse.json({ error: err.message || "Broadcast failed" }, { status: 500 });
   }
 }
+
