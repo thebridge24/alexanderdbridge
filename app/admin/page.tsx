@@ -552,6 +552,13 @@ export default function AdminPage() {
               >
                 <FaUsers className="size-3.5" /> 3. User Streaks
               </button>
+
+              <Link
+                href="/admin/surveys"
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold transition-all text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/50"
+              >
+                <FaChartLine className="size-3.5" /> 4. Surveys
+              </Link>
             </div>
 
             {/* TAB 1: ADD DEVOTIONAL */}

@@ -1,56 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Star, Calendar, User, Mail, DollarSign, HeartHandshake } from "lucide-react";
 import { devotionalSurveyConfig } from "../../../config/devotionalSurvey";
 
-// Mock database lookup (Replace with Supabase or API call)
-const MOCK_SUBMISSIONS_DB: Record<string, any> = {
-  "sub-101": {
-    id: "sub-101",
-    userName: "Emmanuel Oke",
-    userEmail: "emmanuel@example.com",
-    submittedAt: "2026-10-06T14:30:00Z",
-    answers: {
-      rating_overall: 5,
-      like_most: "The daily depth and focus on personal spiritual growth.",
-      excites_most: "Being part of a close-knit spiritual community.",
-      helped_walk_with_god: "It has helped me stay consistent with daily prayer and word study.",
-      impactful_moment: "The devotional on 'Walking in Grace' completely shifted my perspective.",
-      dislikes_or_difficulties: "Nothing really, just looking forward to push notifications.",
-      wish_feature: "Daily audio devotionals",
-      consistency_drivers: ["audio", "reminders", "journal"],
-      membership_willingness: "yes_definitely",
-      monthly_amount: "1000",
-    },
-  },
-};
-
 export default function SubmissionDetailPage() {
   const params = useParams();
   const submissionId = params.id as string;
 
-  // Retrieve submission from database/mock store
-  const submission = MOCK_SUBMISSIONS_DB[submissionId] || {
-    id: submissionId,
-    userName: "Alexander Bridge",
-    userEmail: "alexander@example.com",
-    submittedAt: new Date().toISOString(),
-    answers: {
-      rating_overall: 5,
-      like_most: "Deep spiritual insights and clean reading experience.",
-      excites_most: "Growing with a dedicated community.",
-      helped_walk_with_god: "Yes, it brings clarity every morning.",
-      impactful_moment: "The study on faith in difficult seasons.",
-      dislikes_or_difficulties: "No major issues encountered.",
-      wish_feature: "Built-in prayer requests",
-      consistency_drivers: ["reminders", "audio", "prayer"],
-      membership_willingness: "yes_definitely",
-      monthly_amount: "2000",
-    },
-  };
+  const [submission, setSubmission] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/surveys")
+      .then((res) => res.json())
+      .then((json) => {
+        const found = (json.submissions ?? []).find((s: any) => s.id === submissionId);
+        if (!cancelled) setSubmission(found ?? null);
+      })
+      .catch(() => {})
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [submissionId]);
 
   // Format array/object answers into readable text
   const formatAnswerValue = (q: any, answerValue: any) => {
@@ -97,6 +73,19 @@ export default function SubmissionDetailPage() {
 
     return <p className="text-neutral-200 leading-relaxed text-xs sm:text-sm">{String(answerValue)}</p>;
   };
+
+  if (loading || !submission) {
+    return (
+      <div className="min-h-screen bg-black text-white p-8">
+        <Link href="/admin/surveys" className="text-sm text-neutral-400 hover:text-white">
+          ← Back to responses
+        </Link>
+        <p className="mt-6 text-sm text-neutral-500">
+          {loading ? "Loading response..." : "Response not found."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8">

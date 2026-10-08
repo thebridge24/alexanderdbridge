@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Star, Eye, Search, ArrowUpDown, Filter, CheckCircle2 } from "lucide-react";
 
@@ -14,72 +14,29 @@ export interface SurveySubmission {
   answers: Record<string, any>;
 }
 
-// Sample mock data for previewing UI
-const MOCK_SUBMISSIONS: SurveySubmission[] = [
-  {
-    id: "sub-101",
-    userName: "Emmanuel Oke",
-    userEmail: "emmanuel@example.com",
-    submittedAt: "2026-10-06T14:30:00Z",
-    overallRating: 5,
-    answers: {
-      rating_overall: 5,
-      like_most: "The daily depth and focus on personal spiritual growth.",
-      excites_most: "Being part of a close-knit spiritual community.",
-      helped_walk_with_god: "It has helped me stay consistent with daily prayer and word study.",
-      impactful_moment: "The devotional on 'Walking in Grace' completely shifted my perspective.",
-      dislikes_or_difficulties: "Nothing really, just looking forward to push notifications.",
-      wish_feature: "Daily audio devotionals",
-      consistency_drivers: ["audio", "reminders", "journal"],
-      membership_willingness: "yes_definitely",
-      monthly_amount: "1000",
-    },
-  },
-  {
-    id: "sub-102",
-    userName: "Grace Daniel",
-    userEmail: "grace.d@example.com",
-    submittedAt: "2026-10-05T09:15:00Z",
-    overallRating: 4,
-    answers: {
-      rating_overall: 4,
-      like_most: "Clean UI and straight-to-the-point daily word.",
-      excites_most: "Seeing new features roll out.",
-      helped_walk_with_god: "Gives me morning focus before starting work.",
-      impactful_moment: "The session on faith and endurance.",
-      dislikes_or_difficulties: "Sometimes I forget to check without email reminders.",
-      wish_feature: "A personal reflection journal",
-      consistency_drivers: ["reminders", "prayer"],
-      membership_willingness: "maybe",
-      monthly_amount: "800",
-    },
-  },
-  {
-    id: "sub-103",
-    userName: "Anonymous User",
-    userEmail: "N/A",
-    submittedAt: "2026-10-04T20:45:00Z",
-    overallRating: 3,
-    answers: {
-      rating_overall: 3,
-      like_most: "The content quality.",
-      excites_most: "Community features.",
-      helped_walk_with_god: "Somewhat consistent now.",
-      impactful_moment: "Can't remember a specific one yet.",
-      dislikes_or_difficulties: "Site load speed on weak mobile connections.",
-      wish_feature: "Offline reading mode",
-      consistency_drivers: ["performance", "content"],
-      membership_willingness: "unsure",
-      monthly_amount: "keep_free",
-    },
-  },
-];
-
 export default function SurveySubmissionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState<string>("all");
+  const [submissions, setSubmissions] = useState<SurveySubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredSubmissions = MOCK_SUBMISSIONS.filter((sub) => {
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/surveys")
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Failed to load responses");
+        if (!cancelled) setSubmissions(json.submissions ?? []);
+      })
+      .catch((err) => !cancelled && setError(err.message))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredSubmissions = submissions.filter((sub) => {
     const matchesSearch =
       (sub.userName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (sub.userEmail?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
@@ -91,10 +48,10 @@ export default function SurveySubmissionsPage() {
     return matchesSearch && matchesRating;
   });
 
-  const totalSubmissions = MOCK_SUBMISSIONS.length;
-  const avgRating = (
-    MOCK_SUBMISSIONS.reduce((acc, item) => acc + item.overallRating, 0) / totalSubmissions
-  ).toFixed(1);
+  const totalSubmissions = submissions.length;
+  const avgRating = totalSubmissions
+    ? (submissions.reduce((acc, item) => acc + item.overallRating, 0) / totalSubmissions).toFixed(1)
+    : "–";
 
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8">
@@ -131,6 +88,9 @@ export default function SurveySubmissionsPage() {
             </div>
           </div>
         </div>
+
+        {loading && <p className="text-sm text-neutral-500">Loading responses...</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
 
         {/* Filter Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
