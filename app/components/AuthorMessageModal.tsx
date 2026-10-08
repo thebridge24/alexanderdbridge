@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { X } from "lucide-react";
 
 export interface AuthorMessageModalProps {
@@ -27,7 +27,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
   messageId,
   title,
   paragraphs,
-  authorImage = "/author-avatar.jpg", // Replace with your default image path
+  authorImage = "/author-avatar.jpg",
   authorName = "Alexander D. Bridge",
   authorRole = "Founder & Author of Bridge Daily Devotional",
   delayMs = 1500,
@@ -56,27 +56,27 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
     if (onClose) onClose();
   };
 
-  // Staggered container for paragraphs
-  const containerVariants = {
+  // Staggered container for paragraphs explicitly typed with Variants
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.6, // Delay between each paragraph appearing
+        staggerChildren: 0.6,
         delayChildren: 0.3,
       },
     },
   };
 
-  // Paragraph opacity transition animation
-  const paragraphVariants = {
+  // Paragraph opacity transition animation explicitly typed with Variants
+  const paragraphVariants: Variants = {
     hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.7,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: [0.25, 0.1, 0.25, 1.0] as const, // Strict tuple typing for cubic-bezier ease
       },
     },
   };
@@ -85,7 +85,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
     <AnimatePresence>
       {isVisible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md">
-          {/* Main Full-Screen Overlay Card Stack */}
+          {/* Main Overlay Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
