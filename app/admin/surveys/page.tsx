@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Filter, PieChart as PieIcon } from "lucide-react";
+import { Star, Search, Filter, PieChart as PieIcon, DollarSign } from "lucide-react";
 
 // Mock submission type mirroring survey answers structure
 export interface SurveySubmission {
@@ -42,16 +42,18 @@ const WILLINGNESS_CONFIG: Record<
 };
 
 // Pure SVG Pie Chart Component
-function WillingnessPieChart({
+function CustomPieChart({
   data,
   total,
+  centerLabel = "Users",
 }: {
   data: { key: string; label: string; count: number; color: string }[];
   total: number;
+  centerLabel?: string;
 }) {
   if (total === 0) {
     return (
-      <div className="w-32 h-32 rounded-full border-2 border-dashed border-neutral-800 flex items-center justify-center text-[10px] text-neutral-600 font-mono">
+      <div className="w-36 h-36 rounded-full border-2 border-dashed border-neutral-800 flex items-center justify-center text-[10px] text-neutral-600 font-mono">
         No Data
       </div>
     );
@@ -59,14 +61,12 @@ function WillingnessPieChart({
 
   let cumulativePercent = 0;
 
-  // Convert slice coordinates for SVG <path>
   const slices = data.map((slice) => {
     const percent = slice.count / total;
     const startAngle = cumulativePercent * 2 * Math.PI;
     cumulativePercent += percent;
     const endAngle = cumulativePercent * 2 * Math.PI;
 
-    // Handle 100% single slice edge case
     if (percent === 1) {
       return {
         ...slice,
@@ -101,11 +101,11 @@ function WillingnessPieChart({
             )
         )}
       </svg>
-      {/* Inner Ring Overlay for Donut Effect */}
-      <div className="absolute inset-0 m-auto w-16 h-16 bg-neutral-950 rounded-full border border-neutral-800/80 flex flex-col items-center justify-center shadow-inner">
+      {/* Inner Ring Overlay */}
+      <div className="absolute inset-0 m-auto w-16 h-16 bg-neutral-950 rounded-full border border-neutral-800/80 flex flex-col items-center justify-center shadow-inner text-center">
         <span className="text-xs font-bold text-white font-mono">{total}</span>
         <span className="text-[9px] text-neutral-500 uppercase tracking-tighter">
-          Users
+          {centerLabel}
         </span>
       </div>
     </div>
@@ -135,8 +135,8 @@ export default function SurveySubmissionsPage() {
     };
   }, []);
 
-  // Compute breakdown metrics for Pie Chart
-  const breakdown = useMemo(() => {
+  // Compute breakdown metrics for Willingness Pie Chart
+  const willingnessBreakdown = useMemo(() => {
     const counts: Record<string, number> = {
       yes_definitely: 0,
       maybe: 0,
@@ -178,6 +178,43 @@ export default function SurveySubmissionsPage() {
         color: WILLINGNESS_CONFIG.other.color,
       },
     ];
+  }, [submissions]);
+
+  // Compute breakdown metrics for Agreed Price Pie Chart (500, 800, 1000, 1500, 2000, keep_free)
+  const priceBreakdown = useMemo(() => {
+    const counts: Record<string, { label: string; count: number; color: string }> = {
+      keep_free: { label: "Keep Free", count: 0, color: "#6b7280" },
+      tier_500: { label: "₦500 / month", count: 0, color: "#06b6d4" },
+      tier_800: { label: "₦800 / month", count: 0, color: "#3b82f6" },
+      tier_1000: { label: "₦1,000 / month", count: 0, color: "#6366f1" },
+      tier_1500: { label: "₦1,500 / month", count: 0, color: "#8b5cf6" },
+      tier_2000: { label: "₦2,000 / month", count: 0, color: "#10b981" },
+      other: { label: "Other / Custom", count: 0, color: "#374151" },
+    };
+
+    submissions.forEach((sub) => {
+      const raw = sub.answers?.monthly_amount;
+      const strVal = String(raw || "").toLowerCase().trim();
+
+      if (!raw || strVal === "keep_free" || strVal === "free" || Number(raw) === 0) {
+        counts.keep_free.count++;
+      } else {
+        const num = Number(raw);
+        if (num === 500) counts.tier_500.count++;
+        else if (num === 800) counts.tier_800.count++;
+        else if (num === 1000) counts.tier_1000.count++;
+        else if (num === 1500) counts.tier_1500.count++;
+        else if (num === 2000) counts.tier_2000.count++;
+        else counts.other.count++;
+      }
+    });
+
+    return Object.entries(counts).map(([key, val]) => ({
+      key,
+      label: val.label,
+      count: val.count,
+      color: val.color,
+    }));
   }, [submissions]);
 
   const filteredSubmissions = submissions.filter((sub) => {
@@ -246,59 +283,114 @@ export default function SurveySubmissionsPage() {
         {loading && <p className="text-sm text-neutral-500">Loading responses...</p>}
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        {/* Decision Analytics Pie Chart Widget */}
+        {/* Analytics Charts Grid */}
         {!loading && !error && (
-          <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
-              <div className="flex items-center gap-2">
-                <PieIcon className="w-4 h-4 text-red-500" />
-                <h2 className="text-sm font-semibold tracking-wide text-white">
-                  User Membership Decision Breakdown
-                </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            {/* 1. Willingness Decision Chart */}
+            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
+                <div className="flex items-center gap-2">
+                  <PieIcon className="w-4 h-4 text-red-500" />
+                  <h2 className="text-xs font-bold tracking-wide uppercase text-white">
+                    Membership Willingness
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono text-neutral-500">
+                  User Intent
+                </span>
               </div>
-              <span className="text-[10px] font-mono text-neutral-500">
-                Willingness Distribution
-              </span>
+
+              <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
+                <CustomPieChart data={willingnessBreakdown} total={totalSubmissions} centerLabel="Users" />
+
+                <div className="grid grid-cols-1 gap-2 w-full">
+                  {willingnessBreakdown.map((item) => {
+                    const percentage = totalSubmissions
+                      ? Math.round((item.count / totalSubmissions) * 100)
+                      : 0;
+
+                    return (
+                      <div
+                        key={item.key}
+                        className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2.5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-xs text-neutral-300 font-medium">
+                            {item.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 font-mono">
+                          <span className="text-xs font-bold text-white">
+                            {item.count}
+                          </span>
+                          <span className="text-[10px] text-neutral-500">
+                            ({percentage}%)
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6 pt-1">
-              {/* Pie Chart SVG Render */}
-              <WillingnessPieChart data={breakdown} total={totalSubmissions} />
+            {/* 2. Agreed Price Distribution Chart */}
+            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-500" />
+                  <h2 className="text-xs font-bold tracking-wide uppercase text-white">
+                    Agreed Monthly Price
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono text-neutral-500">
+                  Pricing Tiers
+                </span>
+              </div>
 
-              {/* Chart Legend Breakdown */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                {breakdown.map((item) => {
-                  const percentage = totalSubmissions
-                    ? Math.round((item.count / totalSubmissions) * 100)
-                    : 0;
+              <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
+                <CustomPieChart data={priceBreakdown} total={totalSubmissions} centerLabel="Priced" />
 
-                  return (
-                    <div
-                      key={item.key}
-                      className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-3"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className="w-3 h-3 rounded-full shrink-0"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-xs text-neutral-300 font-medium">
-                          {item.label}
-                        </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                  {priceBreakdown.map((item) => {
+                    const percentage = totalSubmissions
+                      ? Math.round((item.count / totalSubmissions) * 100)
+                      : 0;
+
+                    return (
+                      <div
+                        key={item.key}
+                        className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-[11px] text-neutral-300 font-medium truncate">
+                            {item.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 font-mono shrink-0">
+                          <span className="text-xs font-bold text-white">
+                            {item.count}
+                          </span>
+                          <span className="text-[9px] text-neutral-500">
+                            ({percentage}%)
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 font-mono">
-                        <span className="text-xs font-bold text-white">
-                          {item.count}
-                        </span>
-                        <span className="text-[10px] text-neutral-500">
-                          ({percentage}%)
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
+
           </div>
         )}
 
