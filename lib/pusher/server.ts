@@ -13,6 +13,22 @@ let channelsClient: Pusher | null | undefined;
 let beamsClient: PushNotifications | null | undefined;
 
 /** Pusher Channels (realtime in-app feed). Returns null when env vars are missing. */
+export function hasPusherConfigured(): boolean {
+  return Boolean(
+    process.env.PUSHER_APP_ID &&
+    (process.env.NEXT_PUBLIC_PUSHER_KEY || process.env.PUSHER_KEY) &&
+    process.env.PUSHER_SECRET &&
+    (process.env.NEXT_PUBLIC_PUSHER_CLUSTER || process.env.PUSHER_CLUSTER)
+  );
+}
+
+export function hasBeamsConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_PUSHER_BEAMS_INSTANCE_ID &&
+    process.env.PUSHER_BEAMS_SECRET_KEY
+  );
+}
+
 export function getPusherChannels(): Pusher | null {
   if (channelsClient !== undefined) return channelsClient;
 
@@ -47,6 +63,7 @@ export function getPusherBeams(): PushNotifications | null {
   beamsClient = new PushNotifications({ instanceId, secretKey });
   return beamsClient;
 }
+
 
 /** Beams requires absolute URLs for deep links and icons. */
 export function absoluteUrl(path: string): string {
