@@ -8,6 +8,27 @@ let notificationAudio: HTMLAudioElement | null = null;
 let alarmAudio: HTMLAudioElement | null = null;
 
 /**
+ * Preloads audio assets into memory to ensure zero-latency playback on notification events.
+ */
+export function preloadAudioAssets(): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    if (!notificationAudio) {
+      notificationAudio = new Audio("/notification-ring.mp3");
+      notificationAudio.preload = "auto";
+    }
+    if (!alarmAudio) {
+      alarmAudio = new Audio("/alarm-beep.mp3");
+      alarmAudio.preload = "auto";
+    }
+  } catch (err) {
+    // Non-critical: Audio preloading silently skipped in environments without HTML5 Audio
+    console.debug("Audio assets preloading not supported in current environment:", err);
+  }
+}
+
+/**
  * Plays the notification ring tone for comments, replies, and general notifications.
  */
 export function playNotificationSound(): void {
@@ -16,6 +37,7 @@ export function playNotificationSound(): void {
   try {
     if (!notificationAudio) {
       notificationAudio = new Audio("/notification-ring.mp3");
+      notificationAudio.preload = "auto";
     } else {
       notificationAudio.currentTime = 0;
     }
@@ -41,6 +63,7 @@ export function playAlarmSound(): void {
   try {
     if (!alarmAudio) {
       alarmAudio = new Audio("/alarm-beep.mp3");
+      alarmAudio.preload = "auto";
     } else {
       alarmAudio.currentTime = 0;
     }
@@ -66,3 +89,4 @@ export function stopAlarmSound(): void {
     alarmAudio.currentTime = 0;
   }
 }
+
