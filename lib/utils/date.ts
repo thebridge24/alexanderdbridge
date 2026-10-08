@@ -9,15 +9,21 @@ export function isValidDevotionalDate(date: string): boolean {
   return !Number.isNaN(parsed.getTime());
 }
 
-export function formatRelativeTime(isoDate: string): string {
+/**
+ * Formats an ISO string into a human-readable relative duration.
+ */
+export function formatRelativeTime(isoDate?: string | null): string {
+  if (!isoDate) return "Just now";
+
   const timestamp = new Date(isoDate).getTime();
   if (Number.isNaN(timestamp)) {
     return "Just now";
   }
 
   const diffMs = Date.now() - timestamp;
-  const minutes = Math.floor(diffMs / 60000);
+  if (diffMs < 0) return "Just now";
 
+  const minutes = Math.floor(diffMs / 60000);
   if (minutes < 1) {
     return "Just now";
   }
@@ -32,5 +38,32 @@ export function formatRelativeTime(isoDate: string): string {
   }
 
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (days < 7) {
+    return `${days}d ago`;
+  }
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) {
+    return `${weeks}w ago`;
+  }
+
+  return new Date(timestamp).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
+
+/**
+ * Formats a YYYY-MM-DD string into "Monday, January 1, 2026" display title.
+ */
+export function formatDevotionalDisplayDate(dateStr: string): string {
+  if (!isValidDevotionalDate(dateStr)) return dateStr;
+  const parsed = new Date(`${dateStr}T00:00:00`);
+  return parsed.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
