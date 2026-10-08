@@ -81,6 +81,33 @@ export function playAlarmSound(): void {
 }
 
 /**
+ * Volume levels and audio state preferences.
+ */
+let soundEnabled = true;
+
+/**
+ * Checks if sound playback is enabled.
+ */
+export function isSoundEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  const stored = localStorage.getItem("bridge_sound_enabled");
+  if (stored !== null) {
+    soundEnabled = stored === "true";
+  }
+  return soundEnabled;
+}
+
+/**
+ * Toggles or sets sound playback permission in localStorage.
+ */
+export function setSoundEnabled(enabled: boolean): void {
+  soundEnabled = enabled;
+  if (typeof window !== "undefined") {
+    localStorage.setItem("bridge_sound_enabled", String(enabled));
+  }
+}
+
+/**
  * Stops any actively ringing alarm beep sound.
  */
 export function stopAlarmSound(): void {
@@ -89,4 +116,5 @@ export function stopAlarmSound(): void {
     alarmAudio.currentTime = 0;
   }
 }
+
 
