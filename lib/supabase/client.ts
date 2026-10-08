@@ -23,3 +23,18 @@ export function createSupabaseBrowserClient() {
   });
   return browserClient;
 }
+
+/**
+ * Safely fetches the active Supabase JWT session access token in browser context.
+ */
+export async function getAuthSessionToken(): Promise<string | null> {
+  const supabase = createSupabaseBrowserClient();
+  if (!supabase) return null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+  } catch (err) {
+    console.warn("Failed to retrieve Supabase session token:", err);
+    return null;
+  }
+}
