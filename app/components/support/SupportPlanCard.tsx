@@ -90,7 +90,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       
       {/* Main Rounded Colored Card (Occupies the Majority Space) */}
       <div
-        className={`relative w-full flex-1 min-h-[58vh] ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden text-white shadow-xl transition-colors duration-500 mb-3`}
+        className={`relative w-full flex-1 min-h-[58vh] ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden text-white transition-colors duration-500 mb-3`}
       >
         {/* Subtle Diagonal Overlay Stripes */}
         <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
@@ -110,7 +110,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
 
           {/* Prominent Price Display */}
           <div className="pt-2">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight drop-shadow-md">
+            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">
               {plan.price}
             </span>
           </div>
@@ -126,7 +126,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
             <img
               src={plan.imagePlaceholderPath}
               alt={`${plan.badge} illustration`}
-              className="w-full h-full object-contain drop-shadow-2xl"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 // Graceful hide until actual PNG file is provided
                 (e.target as HTMLElement).style.display = "none";
@@ -137,7 +137,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Compact White Bottom Drawer Controls */}
-      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4 shadow-lg border border-neutral-200/80">
+      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4 border border-neutral-200/80">
         
         {/* Verified User Tag & Description */}
         <div className="space-y-1.5">
@@ -157,7 +157,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         <div className="space-y-3 pt-1">
           <button
             onClick={() => onSelectPlan(planType)}
-            className="w-full py-3 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 group"
+            className="w-full py-3 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 group"
           >
             <span>{plan.buttonText}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
