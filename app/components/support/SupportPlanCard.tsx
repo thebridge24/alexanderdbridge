@@ -34,7 +34,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-red-100 text-red-600 border-red-200",
     badgeTextClass: "text-red-600",
     verifiedIconColor: "text-red-500 fill-red-500/20",
-    imagePlaceholderPath: "/images/support/reader-hero.png",
+    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063821_hgo5tu.png",
   },
   supporter: {
     id: "supporter",
@@ -49,7 +49,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-blue-100 text-blue-600 border-blue-200",
     badgeTextClass: "text-blue-600",
     verifiedIconColor: "text-blue-500 fill-blue-500/20",
-    imagePlaceholderPath: "/images/support/supporter-hero.png",
+    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063427_okept4.png",
   },
   sponsor: {
     id: "sponsor",
@@ -64,7 +64,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-purple-100 text-purple-600 border-purple-200",
     badgeTextClass: "text-purple-600",
     verifiedIconColor: "text-purple-500 fill-purple-500/20",
-    imagePlaceholderPath: "/images/support/sponsor-hero.png",
+    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524484/Photoroom-20261009_063856_yovlcd.png",
   },
 };
 
