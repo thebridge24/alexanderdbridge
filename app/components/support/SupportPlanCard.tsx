@@ -34,7 +34,8 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-red-100 text-red-600 border-red-200",
     badgeTextClass: "text-red-600",
     verifiedIconColor: "text-red-500 fill-red-500/20",
-    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063821_hgo5tu.png",
+    imagePlaceholderPath:
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063821_hgo5tu.png",
   },
   supporter: {
     id: "supporter",
@@ -49,7 +50,8 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-blue-100 text-blue-600 border-blue-200",
     badgeTextClass: "text-blue-600",
     verifiedIconColor: "text-blue-500 fill-blue-500/20",
-    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063427_okept4.png",
+    imagePlaceholderPath:
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063427_okept4.png",
   },
   sponsor: {
     id: "sponsor",
@@ -64,7 +66,8 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeBgClass: "bg-purple-100 text-purple-600 border-purple-200",
     badgeTextClass: "text-purple-600",
     verifiedIconColor: "text-purple-500 fill-purple-500/20",
-    imagePlaceholderPath: "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524484/Photoroom-20261009_063856_yovlcd.png",
+    imagePlaceholderPath:
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524484/Photoroom-20261009_063856_yovlcd.png",
   },
 };
 
@@ -88,51 +91,67 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   return (
     <div className="relative h-full min-h-[100dvh] bg-white p-3 sm:p-4 text-neutral-900 flex flex-col justify-between overflow-y-auto">
       
-      {/* Main Rounded Colored Card (Occupies the Majority Space) */}
+      {/* Main Rounded Colored Hero Card (No outer padding, overflow-hidden) */}
       <div
-        className={`relative w-full flex-1 min-h-[58vh] ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden text-white transition-colors duration-500 mb-3`}
+        className={`relative w-full flex-1 min-h-[58vh] ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] flex flex-col justify-between overflow-hidden text-white transition-colors duration-500 mb-3`}
       >
         {/* Subtle Diagonal Overlay Stripes */}
         <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
 
-        {/* Top Header Badge Tag */}
-        <div className="relative z-10 flex items-center justify-between">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-black/20 text-white/90 border border-white/20 backdrop-blur-md">
-            ● {plan.badge}
-          </span>
-        </div>
+        {/* Padded Content Wrapper for Top Controls & Typography */}
+        <div className="relative z-10 p-6 sm:p-7 flex flex-col space-y-4">
+          
+          {/* Top Bar: Pagination Indicators + Badge */}
+          <div className="flex items-center justify-between">
+            {/* Pagination Indicators (Positioned directly above plan name) */}
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalSteps }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === currentStep
+                      ? "w-6 bg-white"
+                      : "w-1.5 bg-white/35"
+                  }`}
+                />
+              ))}
+            </div>
 
-        {/* Big Bold Impact Title & Prominent Price Tag */}
-        <div className="relative z-10 my-auto pt-4 space-y-1">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none opacity-95">
-            {plan.badge}
-          </h1>
-
-          {/* Prominent Price Display */}
-          <div className="pt-2">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">
-              {plan.price}
+            {/* Badge Tag */}
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-black/20 text-white/90 border border-white/20 backdrop-blur-md">
+              ● {plan.badge}
             </span>
           </div>
 
-          <p className="text-xs sm:text-sm font-medium text-white/85 pt-1 max-w-[260px]">
-            {plan.heading}
-          </p>
+          {/* Big Bold Plan Name & Prominent Price Tag */}
+          <div className="pt-2 space-y-1">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none opacity-95">
+              {plan.badge}
+            </h1>
+
+            {/* Prominent Price Display */}
+            <div className="pt-1">
+              <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight drop-shadow-md">
+                {plan.price}
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm font-medium text-white/85 pt-1 max-w-[280px]">
+              {plan.heading}
+            </p>
+          </div>
         </div>
 
-        {/* Bottom Left Illustration/Image Position */}
-        <div className="relative z-10 w-full flex justify-start items-end pt-2">
-          <div className="relative w-36 h-36 sm:w-44 sm:h-44 -ml-2 -mb-2">
-            <img
-              src={plan.imagePlaceholderPath}
-              alt={`${plan.badge} illustration`}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                // Graceful hide until actual PNG file is provided
-                (e.target as HTMLElement).style.display = "none";
-              }}
-            />
-          </div>
+        {/* Full-Width Bottom Bleed Illustration (Appears coming from inside bottom edge) */}
+        <div className="relative z-10 w-full mt-auto flex items-end overflow-hidden">
+          <img
+            src={plan.imagePlaceholderPath}
+            alt={`${plan.badge} illustration`}
+            className="w-full h-auto max-h-[30vh] sm:max-h-[34vh] object-cover object-bottom transition-transform duration-500"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none";
+            }}
+          />
         </div>
       </div>
 
@@ -153,29 +172,15 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
           </p>
         </div>
 
-        {/* Action Button & Step Indicators */}
-        <div className="space-y-3 pt-1">
+        {/* Action Button */}
+        <div className="pt-1">
           <button
             onClick={() => onSelectPlan(planType)}
-            className="w-full py-3 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 group"
+            className="w-full py-3.5 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 group shadow-lg"
           >
             <span>{plan.buttonText}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
-
-          {/* Pagination Indicators */}
-          <div className="flex items-center justify-center gap-1.5 pt-0.5">
-            {Array.from({ length: totalSteps }).map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === currentStep
-                    ? `w-5 ${plan.heroBgClass}`
-                    : "w-1.5 bg-neutral-200"
-                }`}
-              />
-            ))}
-          </div>
         </div>
 
       </div>
