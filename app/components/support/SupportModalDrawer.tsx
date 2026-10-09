@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft } from "lucide-react";
 import { SupportIntroScreen } from "./SupportIntroScreen";
 import { SupportPlanCard, PlanType } from "./SupportPlanCard";
 
@@ -51,22 +50,14 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
         >
           {/* Top Control Overlay Navigation */}
           <div className="absolute top-4 inset-x-4 z-40 flex items-center justify-between pointer-events-none">
-            {currentStep > 0 ? (
-              <button
-                onClick={handlePrevStep}
-                aria-label="Previous step"
-                className="p-2 rounded-full bg-black/40 border border-white/20 text-white hover:bg-black/60 transition-colors pointer-events-auto backdrop-blur-md"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            ) : <div />}
+            <div />
 
             <button
               onClick={onClose}
               aria-label="Close drawer"
-              className="p-2 rounded-full bg-black/40 border border-white/20 text-white hover:bg-black/60 transition-colors pointer-events-auto backdrop-blur-md ml-auto"
+              className="p-2 text-white transition-colors pointer-events-auto ml-auto"
             >
-              <X className="w-5 h-5" />
+             Skip
             </button>
           </div>
 
