@@ -169,11 +169,11 @@ dwellSeconds,
     };
   }, []);
 
-  const [devotionalsList, setDevotionalsList] =
-    useState<Devotional[]>(DEVOTIONALS_DATA);
-  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
-    null,
-  );
+  // Active Devotional State
+  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
+  const [allDevotionals, setAllDevotionals] = useState<Devotional[]>(DEVOTIONALS_DATA);
+
+
   const [todayDateString, setTodayDateString] = useState<string>("");
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
