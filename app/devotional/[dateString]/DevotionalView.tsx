@@ -332,7 +332,7 @@ dwellSeconds,
     if (matched) {
       setCurrentDevotional(matched);
     }
-  }, [devotionalsList, urlDateString]);
+  }, [allDevotionals, urlDateString]);
 
 
   // 3. Load stats, views, and comments when active devotional changes
@@ -724,7 +724,7 @@ dwellSeconds,
   })();
 
   // Find yesterday's devotional topic dynamically from devotionalsList
-  const yesterdayDevotional = devotionalsList.find(
+  const yesterdayDevotional = allDevotionals.find(
     (d) => d.dateString === yesterdayDateString,
   );
   const yesterdayTopic = yesterdayDevotional?.topic || "Yesterday's Devotional";
