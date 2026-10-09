@@ -1067,58 +1067,6 @@ dwellSeconds,
         highlightedCommentId={highlightedCommentId}
       />
 
-      {/* Name Prompt Modal */}
-      <AnimatePresence>
-        {showNamePrompt && (
-          <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              className="w-full max-w-sm p-6 rounded-4xl bg-neutral-950 border border-neutral-900 shadow-2xl text-left"
-            >
-              <h4 className="text-base font-bold text-neutral-200 mb-1">
-                Identity Profile
-              </h4>
-              <p className="text-xs text-neutral-500 mb-4">
-                What name would you like to anchor to your post?
-              </p>
-
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  autoFocus
-                  className="w-full px-5 py-3 rounded-full bg-neutral-900 border border-neutral-800 text-sm text-neutral-200 placeholder-neutral-600 outline-none focus:border-neutral-700 transition-colors"
-                />
-
-                <div className="flex gap-2 justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowNamePrompt(false);
-                      setCommentText("");
-                    }}
-                    className="px-4 py-2.5 rounded-full text-xs font-semibold text-neutral-500 hover:text-neutral-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveName}
-                    disabled={!userName.trim()}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold bg-white text-black disabled:bg-neutral-800 disabled:text-neutral-600 transition-all"
-                  >
-                    <FaCheck className="w-3 h-3" /> Save Changes
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
       <StreakFooterBanner
   currentStreak={streakData?.currentStreak || 0}
   dwellSeconds={dwellSeconds}
@@ -1127,17 +1075,19 @@ dwellSeconds,
   onMarkAsRead={markTodayComplete}
 />
       <AuthorMessageModal
-        messageId="v1.0_october_welcome"
-        delayMs={2000}
-        title="A Little Message From Me"
-        authorImage="/alexander_logo.png"
-        paragraphs={[
-          "Hey, I just wanted to personally welcome you and say thank you for being part of Bridge Daily. What started as something small has grown into a community of people showing up every day to study God's Word, and I'm genuinely grateful for that.",
-          "Over the next few days, I'll be sharing a few more messages with you as we prepare for the next season of the platform. I also want to hear from you, not just tell you what we're building.",
-          "You'll soon see a short questionnaire asking about your experience, what has impacted you, what you enjoy, and what you'd love to see on the platform. Please be honest with me. Your answers will help me understand the people I'm building this for and make better decisions for the future.",
-          "Thank you for being here. This is only the beginning, and I'm excited about where we're going together.",
-        ]}
-      />
+messageId="v1.1_october_support"
+delayMs={2000}
+title="Let's Build This Together ❤️"
+authorImage="https://res.cloudinary.com/glqzvvh2/image/upload/v1791448597/Sos20231224_112632_a87hnk.jpg"
+paragraphs={[
+"Hey, I want to share something important with you. Our devotional community is growing, and we're grateful for every person who shows up to study God's Word. But with this growth, some users have started experiencing difficulty accessing the site because our current server capacity is reaching its limits.",
+
+"My team and I are working hard to keep Bridge Daily running and make it better. We're also committed to keeping it free from ads so you can focus on God's Word without distractions. But the servers, emails, and development all come with real costs, and we can no longer carry everything alone.",
+
+"Very soon, we'll introduce a monthly support system to help us sustain and grow this platform. If Bridge Daily has truly blessed you, this is an opportunity to help us keep that impact going. We have so much more we want to build, and I'd love for you to be part of it. ❤️"
+
+]}
+/>
       <Survey />
     </motion.div>
   );
