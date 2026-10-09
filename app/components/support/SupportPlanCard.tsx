@@ -143,7 +143,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         </div>
 
         {/* Full-Width Bottom Bleed Illustration (Appears coming from inside bottom edge) */}
-        <div className="relative z-10 w-full mt-auto flex items-end overflow-hidden">
+        <div className="relative z-10 w-full mt-auto flex items-end">
           <img
             src={plan.imagePlaceholderPath}
             alt={`${plan.badge} illustration`}
