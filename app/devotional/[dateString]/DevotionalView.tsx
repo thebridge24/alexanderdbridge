@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/set-state-in-effect */
@@ -9,7 +10,7 @@ import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
-  // FaCheck,
+  FaCheck,
   FaDownload,
   FaRegCommentDots,
 } from "react-icons/fa6";
@@ -41,9 +42,6 @@ import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
-import DevotionalCalendarStrip from "./DevotionalCalendarStrip";
-
-
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -169,11 +167,11 @@ dwellSeconds,
     };
   }, []);
 
-  // Active Devotional State
-  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
-  const [allDevotionals, setAllDevotionals] = useState<Devotional[]>(DEVOTIONALS_DATA);
-
-
+  const [devotionalsList, setDevotionalsList] =
+    useState<Devotional[]>(DEVOTIONALS_DATA);
+  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
+    null,
+  );
   const [todayDateString, setTodayDateString] = useState<string>("");
   const [liked, setLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(0);
@@ -319,24 +317,42 @@ dwellSeconds,
     };
   }, []);
 
-  
-    // 2. Live Client-Side Date Calculation & Data Association Layer
+  // 1. Fetch dynamic devotionals from API on mount
+  useEffect(() => {
+    async function fetchDevotionals() {
+      try {
+        const res = await fetch("/api/devotionals");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.devotionals && data.devotionals.length > 0) {
+            setDevotionalsList(data.devotionals);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading devotionals:", err);
+      }
+    }
+    fetchDevotionals();
+  }, []);
+
+  // 2. Live Client-Side Date Calculation & Data Association Layer
   useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
     const targetDate = urlDateString || formattedToday;
-    const matched = allDevotionals.find((d) => d.dateString === targetDate);
-    
-    // Fallback to latest available devotional if target date isn't loaded yet
-    const activeEntry = matched || allDevotionals[allDevotionals.length - 1] || DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
+    const matched = devotionalsList.find((d) => d.dateString === targetDate);
+    const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
 
-    if (activeEntry) {
+    if (
+      activeEntry &&
+      (!currentDevotional ||
+        currentDevotional.dateString !== activeEntry.dateString)
+    ) {
       setCurrentDevotional(activeEntry);
     }
-  }, [allDevotionals, urlDateString]);
-
+  }, [devotionalsList, urlDateString]);
 
   // 3. Load stats, views, and comments when active devotional changes
   useEffect(() => {
@@ -451,7 +467,21 @@ dwellSeconds,
     fetchComments();
   }, [currentDevotional, user]);
 
-  
+  useEffect(() => {
+    if (currentDevotional && scrollContainerRef.current) {
+      const activeEl = scrollContainerRef.current.querySelector(
+        `[data-date="${currentDevotional.dateString}"]`,
+      );
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
+      }
+    }
+  }, [currentDevotional]);
+
   const handleLikeToggle = async (): Promise<void> => {
     if (!currentDevotional) return;
 
@@ -727,7 +757,7 @@ dwellSeconds,
   })();
 
   // Find yesterday's devotional topic dynamically from devotionalsList
-  const yesterdayDevotional = allDevotionals.find(
+  const yesterdayDevotional = devotionalsList.find(
     (d) => d.dateString === yesterdayDateString,
   );
   const yesterdayTopic = yesterdayDevotional?.topic || "Yesterday's Devotional";
@@ -926,20 +956,61 @@ dwellSeconds,
 <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
-     
-        {/* Extracted Devotional Calendar Strip Component */}
-<DevotionalCalendarStrip
-  currentDateString={urlDateString || currentDevotional?.dateString || todayDateString}
-  onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
-  onDevotionalsLoaded={(loaded) => {
-    setAllDevotionals(loaded);
-    // Directly set active devotional if not already set
-    const targetDate = urlDateString || todayDateString;
-    const match = loaded.find((d) => d.dateString === targetDate) || loaded[loaded.length - 1];
-    if (match) setCurrentDevotional(match);
-  }}
-/>
+        <div className="w-full mx-auto relative z-10">
+          <div className="w-full mb-4 relative z-50">
+            <div
+              ref={scrollContainerRef}
+              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
+            >
+              {devotionalsList.map((item) => {
+                const isSelected =
+                  item.dateString === currentDevotional.dateString;
+                const isFuture = isFutureDate(item.dateString);
 
+                return (
+                  <button
+                    key={item.dateString}
+                    data-date={item.dateString}
+                    disabled={isFuture}
+                    onClick={() => {
+                      router.push(`/devotional/${item.dateString}`);
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }, 500);
+                    }}
+                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
+                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
+                    ${
+                      isSelected
+                        ? "bg-[#ff0000] border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
+                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+                    }
+                  `}
+                  >
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
+                    ${isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"}
+                  `}
+                    >
+                      {getDayLabel(item.dateString)}
+                    </span>
+
+                    <div
+                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
+                    ${isSelected ? "text-white" : "text-neutral-200"}
+                  `}
+                    >
+                      {getDayNumber(item.dateString)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle
@@ -1018,7 +1089,7 @@ paragraphs={[
 
 ]}
 />
-      {!isAuthLoading && user ? <Survey /> : null}
+      <Survey />
     </motion.div>
   );
 }
