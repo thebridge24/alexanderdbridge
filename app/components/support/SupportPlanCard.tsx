@@ -113,8 +113,8 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   };
 
   return (
-    <div className="relative h-full min-h-[100dvh] bg-white p-3 sm:p-4 text-neutral-900 flex flex-col justify-between overflow-x-hidden">
-      
+    <div className="relative h-full min-h-[100dvh] bg-white dark:bg-black p-3 sm:p-4 text-neutral-900 dark:text-white flex flex-col justify-between overflow-x-hidden transition-colors duration-300">
+
       {/* Dynamic Carousel Container (Colored Cards Peek Left & Right) */}
       <div className="relative w-full flex-1 min-h-[58vh] flex items-center justify-center my-auto">
         <div className="relative w-full h-full min-h-[56vh] flex items-center justify-center">
@@ -204,8 +204,8 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         </div>
       </div>
 
-      {/* Dynamic Bottom Controls */}
-      <div className="relative z-30 bg-white rounded-[24px] sm:rounded-[28px] w-full flex flex-col justify-between shrink-0 space-y-4 pt-4 p-2">
+      {/* Dynamic Bottom Controls (Pure Black in Dark Mode) */}
+      <div className="relative z-30 bg-white dark:bg-black rounded-[24px] sm:rounded-[28px] w-full flex flex-col justify-between shrink-0 space-y-4 pt-4 p-2 transition-colors duration-300">
         <AnimatePresence mode="wait">
           <motion.div
             key={activePlan.id}
@@ -217,8 +217,8 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
           >
             {/* User Tag & Description with X Verified Icon */}
             <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-100 border border-neutral-200">
-                <span className="text-[11px] font-medium text-neutral-700">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-100 dark:bg-black border border-neutral-200 dark:border-white/20">
+                <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-300">
                   For {userName}
                 </span>
                 <XVerifiedIcon
@@ -226,16 +226,16 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                 />
               </div>
 
-              <p className="text-xs text-neutral-600 leading-relaxed pt-0.5">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed pt-0.5">
                 {activePlan.description}
               </p>
             </div>
 
-            {/* Action Button */}
+            {/* Action Button (Inverts to White background in Pure Black Dark Mode) */}
             <div className="pt-1">
               <button
                 onClick={() => onSelectPlan(activePlanKey)}
-                className="w-full py-3.5 px-5 bg-neutral-900 hover:bg-neutral-800 active:scale-[0.98] text-white font-semibold text-xs sm:text-sm rounded-full transition-all flex items-center justify-center group"
+                className="w-full py-3.5 px-5 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 dark:text-black active:scale-[0.98] text-white font-semibold text-xs sm:text-sm rounded-full transition-all flex items-center justify-center group"
               >
                 <span>{activePlan.buttonText}</span>
               </button>
