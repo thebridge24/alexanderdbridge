@@ -319,42 +319,21 @@ dwellSeconds,
     };
   }, []);
 
-  // 1. Fetch dynamic devotionals from API on mount
-  useEffect(() => {
-    async function fetchDevotionals() {
-      try {
-        const res = await fetch("/api/devotionals");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.devotionals && data.devotionals.length > 0) {
-            setDevotionalsList(data.devotionals);
-          }
-        }
-      } catch (err) {
-        console.error("Error loading devotionals:", err);
-      }
-    }
-    fetchDevotionals();
-  }, []);
-
+  
   // 2. Live Client-Side Date Calculation & Data Association Layer
-  useEffect(() => {
+      useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
     const targetDate = urlDateString || formattedToday;
     const matched = devotionalsList.find((d) => d.dateString === targetDate);
-    const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
 
-    if (
-      activeEntry &&
-      (!currentDevotional ||
-        currentDevotional.dateString !== activeEntry.dateString)
-    ) {
-      setCurrentDevotional(activeEntry);
+    if (matched) {
+      setCurrentDevotional(matched);
     }
   }, [devotionalsList, urlDateString]);
+
 
   // 3. Load stats, views, and comments when active devotional changes
   useEffect(() => {
@@ -469,21 +448,7 @@ dwellSeconds,
     fetchComments();
   }, [currentDevotional, user]);
 
-  useEffect(() => {
-    if (currentDevotional && scrollContainerRef.current) {
-      const activeEl = scrollContainerRef.current.querySelector(
-        `[data-date="${currentDevotional.dateString}"]`,
-      );
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-          block: "nearest",
-        });
-      }
-    }
-  }, [currentDevotional]);
-
+  
   const handleLikeToggle = async (): Promise<void> => {
     if (!currentDevotional) return;
 
