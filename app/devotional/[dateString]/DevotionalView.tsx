@@ -1088,7 +1088,7 @@ paragraphs={[
 
 ]}
 />
-      <Survey />
+      {!isAuthLoading && user ? <Survey /> : null}
     </motion.div>
   );
 }
