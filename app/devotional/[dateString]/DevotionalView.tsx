@@ -9,7 +9,7 @@ import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
-  FaCheck,
+  // FaCheck,
   FaDownload,
   FaRegCommentDots,
 } from "react-icons/fa6";
@@ -962,7 +962,7 @@ dwellSeconds,
         <DevotionalCalendarStrip
           currentDateString={urlDateString || currentDevotional.dateString}
           onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
-          onDevotionalsLoaded={(loaded) => setAllDevotionals(loaded)}
+          onDevotionalsLoaded={(loaded) => setDevotionalsList(loaded)}
         />
 
         {/* Reusable Component Insertion */}
