@@ -924,7 +924,7 @@ dwellSeconds,
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
      
-        <{/* Extracted Devotional Calendar Strip Component */}
+        {/* Extracted Devotional Calendar Strip Component */}
 <DevotionalCalendarStrip
   currentDateString={urlDateString || currentDevotional.dateString}
   onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
