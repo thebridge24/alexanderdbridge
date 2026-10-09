@@ -41,6 +41,9 @@ import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
+import DevotionalCalendarStrip from "./DevotionalCalendarStrip";
+
+
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -955,61 +958,12 @@ dwellSeconds,
 <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
-        <div className="w-full mx-auto relative z-10">
-          <div className="w-full mb-4 relative z-50">
-            <div
-              ref={scrollContainerRef}
-              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
-            >
-              {devotionalsList.map((item) => {
-                const isSelected =
-                  item.dateString === currentDevotional.dateString;
-                const isFuture = isFutureDate(item.dateString);
-
-                return (
-                  <button
-                    key={item.dateString}
-                    data-date={item.dateString}
-                    disabled={isFuture}
-                    onClick={() => {
-                      router.push(`/devotional/${item.dateString}`);
-                      setTimeout(() => {
-                        window.scrollTo({
-                          top: 0,
-                          behavior: "smooth",
-                        });
-                      }, 500);
-                    }}
-                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
-                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
-                    ${
-                      isSelected
-                        ? "bg-[#ff0000] border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
-                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
-                    }
-                  `}
-                  >
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
-                    ${isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"}
-                  `}
-                    >
-                      {getDayLabel(item.dateString)}
-                    </span>
-
-                    <div
-                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
-                    ${isSelected ? "text-white" : "text-neutral-200"}
-                  `}
-                    >
-                      {getDayNumber(item.dateString)}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+     {/* Extracted Devotional Calendar Strip Component */}
+        <DevotionalCalendarStrip
+          currentDateString={urlDateString || currentDevotional.dateString}
+          onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
+          onDevotionalsLoaded={(loaded) => setAllDevotionals(loaded)}
+        />
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle
