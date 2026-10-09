@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { storeUserName } from "@/lib/session";
 import { consumePostLoginRedirect } from "@/lib/utils/auth";
@@ -67,7 +66,6 @@ const itemVariants: Variants = {
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [devotionalUrl, setDevotionalUrl] = useState("/devotional");
   const [user, setUser] = useState<User | null>(null);
 
@@ -100,7 +98,9 @@ export default function ProfilePage() {
 
       // Send the user back to where they started sign-in (?redirectto= or saved path), else today's devotional
       const redirectPath = consumePostLoginRedirect();
-      router.replace(redirectPath ?? `/devotional/${getTodayString()}`);
+      // Full navigation (not router.replace) so a stale cached build from before the Google round trip
+      // can never request RSC/server-action data from a newer deployment ("Failed to find Server Action")
+      window.location.replace(redirectPath ?? `/devotional/${getTodayString()}`);
     };
 
     // 1. Initial check (catches parsed OAuth hash tokens on redirect mount)
@@ -122,7 +122,7 @@ export default function ProfilePage() {
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
 
   // Calculate client-side date format on mount for static link display
   useEffect(() => {
