@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { SupportModalDrawer } from "@/components/support/SupportModalDrawer";
-import { SupportIntroScreen } from "@/components/support/SupportIntroScreen";
-import { SupportPlanCard, PlanType } from "@/components/support/SupportPlanCard";
-import { Heart, Sparkles, Smartphone, Eye } from "lucide-react";
+import { SupportModalDrawer } from "../../components/support/SupportModalDrawer";
+import { SupportIntroScreen } from "../../components/support/SupportIntroScreen";
+import { SupportPlanCard, PlanType } from "../../components/support/SupportPlanCard";
+import { Smartphone } from "lucide-react";
 
 export default function SupportPreviewPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
