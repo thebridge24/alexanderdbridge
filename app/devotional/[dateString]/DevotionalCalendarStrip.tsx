@@ -1,13 +1,95 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
-import { Devotional, DEVOTIONALS_DATA } from "../../data/devotionalData";
+import {
+  Devotional,
+  DEVOTIONALS_DATA,
+} from "../../data/devotionalData";
 
 interface DevotionalCalendarStripProps {
   currentDateString: string;
   onSelectDevotional: (devotional: Devotional) => void;
   onDevotionalsLoaded?: (devotionals: Devotional[]) => void;
+}
+
+function getLocalDateString(): string {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getMonthKey(dateString: string): string {
+  return dateString.slice(0, 7);
+}
+
+function formatMonthHeader(dateString: string): string {
+  if (!dateString) return "";
+
+  const [year, month] = dateString.split("-").map(Number);
+
+  if (!year || !month || month < 1 || month > 12) {
+    return "";
+  }
+
+  return new Date(year, month - 1, 1).toLocaleDateString(
+    "en-US",
+    {
+      month: "long",
+      year: "numeric",
+    }
+  );
+}
+
+function getPreviousMonthKey(monthKey: string): string {
+  const [year, month] = monthKey.split("-").map(Number);
+
+  const previousMonth = new Date(year, month - 2, 1);
+
+  const previousYear = previousMonth.getFullYear();
+  const previousMonthNumber = String(
+    previousMonth.getMonth() + 1
+  ).padStart(2, "0");
+
+  return `${previousYear}-${previousMonthNumber}`;
+}
+
+function getDayLabel(dateString: string): string {
+  const [year, month, day] = dateString.split("-").map(Number);
+
+  return new Date(year, month - 1, day).toLocaleDateString(
+    "en-US",
+    { weekday: "short" }
+  );
+}
+
+function getDayNumber(dateString: string): string {
+  return dateString.split("-")[2] ?? "";
+}
+
+function isValidDateString(dateString: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return false;
+  }
+
+  const [year, month, day] = dateString.split("-").map(Number);
+
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
 }
 
 export default function DevotionalCalendarStrip({
@@ -16,244 +98,442 @@ export default function DevotionalCalendarStrip({
   onDevotionalsLoaded,
 }: DevotionalCalendarStripProps) {
   const router = useRouter();
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const todayStr = useRef(getLocalDateString()).current;
 
-  // Loaded Devotionals State
-  const [loadedDevotionals, setLoadedDevotionals] = useState<Devotional[]>([]);
-  const [allApiDevotionals, setAllApiDevotionals] = useState<Devotional[]>([]);
-  
-  // Track loaded months (format: YYYY-MM)
-  const [loadedMonths, setLoadedMonths] = useState<string[]>([]);
-  const [isLoadingPreviousMonth, setIsLoadingPreviousMonth] = useState<boolean>(false);
-  const [hasMorePastMonths, setHasMorePastMonths] = useState<boolean>(true);
+  // Keep the latest props available to the initial loading effect.
+  const currentDateRef = useRef(currentDateString);
+  const onLoadedRef = useRef(onDevotionalsLoaded);
 
-  // Current active visible month display label
-  const [visibleMonthName, setVisibleMonthName] = useState<string>("");
-
-  const todayStr = useRef<string>(
-    new Date().toISOString().split("T")[0]
-  ).current;
-
-  // Helper: Format YYYY-MM into readable Month Year (e.g., "October 2026")
-  const formatMonthHeader = (dateStr: string) => {
-    if (!dateStr) return "";
-    const [year, month] = dateStr.split("-").map(Number);
-    const date = new Date(year, month - 1, 1);
-    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  };
-
-  // Helper: Get YYYY-MM key from date string
-  const getMonthKey = (dateStr: string) => {
-    return dateStr.substring(0, 7);
-  };
-
-  // Helper: Get previous month key
-  const getPreviousMonthKey = (monthKey: string) => {
-    const [year, month] = monthKey.split("-").map(Number);
-    const prevDate = new Date(year, month - 2, 1);
-    return `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
-  };
-
-  // 1. Initial Load: Fetch API devotionals & render ONLY current month
   useEffect(() => {
-    let isMounted = true;
+    currentDateRef.current = currentDateString;
+  }, [currentDateString]);
+
+  useEffect(() => {
+    onLoadedRef.current = onDevotionalsLoaded;
+  }, [onDevotionalsLoaded]);
+
+  const [loadedDevotionals, setLoadedDevotionals] =
+    useState<Devotional[]>([]);
+
+  const [allApiDevotionals, setAllApiDevotionals] =
+    useState<Devotional[]>([]);
+
+  const [loadedMonths, setLoadedMonths] = useState<string[]>([]);
+
+  const [isLoadingPreviousMonth, setIsLoadingPreviousMonth] =
+    useState(false);
+
+  const [hasMorePastMonths, setHasMorePastMonths] =
+    useState(true);
+
+  const [visibleMonthName, setVisibleMonthName] = useState("");
+
+  const [loadError, setLoadError] = useState(false);
+
+  // Load devotional data once when the component mounts.
+  useEffect(() => {
+    let cancelled = false;
 
     async function loadInitialMonth() {
-      try {
-        const res = await fetch("/api/devotionals");
-        let list: Devotional[] = DEVOTIONALS_DATA;
+      let list: Devotional[] = DEVOTIONALS_DATA;
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.devotionals && data.devotionals.length > 0) {
-            list = data.devotionals;
-          }
+      try {
+        const response = await fetch("/api/devotionals", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load devotionals: HTTP ${response.status}`
+          );
         }
 
-        if (!isMounted) return;
+        const data = await response.json();
 
-        setAllApiDevotionals(list);
-        if (onDevotionalsLoaded) onDevotionalsLoaded(list);
-
-        // Determine target active month (from currentDateString or today)
-        const targetDate = currentDateString || todayStr;
-        const targetMonthKey = getMonthKey(targetDate);
-
-        // Filter devotionals belonging ONLY to target month
-        const currentMonthItems = list.filter(
-          (d) => getMonthKey(d.dateString) === targetMonthKey
+        if (
+          Array.isArray(data.devotionals) &&
+          data.devotionals.length > 0
+        ) {
+          list = data.devotionals;
+        }
+      } catch (error) {
+        console.error(
+          "Unable to load devotional API data. Using local data:",
+          error
         );
 
-        setLoadedDevotionals(currentMonthItems);
-        setLoadedMonths([targetMonthKey]);
-        setVisibleMonthName(formatMonthHeader(targetDate));
+        list = DEVOTIONALS_DATA;
 
-        // Select initial devotional
-        const initialSelected =
-          currentMonthItems.find((d) => d.dateString === targetDate) ||
-          currentMonthItems[currentMonthItems.length - 1] ||
-          list[0];
+        if (list.length === 0) {
+          if (!cancelled) {
+            setLoadError(true);
+          }
 
-        if (initialSelected) {
-          onSelectDevotional(initialSelected);
+          return;
         }
-      } catch (err) {
-        console.error("Error loading devotionals:", err);
       }
+
+      if (cancelled) return;
+
+      // Remove malformed dates and duplicate entries.
+      const uniqueDevotionals = new Map<string, Devotional>();
+
+      for (const devotional of list) {
+        if (
+          devotional &&
+          typeof devotional.dateString === "string" &&
+          isValidDateString(devotional.dateString)
+        ) {
+          uniqueDevotionals.set(
+            devotional.dateString,
+            devotional
+          );
+        }
+      }
+
+      const sortedDevotionals = Array.from(
+        uniqueDevotionals.values()
+      ).sort((a, b) =>
+        a.dateString.localeCompare(b.dateString)
+      );
+
+      if (sortedDevotionals.length === 0) {
+        setLoadError(true);
+        return;
+      }
+
+      setLoadError(false);
+      setAllApiDevotionals(sortedDevotionals);
+
+      // Notify the parent. The parent owns the active devotional.
+      onLoadedRef.current?.(sortedDevotionals);
+
+      const requestedDate =
+        currentDateRef.current || todayStr;
+
+      const requestedMonth = getMonthKey(requestedDate);
+
+      let targetMonth = requestedMonth;
+
+      let monthItems = sortedDevotionals.filter(
+        (devotional) =>
+          getMonthKey(devotional.dateString) === requestedMonth
+      );
+
+      // If the requested month has no entries, use the closest
+      // available month instead of mixing dates from different months.
+      if (monthItems.length === 0) {
+        const previousOrSame = sortedDevotionals.filter(
+          (devotional) =>
+            devotional.dateString <= requestedDate
+        );
+
+        const fallback =
+          previousOrSame[previousOrSame.length - 1] ??
+          sortedDevotionals[0];
+
+        targetMonth = getMonthKey(fallback.dateString);
+
+        monthItems = sortedDevotionals.filter(
+          (devotional) =>
+            getMonthKey(devotional.dateString) === targetMonth
+        );
+      }
+
+      if (cancelled) return;
+
+      setLoadedDevotionals(monthItems);
+      setLoadedMonths([targetMonth]);
+
+      const firstDate = monthItems[0]?.dateString;
+
+      setVisibleMonthName(
+        formatMonthHeader(firstDate ?? requestedDate)
+      );
+
+      // Do not call onSelectDevotional here.
+      // The parent handles selection after receiving the data.
     }
 
-    loadInitialMonth();
+    void loadInitialMonth();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [todayStr]);
 
-  // 2. Load Previous Month dynamically on scroll to left edge
+  // Load the previous month when the user scrolls to the left.
   const loadPreviousMonth = useCallback(() => {
-    if (isLoadingPreviousMonth || !hasMorePastMonths || loadedMonths.length === 0) return;
-
-    setIsLoadingPreviousMonth(true);
+    if (
+      isLoadingPreviousMonth ||
+      !hasMorePastMonths ||
+      loadedMonths.length === 0
+    ) {
+      return;
+    }
 
     const oldestLoadedMonth = loadedMonths[0];
-    const prevMonthKey = getPreviousMonthKey(oldestLoadedMonth);
 
-    // Filter items for the previous month from cached API data
-    const prevMonthItems = allApiDevotionals.filter(
-      (d) => getMonthKey(d.dateString) === prevMonthKey
+    if (!oldestLoadedMonth) return;
+
+    const previousMonthKey =
+      getPreviousMonthKey(oldestLoadedMonth);
+
+    const previousMonthItems = allApiDevotionals.filter(
+      (devotional) =>
+        getMonthKey(devotional.dateString) === previousMonthKey
     );
 
-    setTimeout(() => {
-      if (prevMonthItems.length > 0) {
-        const container = scrollContainerRef.current;
-        const previousScrollWidth = container ? container.scrollWidth : 0;
+    if (previousMonthItems.length === 0) {
+      // There are no entries for the immediately previous month.
+      // Look farther back rather than stopping prematurely.
+      const olderDevotionals = allApiDevotionals.filter(
+        (devotional) =>
+          devotional.dateString <
+          `${oldestLoadedMonth}-01`
+      );
 
-        setLoadedDevotionals((prev) => [...prevMonthItems, ...prev]);
-        setLoadedMonths((prev) => [prevMonthKey, ...prev]);
-
-        // Maintain relative scroll position after prepending
-        requestAnimationFrame(() => {
-          if (container) {
-            const newScrollWidth = container.scrollWidth;
-            container.scrollLeft += newScrollWidth - previousScrollWidth;
-          }
-        });
-      } else {
+      if (olderDevotionals.length === 0) {
         setHasMorePastMonths(false);
+        return;
       }
-      setIsLoadingPreviousMonth(false);
-    }, 400);
-  }, [isLoadingPreviousMonth, hasMorePastMonths, loadedMonths, allApiDevotionals]);
 
-  // 3. Horizontal Scroll Observer: Detect Left Edge & Update Header Month Name
-  const handleScroll = () => {
+      const oldestAvailableDate =
+        olderDevotionals[0].dateString;
+
+      const oldestAvailableMonth =
+        getMonthKey(oldestAvailableDate);
+
+      const olderMonthItems = allApiDevotionals.filter(
+        (devotional) =>
+          getMonthKey(devotional.dateString) ===
+          oldestAvailableMonth
+      );
+
+      if (olderMonthItems.length === 0) {
+        setHasMorePastMonths(false);
+        return;
+      }
+
+      prependMonth(
+        oldestAvailableMonth,
+        olderMonthItems
+      );
+
+      return;
+    }
+
+    prependMonth(previousMonthKey, previousMonthItems);
+  }, [
+    isLoadingPreviousMonth,
+    hasMorePastMonths,
+    loadedMonths,
+    allApiDevotionals,
+  ]);
+
+  function prependMonth(
+    monthKey: string,
+    monthItems: Devotional[]
+  ) {
+    setIsLoadingPreviousMonth(true);
+
     const container = scrollContainerRef.current;
+    const previousScrollWidth =
+      container?.scrollWidth ?? 0;
+
+    setLoadedDevotionals((previous) => {
+      const existingDates = new Set(
+        previous.map((item) => item.dateString)
+      );
+
+      const newItems = monthItems.filter(
+        (item) => !existingDates.has(item.dateString)
+      );
+
+      return [...newItems, ...previous];
+    });
+
+    setLoadedMonths((previous) => {
+      if (previous.includes(monthKey)) {
+        return previous;
+      }
+
+      return [monthKey, ...previous];
+    });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const currentContainer =
+          scrollContainerRef.current;
+
+        if (currentContainer) {
+          const widthDifference =
+            currentContainer.scrollWidth -
+            previousScrollWidth;
+
+          currentContainer.scrollLeft += widthDifference;
+        }
+
+        setIsLoadingPreviousMonth(false);
+      });
+    });
+  }
+
+  // Update the month label and load older entries when necessary.
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+
     if (!container) return;
 
-    // Trigger load when scrolled near left edge (scrollLeft < 40px)
     if (container.scrollLeft < 40) {
       loadPreviousMonth();
     }
 
-    // Determine visible month header dynamically based on scroll position
-    const children = Array.from(container.children) as HTMLElement[];
+    const containerRect = container.getBoundingClientRect();
+    const centerX =
+      containerRect.left + containerRect.width / 2;
+
+    const children = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-date]")
+    );
+
+    let closestElement: HTMLElement | null = null;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
     for (const child of children) {
       const rect = child.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
 
-      // Find the element closest to the horizontal center of container
-      if (rect.left >= containerRect.left && rect.left <= containerRect.right) {
-        const dateAttr = child.getAttribute("data-date");
-        if (dateAttr) {
-          setVisibleMonthName(formatMonthHeader(dateAttr));
-          break;
-        }
+      if (
+        rect.right < containerRect.left ||
+        rect.left > containerRect.right
+      ) {
+        continue;
+      }
+
+      const childCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(centerX - childCenter);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestElement = child;
       }
     }
-  };
 
-  // Auto-scroll active item into view on load or date change
-  useEffect(() => {
-    if (currentDateString && scrollContainerRef.current) {
-      const activeEl = scrollContainerRef.current.querySelector(
-        `[data-date="${currentDateString}"]`
+    const dateString =
+      closestElement?.getAttribute("data-date");
+
+    if (dateString) {
+      const nextMonthName = formatMonthHeader(dateString);
+
+      setVisibleMonthName((previous) =>
+        previous === nextMonthName
+          ? previous
+          : nextMonthName
       );
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-          block: "nearest",
-        });
-      }
     }
-  }, [currentDateString, loadedDevotionals.length]);
+  }, [loadPreviousMonth]);
 
-  const isFutureDate = (dateStr: string) => dateStr > todayStr;
-  const getDayLabel = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", { weekday: "short" });
-  const getDayNumber = (dateStr: string) => dateStr.split("-")[2];
+  // Bring the active devotional into view when it is present.
+  useEffect(() => {
+    if (!currentDateString || loadedDevotionals.length === 0) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+
+    if (!container) return;
+
+    const activeElement = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-date]")
+    ).find(
+      (element) =>
+        element.dataset.date === currentDateString
+    );
+
+    activeElement?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [currentDateString, loadedDevotionals]);
+
+  function handleSelect(devotional: Devotional) {
+    onSelectDevotional(devotional);
+
+    router.push(`/devotional/${devotional.dateString}`);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
 
   return (
-    <div className="w-full mb-4 relative z-50">
-      {/* Month Year Header Label */}
-      <div className="flex items-center justify-between px-1 mb-2">
-        <span className="text-xs font-mono font-bold uppercase tracking-widest text-red-500 bg-red-950/40 border border-red-900/40 px-3 py-1 rounded-full">
-          {visibleMonthName || "Current Month"}
+    <div className="relative z-50 mb-4 w-full">
+      <div className="mb-2 flex items-center justify-between px-1">
+        <span className="rounded-full border border-red-900/40 bg-red-950/40 px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-red-500">
+          {visibleMonthName || "Daily Devotional"}
         </span>
-        <span className="text-[10px] font-mono text-neutral-500 uppercase">
+
+        <span className="font-mono text-[10px] uppercase text-neutral-500">
           Daily Bread
         </span>
       </div>
 
-      {/* Horizontal Calendar Strip */}
       <div className="relative flex items-center">
-        {/* Preloader Spinner when scrolling back to past months */}
         {isLoadingPreviousMonth && (
-          <div className="shrink-0 mr-2 flex items-center justify-center w-10 h-10 rounded-full bg-neutral-900/80 border border-neutral-800">
-            <div className="w-4 h-4 rounded-full border-2 border-red-500 border-t-transparent animate-spin" />
+          <div className="mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900/80">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
           </div>
         )}
 
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
+          className="no-scrollbar flex w-full snap-x gap-2.5 overflow-x-auto scroll-smooth px-1 py-2"
         >
           {loadedDevotionals.map((item) => {
-            const isSelected = item.dateString === currentDateString;
-            const isFuture = isFutureDate(item.dateString);
+            const isSelected =
+              item.dateString === currentDateString;
+
+            const isFuture = item.dateString > todayStr;
 
             return (
               <button
                 key={item.dateString}
+                type="button"
                 data-date={item.dateString}
                 disabled={isFuture}
-                onClick={() => {
-                  onSelectDevotional(item);
-                  router.push(`/devotional/${item.dateString}`);
-                  setTimeout(() => {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }, 300);
-                }}
-                className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group ${
-                  isFuture ? "opacity-20 border-transparent pointer-events-none" : ""
+                aria-pressed={isSelected}
+                aria-label={`Open devotional for ${item.dateString}`}
+                onClick={() => handleSelect(item)}
+                className={`group flex w-14 shrink-0 snap-center flex-col rounded-2xl border transition-all duration-300 ${
+                  isFuture
+                    ? "pointer-events-none cursor-not-allowed border-transparent opacity-20"
+                    : "cursor-pointer"
                 } ${
                   isSelected
-                    ? "bg-[#ff0000] border-white/30 text-white shadow-[0_0_20px_rgba(255,0,0,0.4)] scale-105"
-                    : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+                    ? "scale-105 border-white/30 bg-[#ff0000] text-white shadow-[0_0_20px_rgba(255,0,0,0.4)]"
+                    : "border-neutral-800/60 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
                 }`}
               >
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors ${
-                    isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"
+                  className={`block pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                    isSelected
+                      ? "text-white"
+                      : "text-neutral-500 group-hover:text-neutral-400"
                   }`}
                 >
                   {getDayLabel(item.dateString)}
                 </span>
 
                 <div
-                  className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5 ${
-                    isSelected ? "text-white" : "text-neutral-200"
+                  className={`w-full rounded-t-xl bg-black/30 pb-3 pt-0.5 text-center text-base font-bold ${
+                    isSelected
+                      ? "text-white"
+                      : "text-neutral-200"
                   }`}
                 >
                   {getDayNumber(item.dateString)}
@@ -261,6 +541,18 @@ export default function DevotionalCalendarStrip({
               </button>
             );
           })}
+
+          {!loadError && loadedDevotionals.length === 0 && (
+            <div className="px-3 py-4 text-sm text-neutral-500">
+              Loading devotionals...
+            </div>
+          )}
+
+          {loadError && loadedDevotionals.length === 0 && (
+            <div className="px-3 py-4 text-sm text-red-400">
+              Unable to load devotionals.
+            </div>
+          )}
         </div>
       </div>
     </div>
