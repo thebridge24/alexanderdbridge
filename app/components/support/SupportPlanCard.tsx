@@ -86,47 +86,49 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   const plan = PLAN_CONFIGS[planType];
 
   return (
-    <div className="relative min-h-screen bg-white text-neutral-900 flex flex-col justify-between overflow-hidden">
+    <div className="relative h-full min-h-[100dvh] bg-neutral-100 p-3 sm:p-4 text-neutral-900 flex flex-col justify-between overflow-y-auto">
       
-      {/* Top Colored Banner Hero Section (Reference Style) */}
+      {/* Main Rounded Colored Card (Occupies the Majority Space) */}
       <div
-        className={`relative w-full h-[52vh] sm:h-[55vh] ${plan.heroBgClass} p-6 sm:p-8 flex flex-col justify-between overflow-hidden text-white transition-colors duration-500`}
+        className={`relative w-full flex-1 min-h-[58vh] ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] p-6 sm:p-7 flex flex-col justify-between overflow-hidden text-white shadow-xl transition-colors duration-500 mb-3`}
       >
         {/* Subtle Diagonal Overlay Stripes */}
-        <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
+        <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
 
-        {/* Top Header Badge */}
+        {/* Top Header Badge Tag */}
         <div className="relative z-10 flex items-center justify-between">
-          <span
-            className={`text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/30`}
-          >
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-black/20 text-white/90 border border-white/20 backdrop-blur-md">
             ● {plan.badge}
-          </span>
-          <span className="text-xs font-mono font-semibold text-white/90 bg-black/20 px-3 py-1 rounded-full backdrop-blur-md">
-            {plan.price}
           </span>
         </div>
 
-        {/* Big Bold Typography Title (Matching ASAP/SAVE/TRUST style) */}
-        <div className="relative z-10 my-auto pt-2">
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tighter uppercase leading-none opacity-95">
+        {/* Big Bold Impact Title & Prominent Price Tag */}
+        <div className="relative z-10 my-auto pt-4 space-y-1">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none opacity-95">
             {plan.badge}
           </h1>
-          <p className="text-xs font-medium text-white/80 mt-1 max-w-[240px]">
+
+          {/* Prominent Price Display */}
+          <div className="pt-2">
+            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight drop-shadow-md">
+              {plan.price}
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm font-medium text-white/85 pt-1 max-w-[260px]">
             {plan.heading}
           </p>
         </div>
 
-        {/* Hero Illustration Placeholder Container */}
-        <div className="relative z-10 w-full flex justify-center -mb-4">
-          <div className="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center">
-            {/* Custom PNG Image Slot */}
+        {/* Bottom Left Illustration/Image Position */}
+        <div className="relative z-10 w-full flex justify-start items-end pt-2">
+          <div className="relative w-36 h-36 sm:w-44 sm:h-44 -ml-2 -mb-2">
             <img
               src={plan.imagePlaceholderPath}
               alt={`${plan.badge} illustration`}
               className="w-full h-full object-contain drop-shadow-2xl"
               onError={(e) => {
-                // Graceful fallback to styled icon placeholder until PNG is added
+                // Graceful hide until actual PNG file is provided
                 (e.target as HTMLElement).style.display = "none";
               }}
             />
@@ -134,45 +136,41 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         </div>
       </div>
 
-      {/* Bottom Clean White Content Drawer */}
-      <div className="relative z-20 bg-white border-t border-neutral-100 rounded-t-3xl -mt-6 pt-6 pb-8 px-6 max-w-md mx-auto w-full flex flex-col justify-between flex-1 space-y-6 shadow-2xl">
+      {/* Compact White Bottom Drawer Controls */}
+      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4 shadow-lg border border-neutral-200/80">
         
-        {/* Verified User Greeting Tag */}
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200">
-            <span className="text-xs font-medium text-neutral-700">
+        {/* Verified User Tag & Description */}
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-100 border border-neutral-200">
+            <span className="text-[11px] font-medium text-neutral-700">
               For {userName}
             </span>
-            <CheckCircle2 className={`w-4 h-4 ${plan.verifiedIconColor}`} />
+            <CheckCircle2 className={`w-3.5 h-3.5 ${plan.verifiedIconColor}`} />
           </div>
 
-          <h2 className="text-2xl font-bold tracking-tight text-neutral-900 leading-snug">
-            {plan.heading}
-          </h2>
-
-          <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+          <p className="text-xs text-neutral-600 leading-relaxed pt-0.5">
             {plan.description}
           </p>
         </div>
 
-        {/* Bottom Call to Action & Step Indicators */}
-        <div className="space-y-4 pt-2">
+        {/* Action Button & Step Indicators */}
+        <div className="space-y-3 pt-1">
           <button
             onClick={() => onSelectPlan(planType)}
-            className="w-full py-3.5 px-6 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group"
+            className="w-full py-3 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 group"
           >
             <span>{plan.buttonText}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
 
           {/* Pagination Indicators */}
-          <div className="flex items-center justify-center gap-2 pt-1">
+          <div className="flex items-center justify-center gap-1.5 pt-0.5">
             {Array.from({ length: totalSteps }).map((_, idx) => (
               <div
                 key={idx}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   idx === currentStep
-                    ? `w-6 ${plan.heroBgClass}`
+                    ? `w-5 ${plan.heroBgClass}`
                     : "w-1.5 bg-neutral-200"
                 }`}
               />
