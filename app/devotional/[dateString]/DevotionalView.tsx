@@ -327,7 +327,7 @@ dwellSeconds,
     setTodayDateString(formattedToday);
 
     const targetDate = urlDateString || formattedToday;
-    const matched = devotionalsList.find((d) => d.dateString === targetDate);
+    const matched = allDevotionals.find((d) => d.dateString === targetDate);
 
     if (matched) {
       setCurrentDevotional(matched);
