@@ -86,7 +86,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   const plan = PLAN_CONFIGS[planType];
 
   return (
-    <div className="relative h-full min-h-[100dvh] bg-neutral-100 p-3 sm:p-4 text-neutral-900 flex flex-col justify-between overflow-y-auto">
+    <div className="relative h-full min-h-[100dvh] bg-white p-3 sm:p-4 text-neutral-900 flex flex-col justify-between overflow-y-auto">
       
       {/* Main Rounded Colored Card (Occupies the Majority Space) */}
       <div
@@ -137,7 +137,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Compact White Bottom Drawer Controls */}
-      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4 border border-neutral-200/80">
+      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4">
         
         {/* Verified User Tag & Description */}
         <div className="space-y-1.5">
