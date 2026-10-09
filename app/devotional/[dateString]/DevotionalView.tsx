@@ -9,6 +9,7 @@ import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
+  FaCheck,
   FaDownload,
   FaRegCommentDots,
 } from "react-icons/fa6";
@@ -17,7 +18,7 @@ import {
   MONTH_THEME,
   Devotional,
 } from "../../data/devotionalData";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getSessionId, getStoredUserName, storeUserName } from "@/lib/session";
 import { formatRelativeTime } from "@/lib/utils/date";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -40,7 +41,6 @@ import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
-import DevotionalCalendarStrip from "./DevotionalCalendarStrip";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -86,8 +86,9 @@ const cinematicVariants: Variants = {
 
 export default function DevotionalView() {
   const params = useParams();
-  const urlDateString = params?.dateString as string | undefined;
+  const router = useRouter();
 
+  const urlDateString = params?.dateString as string | undefined;
   const [isFloatingVisible, setIsFloatingVisible] = useState<boolean>(true);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -102,36 +103,11 @@ export default function DevotionalView() {
     streakData,
     newlyUnlockedMedal,
     clearNewMedalAlert,
-    dwellSeconds,
+dwellSeconds,
     minDwellSeconds,
     todayCompleted,
     markTodayComplete,
   } = useStreakTracker(user?.id);
-
-  // Active Devotional State
-  const [allDevotionals, setAllDevotionals] = useState<Devotional[]>(DEVOTIONALS_DATA);
-  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(null);
-
-  const [todayDateString, setTodayDateString] = useState<string>("");
-  const [liked, setLiked] = useState<boolean>(false);
-  const [likeCount, setLikeCount] = useState<number>(0);
-  const [viewsCount, setViewsCount] = useState<number>(0);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentText, setCommentText] = useState<string>("");
-  const [, setShowNamePrompt] = useState<boolean>(false);
-
-  // Modal & Reply states
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
-  const [replyingToId, setReplyingToId] = useState<string | null>(null);
-  const [replyingToName, setReplyingToName] = useState<string | null>(null);
-  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
-  const [isSubmittingComment, setIsSubmittingComment] = useState<boolean>(false);
-  const [isReminderPickerOpen, setIsReminderPickerOpen] = useState<boolean>(false);
-
-  // Preloader & Interaction states
-  const [introStage, setIntroStage] = useState<IntroStage>("logo");
-  const [copied, setCopied] = useState<boolean>(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   // Helper function to reset the auto-hide timer
   const startHideTimer = (delayMs: number) => {
@@ -169,6 +145,7 @@ export default function DevotionalView() {
     return () => subscription.unsubscribe();
   }, [userName]);
 
+  // 1. Initial load 10s auto-hide timer
   useEffect(() => {
     startHideTimer(10000);
     return () => {
@@ -176,6 +153,7 @@ export default function DevotionalView() {
     };
   }, []);
 
+  // 2. Scroll listener to show column and trigger 4s hide delay when scrolling stops
   useEffect(() => {
     const handleScroll = () => {
       setIsFloatingVisible(true);
@@ -188,7 +166,36 @@ export default function DevotionalView() {
     };
   }, []);
 
-  // Deep Link handler
+  const [devotionalsList, setDevotionalsList] =
+    useState<Devotional[]>(DEVOTIONALS_DATA);
+  const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
+    null,
+  );
+  const [todayDateString, setTodayDateString] = useState<string>("");
+  const [liked, setLiked] = useState<boolean>(false);
+  const [likeCount, setLikeCount] = useState<number>(0);
+  const [viewsCount, setViewsCount] = useState<number>(0);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState<string>("");
+  const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
+
+  // Modal & Reply states
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+  const [isSubmittingComment, setIsSubmittingComment] =
+    useState<boolean>(false);
+  const [isReminderPickerOpen, setIsReminderPickerOpen] =
+    useState<boolean>(false);
+
+  // Preloader & Interaction states
+  const [introStage, setIntroStage] = useState<IntroStage>("logo");
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Deep Link handler for ?comment=... and ?reply=...
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -208,7 +215,7 @@ export default function DevotionalView() {
     }
   }, []);
 
-  // Welcome Email Trigger
+  // Welcome Email Trigger on user authentication (idempotent, sent once via Resend)
   useEffect(() => {
     if (!user) return;
     async function triggerWelcomeEmail() {
@@ -231,7 +238,7 @@ export default function DevotionalView() {
     triggerWelcomeEmail();
   }, [user]);
 
-  // Prompt reminder time picker
+  // Prompt reminder time picker once after intro finishes if user hasn't configured it yet
   useEffect(() => {
     if (introStage !== "done" || !user) return;
     if (typeof window === "undefined") return;
@@ -273,7 +280,10 @@ export default function DevotionalView() {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
@@ -287,7 +297,9 @@ export default function DevotionalView() {
       }
       setDeferredPrompt(null);
     } else {
-      alert("To install: Tap the Share button in your browser and select 'Add to Home Screen'.");
+      alert(
+        "To install: Tap the Share button in your browser and select 'Add to Home Screen'.",
+      );
     }
   };
 
@@ -304,22 +316,44 @@ export default function DevotionalView() {
     };
   }, []);
 
-  // Synchronize target date with active devotional
+  // 1. Fetch dynamic devotionals from API on mount
+  useEffect(() => {
+    async function fetchDevotionals() {
+      try {
+        const res = await fetch("/api/devotionals");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.devotionals && data.devotionals.length > 0) {
+            setDevotionalsList(data.devotionals);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading devotionals:", err);
+      }
+    }
+    fetchDevotionals();
+  }, []);
+
+  // 2. Live Client-Side Date Calculation & Data Association Layer
   useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
     const targetDate = urlDateString || formattedToday;
-    const matched = allDevotionals.find((d) => d.dateString === targetDate);
-    const activeEntry = matched || allDevotionals[allDevotionals.length - 1] || DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
+    const matched = devotionalsList.find((d) => d.dateString === targetDate);
+    const activeEntry = matched || devotionalsList[devotionalsList.length - 1];
 
-    if (activeEntry) {
+    if (
+      activeEntry &&
+      (!currentDevotional ||
+        currentDevotional.dateString !== activeEntry.dateString)
+    ) {
       setCurrentDevotional(activeEntry);
     }
-  }, [allDevotionals, urlDateString]);
+  }, [devotionalsList, urlDateString]);
 
-  // Load stats, views, and comments when active devotional changes
+  // 3. Load stats, views, and comments when active devotional changes
   useEffect(() => {
     if (!currentDevotional) return;
 
@@ -351,7 +385,9 @@ export default function DevotionalView() {
       try {
         const res = await fetch(
           `/api/devotionals/${date}/stats?sessionId=${sessionId}&_t=${Date.now()}`,
-          { cache: "no-store" }
+          {
+            cache: "no-store",
+          },
         );
         if (res.ok) {
           const data = await res.json();
@@ -370,7 +406,9 @@ export default function DevotionalView() {
       try {
         const res = await fetch(
           `/api/devotionals/${date}/comments?sessionId=${sessionId}&_t=${Date.now()}`,
-          { cache: "no-store" }
+          {
+            cache: "no-store",
+          },
         );
         if (res.ok) {
           const data = await res.json();
@@ -415,14 +453,33 @@ export default function DevotionalView() {
           headers,
           body: JSON.stringify({
             userId: user.id,
-            displayName: user.user_metadata?.full_name || user.user_metadata?.name || "",
-            avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+            displayName:
+              user.user_metadata?.full_name || user.user_metadata?.name || "",
+            avatarUrl:
+              user.user_metadata?.avatar_url ||
+              user.user_metadata?.picture ||
+              "",
           }),
         }).catch(() => {});
       }
     });
     fetchComments();
   }, [currentDevotional, user]);
+
+  useEffect(() => {
+    if (currentDevotional && scrollContainerRef.current) {
+      const activeEl = scrollContainerRef.current.querySelector(
+        `[data-date="${currentDevotional.dateString}"]`,
+      );
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
+      }
+    }
+  }, [currentDevotional]);
 
   const handleLikeToggle = async (): Promise<void> => {
     if (!currentDevotional) return;
@@ -479,6 +536,23 @@ export default function DevotionalView() {
     }
   };
 
+  const handleCommentSubmit = (e: React.FormEvent): void => {
+    e.preventDefault();
+    if (!commentText.trim() || isSubmittingComment) return;
+
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (!userName.trim()) {
+      setShowNamePrompt(true);
+      return;
+    }
+
+    executePostComment(userName.trim());
+  };
+
   const executePostComment = async (name: string): Promise<void> => {
     if (!currentDevotional) return;
     if (!user) {
@@ -498,12 +572,14 @@ export default function DevotionalView() {
       }
 
       if (replyingToId) {
+        // Format reply text with recipient handle if not already prefixed
         const formattedReplyText =
           replyingToName &&
           !commentText.trim().toLowerCase().startsWith(`@${replyingToName.toLowerCase()}`)
             ? `@${replyingToName} ${commentText.trim()}`
             : commentText.trim();
 
+        // Post Reply
         const res = await fetch(`/api/comments/${replyingToId}/replies`, {
           method: "POST",
           headers,
@@ -535,7 +611,7 @@ export default function DevotionalView() {
                 };
               }
               return c;
-            })
+            }),
           );
 
           setCommentText("");
@@ -546,6 +622,7 @@ export default function DevotionalView() {
           alert(data.error || "Failed to post reply");
         }
       } else {
+        // Post Top-level Comment
         const res = await fetch(`/api/devotionals/${date}/comments`, {
           method: "POST",
           headers,
@@ -584,23 +661,6 @@ export default function DevotionalView() {
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
-    if (!commentText.trim() || isSubmittingComment) return;
-
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    if (!userName.trim()) {
-      setShowNamePrompt(true);
-      return;
-    }
-
-    executePostComment(userName.trim());
-  };
-
   const handleCommentLike = async (commentId: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
@@ -620,7 +680,7 @@ export default function DevotionalView() {
           };
         }
         return c;
-      })
+      }),
     );
 
     try {
@@ -653,12 +713,35 @@ export default function DevotionalView() {
               };
             }
             return c;
-          })
+          }),
         );
       }
     } catch (err) {
       console.error("Error toggling comment like:", err);
     }
+  };
+
+  const handleSaveName = (): void => {
+    const trimmedName = userName.trim();
+    if (trimmedName) {
+      storeUserName(trimmedName);
+      setShowNamePrompt(false);
+      executePostComment(trimmedName);
+    }
+  };
+
+  const isFutureDate = (dateStr: string) => {
+    if (!todayDateString) return false;
+    return dateStr > todayDateString;
+  };
+
+  const getDayLabel = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { weekday: "short" });
+  };
+
+  const getDayNumber = (dateStr: string) => {
+    return dateStr.split("-")[2];
   };
 
   // Compute yesterday's date string (YYYY-MM-DD)
@@ -672,33 +755,36 @@ export default function DevotionalView() {
     return `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
   })();
 
-  const yesterdayDevotional = allDevotionals.find(
-    (d) => d.dateString === yesterdayDateString
+  // Find yesterday's devotional topic dynamically from devotionalsList
+  const yesterdayDevotional = devotionalsList.find(
+    (d) => d.dateString === yesterdayDateString,
   );
   const yesterdayTopic = yesterdayDevotional?.topic || "Yesterday's Devotional";
 
+  // Check if yesterday's devotional is already read (from local storage or user history)
   const isYesterdayRead = (() => {
     if (typeof window === "undefined" || !yesterdayDateString) return false;
     const readLogs = JSON.parse(
-      localStorage.getItem("completed_devotionals") || "[]"
+      localStorage.getItem("completed_devotionals") || "[]",
     );
     return readLogs.includes(yesterdayDateString);
   })();
 
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const requiresAuthPrompt = !isAuthLoading && !user;
 
   if (!currentDevotional) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-          <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
-            Loading Devotional...
-          </p>
-        </div>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
+          Loading Devotional...
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <motion.div
@@ -714,7 +800,6 @@ export default function DevotionalView() {
         yesterdayTopic={yesterdayTopic}
         isYesterdayRead={isYesterdayRead}
       />
-
       {/* Floating Right Side Action Column */}
       <motion.div
         initial={{ x: 0, opacity: 1 }}
@@ -730,6 +815,7 @@ export default function DevotionalView() {
             <StreakFloatingButton />
           </div>
 
+          {/* Like Button & Counter */}
           <button
             type="button"
             onClick={handleLikeToggle}
@@ -737,13 +823,18 @@ export default function DevotionalView() {
               liked ? "text-[#ff0000]" : "text-neutral-300 hover:text-white"
             }`}
           >
-            {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-5" />}
+            {liked ? (
+              <FaHeart className="size-6" />
+            ) : (
+              <FaRegHeart className="size-5" />
+            )}
           </button>
           <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
             {likeCount}
           </span>
         </div>
 
+        {/* Floating Comment Button & Counter */}
         <div className="flex flex-col items-center gap-1 z-40 relative">
           <button
             type="button"
@@ -754,10 +845,14 @@ export default function DevotionalView() {
             <FaRegCommentDots className="size-6" />
           </button>
           <span className="font-mono font-medium text-neutral-300 min-w-3 text-xs text-center">
-            {comments.reduce((total, c) => total + 1 + (c.replies?.length || 0), 0)}
+            {comments.reduce(
+              (total, c) => total + 1 + (c.replies?.length || 0),
+              0,
+            )}{" "}
           </span>
         </div>
 
+        {/* Share Button */}
         <button
           type="button"
           onClick={handleShare}
@@ -784,7 +879,8 @@ export default function DevotionalView() {
           </div>
         )}
 
-        <div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
+<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
+
       </motion.div>
 
       {/* Intro Preloader Overlay */}
@@ -850,25 +946,70 @@ export default function DevotionalView() {
         )}
       </AnimatePresence>
 
+      {/* Sign-in prompt for protected actions */}
       <AuthModal isOpen={requiresAuthPrompt} onClose={() => setIsAuthModalOpen(false)} />
 
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <Header />
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
+<div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
-        {/* Extracted Devotional Calendar Strip Component */}
-        <DevotionalCalendarStrip
-          currentDateString={urlDateString || currentDevotional.dateString || todayDateString}
-          onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
-          onDevotionalsLoaded={(loaded) => {
-            setAllDevotionals(loaded);
-            const target = urlDateString || todayDateString;
-            const match = loaded.find((d) => d.dateString === target) || loaded[loaded.length - 1];
-            if (match) setCurrentDevotional(match);
-          }}
-        />
+        <div className="w-full mx-auto relative z-10">
+          <div className="w-full mb-4 relative z-50">
+            <div
+              ref={scrollContainerRef}
+              className="w-full flex gap-2.5 overflow-x-auto no-scrollbar py-2 px-1 snap-x scroll-smooth"
+            >
+              {devotionalsList.map((item) => {
+                const isSelected =
+                  item.dateString === currentDevotional.dateString;
+                const isFuture = isFutureDate(item.dateString);
+
+                return (
+                  <button
+                    key={item.dateString}
+                    data-date={item.dateString}
+                    disabled={isFuture}
+                    onClick={() => {
+                      router.push(`/devotional/${item.dateString}`);
+                      setTimeout(() => {
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }, 500);
+                    }}
+                    className={`flex flex-col cursor-pointer items-center shrink-0 w-14 snap-center rounded-2xl border transition-all duration-300 group
+                    ${isFuture ? "opacity-20 border-transparent pointer-events-none" : ""}
+                    ${
+                      isSelected
+                        ? "bg-[#ff0000] border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-105"
+                        : "bg-neutral-900/60 border-neutral-800/60 text-neutral-400 hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+                    }
+                  `}
+                  >
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider pt-2.5 pb-1 block transition-colors
+                    ${isSelected ? "text-white" : "text-neutral-500 group-hover:text-neutral-400"}
+                  `}
+                    >
+                      {getDayLabel(item.dateString)}
+                    </span>
+
+                    <div
+                      className={`w-full text-center bg-black/30 rounded-t-xl font-bold text-base pb-3 pt-0.5
+                    ${isSelected ? "text-white" : "text-neutral-200"}
+                  `}
+                    >
+                      {getDayNumber(item.dateString)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle
@@ -879,6 +1020,7 @@ export default function DevotionalView() {
         />
       </div>
 
+      {/* Streak Side-Drawer */}
       <StreakDrawer
         isOpen={isStreakDrawerOpen}
         onClose={() => setIsStreakDrawerOpen(false)}
@@ -886,18 +1028,21 @@ export default function DevotionalView() {
         userName={userName || "Believer"}
       />
 
+      {/* Streak Celebration Popup Modal */}
       <StreakCelebrationModal
         medal={newlyUnlockedMedal}
         onClose={clearNewMedalAlert}
         userName={userName || "Believer"}
       />
 
+      {/* Daily Devotional Reminder Alarm Picker Modal */}
       <ReminderTimePicker
         isOpen={isReminderPickerOpen}
         onClose={() => setIsReminderPickerOpen(false)}
         userId={user?.id}
       />
 
+      {/* Slide-Up Comment Modal Component */}
       <CommentSlideUpModal
         isOpen={isCommentModalOpen}
         onClose={() => {
@@ -923,26 +1068,27 @@ export default function DevotionalView() {
       />
 
       <StreakFooterBanner
-        currentStreak={streakData?.currentStreak || 0}
-        dwellSeconds={dwellSeconds}
-        minDwellSeconds={minDwellSeconds}
-        isAlreadyCompleted={todayCompleted}
-        onMarkAsRead={markTodayComplete}
-      />
-
+  currentStreak={streakData?.currentStreak || 0}
+  dwellSeconds={dwellSeconds}
+  minDwellSeconds={minDwellSeconds}
+  isAlreadyCompleted={todayCompleted}
+  onMarkAsRead={markTodayComplete}
+/>
       <AuthorMessageModal
-        messageId="v1.1_october_support"
-        delayMs={2000}
-        title="Let's Build This Together ❤️"
-        authorImage="https://res.cloudinary.com/glqzvvh2/image/upload/v1791448597/Sos20231224_112632_a87hnk.jpg"
-        paragraphs={[
-          "Hey, I want to share something important with you. Our devotional community is growing, and we're grateful for every person who shows up to study God's Word. But with this growth, some users have started experiencing difficulty accessing the site because our current server capacity is reaching its limits.",
-          "My team and I are working hard to keep Bridge Daily running and make it better. We're also committed to keeping it free from ads so you can focus on God's Word without distractions. But the servers, emails, and development all come with real costs, and we can no longer carry everything alone.",
-          "Very soon, we'll introduce a monthly support system to help us sustain and grow this platform. If Bridge Daily has truly blessed you, this is an opportunity to help us keep that impact going. We have so much more we want to build, and I'd love for you to be part of it. ❤️",
-        ]}
-      />
+messageId="v1.1_october_support"
+delayMs={2000}
+title="Let's Build This Together ❤️"
+authorImage="https://res.cloudinary.com/glqzvvh2/image/upload/v1791448597/Sos20231224_112632_a87hnk.jpg"
+paragraphs={[
+"Hey, I want to share something important with you. Our devotional community is growing, and we're grateful for every person who shows up to study God's Word. But with this growth, some users have started experiencing difficulty accessing the site because our current server capacity is reaching its limits.",
 
-      {!isAuthLoading && user ? <Survey /> : null}
+"My team and I are working hard to keep Bridge Daily running and make it better. We're also committed to keeping it free from ads so you can focus on God's Word without distractions. But the servers, emails, and development all come with real costs, and we can no longer carry everything alone.",
+
+"Very soon, we'll introduce a monthly support system to help us sustain and grow this platform. If Bridge Daily has truly blessed you, this is an opportunity to help us keep that impact going. We have so much more we want to build, and I'd love for you to be part of it. ❤️"
+
+]}
+/>
+      <Survey />
     </motion.div>
   );
 }
