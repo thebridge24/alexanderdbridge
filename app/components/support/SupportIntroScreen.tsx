@@ -173,10 +173,9 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
         {/* Continue Button */}
         <button
           onClick={onNext}
-          className="w-full py-3.5 px-6 bg-red-600 hover:bg-red-500 text-white font-medium text-sm rounded-2xl shadow-xl shadow-red-950/50 transition-all flex items-center justify-center gap-2 group"
+          className="w-full py-3.5 px-6 bg-red-600 hover:bg-red-500 text-white font-medium text-sm rounded-full shadow-xl shadow-red-950/50 transition-all flex items-center justify-center group"
         >
           <span>Continue</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
 
         {/* Step Pagination Dots */}
