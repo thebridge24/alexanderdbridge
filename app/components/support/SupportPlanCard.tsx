@@ -67,7 +67,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeTextClass: "text-purple-600",
     verifiedIconColor: "text-purple-500 fill-purple-500/20",
     imagePlaceholderPath:
-      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524484/Photoroom-20261009_063856_yovlcd.png",
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524488/Photoroom-20261009_063401_vghz3k.png",
   },
 };
 
@@ -117,15 +117,11 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
               ))}
             </div>
 
-            {/* Badge Tag */}
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-black/20 text-white/90 border border-white/20 backdrop-blur-md">
-              ● {plan.badge}
-            </span>
           </div>
 
           {/* Big Bold Plan Name & Prominent Price Tag */}
           <div className="pt-2 space-y-1">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none opacity-95">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter uppercase leading-none opacity-95">
               {plan.badge}
             </h1>
 
@@ -147,7 +143,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
           <img
             src={plan.imagePlaceholderPath}
             alt={`${plan.badge} illustration`}
-            className="w-full h-auto max-h-[30vh] sm:max-h-[34vh] object-cover object-bottom transition-transform duration-500"
+            className="w-full h-auto max-h-[30vh] sm:max-h-[34vh] object-contain object-bottom transition-transform duration-500"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";
             }}
