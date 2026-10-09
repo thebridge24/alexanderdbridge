@@ -923,12 +923,13 @@ dwellSeconds,
 <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
-     {/* Extracted Devotional Calendar Strip Component */}
-        <DevotionalCalendarStrip
-          currentDateString={urlDateString || currentDevotional.dateString}
-          onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
-          onDevotionalsLoaded={(loaded) => setDevotionalsList(loaded)}
-        />
+     
+        <{/* Extracted Devotional Calendar Strip Component */}
+<DevotionalCalendarStrip
+  currentDateString={urlDateString || currentDevotional.dateString}
+  onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
+  onDevotionalsLoaded={(loaded) => setAllDevotionals(loaded)}
+/>
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle
