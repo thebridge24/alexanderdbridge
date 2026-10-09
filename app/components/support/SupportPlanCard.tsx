@@ -99,7 +99,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
 
         {/* Padded Content Wrapper for Top Controls & Typography */}
-        <div className="relative z-10 p-6 sm:p-7 flex flex-col space-y-4">
+        <div className="relative z-10 p-6 sm:p-7 flex flex-col justify-between gap-4">
           
           {/* Top Bar: Pagination Indicators + Badge */}
           <div className="flex items-center justify-between">
@@ -152,7 +152,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Compact White Bottom Drawer Controls */}
-      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 w-full flex flex-col justify-between shrink-0 space-y-4">
+      <div className="relative z-20 bg-white rounded-[24px] sm:rounded-[28px] w-full flex flex-col justify-between shrink-0 space-y-4">
         
         {/* Verified User Tag & Description */}
         <div className="space-y-1.5">
@@ -172,10 +172,9 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
         <div className="pt-1">
           <button
             onClick={() => onSelectPlan(planType)}
-            className="w-full py-3.5 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 group shadow-lg"
+            className="w-full py-3.5 px-5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm rounded-full transition-all flex items-center justify-center group"
           >
             <span>{plan.buttonText}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
