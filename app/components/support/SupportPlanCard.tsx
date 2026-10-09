@@ -28,7 +28,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     price: "₦500 / month",
     heading: "Stay Connected",
     description:
-      "Your membership helps us keep Bridge Daily running while you continue growing through God's Word every day.",
+      "Support Bridge Daily as you grow in God's Word.",
     buttonText: "Become a Reader",
     heroBgClass: "bg-red-500",
     badgeBgClass: "bg-red-100 text-red-600 border-red-200",
@@ -44,7 +44,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     price: "₦1,000 / month",
     heading: "Help Us Grow",
     description:
-      "You're doing more than reading. You're helping us improve the platform, build new features, and reach more people with God's Word.",
+      "Help us improve and reach more people.",
     buttonText: "Become a Supporter",
     heroBgClass: "bg-blue-500",
     badgeBgClass: "bg-blue-100 text-blue-600 border-blue-200",
@@ -60,7 +60,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     price: "₦1,500 / month",
     heading: "Help Keep the Word Available",
     description:
-      "Your support helps cover the cost of keeping Bridge Daily available to our growing community. You're helping us build something that can reach far beyond us.",
+      "Your support helps cover the cost of keeping Bridge Daily available to our growing community.",
     buttonText: "Become a Sponsor",
     heroBgClass: "bg-purple-600",
     badgeBgClass: "bg-purple-100 text-purple-600 border-purple-200",
