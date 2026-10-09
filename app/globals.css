@@ -68,3 +68,34 @@ body {
 .animate-shake {
   animation: shake 0.4s ease-in-out;
 }
+
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 105s linear infinite;
+}
+
+.animate-marquee-right {
+  animation: marquee-right 105s linear infinite;
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
