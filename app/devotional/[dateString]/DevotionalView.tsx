@@ -320,17 +320,20 @@ dwellSeconds,
   }, []);
 
   
-  // 2. Live Client-Side Date Calculation & Data Association Layer
-      useEffect(() => {
+    // 2. Live Client-Side Date Calculation & Data Association Layer
+  useEffect(() => {
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
 
     const targetDate = urlDateString || formattedToday;
     const matched = allDevotionals.find((d) => d.dateString === targetDate);
+    
+    // Fallback to latest available devotional if target date isn't loaded yet
+    const activeEntry = matched || allDevotionals[allDevotionals.length - 1] || DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-    if (matched) {
-      setCurrentDevotional(matched);
+    if (activeEntry) {
+      setCurrentDevotional(activeEntry);
     }
   }, [allDevotionals, urlDateString]);
 
@@ -926,10 +929,17 @@ dwellSeconds,
      
         {/* Extracted Devotional Calendar Strip Component */}
 <DevotionalCalendarStrip
-  currentDateString={urlDateString || currentDevotional.dateString}
+  currentDateString={urlDateString || currentDevotional?.dateString || todayDateString}
   onSelectDevotional={(devotional) => setCurrentDevotional(devotional)}
-  onDevotionalsLoaded={(loaded) => setAllDevotionals(loaded)}
+  onDevotionalsLoaded={(loaded) => {
+    setAllDevotionals(loaded);
+    // Directly set active devotional if not already set
+    const targetDate = urlDateString || todayDateString;
+    const match = loaded.find((d) => d.dateString === targetDate) || loaded[loaded.length - 1];
+    if (match) setCurrentDevotional(match);
+  }}
 />
+
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle
