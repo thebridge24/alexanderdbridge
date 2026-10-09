@@ -131,8 +131,8 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                 className={`absolute inset-0 w-full h-full ${plan.heroBgClass} rounded-[28px] sm:rounded-[36px] flex flex-col justify-between overflow-hidden text-white shadow-2xl cursor-pointer`}
                 initial={false}
                 animate={{
-                  x: `${offset * 88}%`,
-                  scale: isCurrent ? 0.8 : 0.68,
+                  x: `${offset * 68}%`,
+                  scale: isCurrent ? 0.9 : 0.68,
                   opacity: isCurrent ? 1 : 0.65,
                   zIndex: isCurrent ? 20 : 10,
                 }}
