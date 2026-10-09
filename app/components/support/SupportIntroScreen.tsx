@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Star, Flame, ArrowRight, Heart } from "lucide-react";
 
 export interface TestimonialCardData {
@@ -15,7 +14,7 @@ export interface TestimonialCardData {
 }
 
 interface SupportIntroScreenProps {
-  /** Action handler when user clicks "Next / View Plans" */
+  /** Action handler when user clicks "Continue" */
   onNext: () => void;
   /** Active step index for bottom pagination dots (e.g. 0 for Step 1) */
   currentStep?: number;
@@ -29,7 +28,6 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
   totalSteps = 4,
 }) => {
   const [cards, setCards] = useState<TestimonialCardData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch real data from Surveys, Streaks, and Devotional Comments
   useEffect(() => {
@@ -37,15 +35,14 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
 
     async function loadTestimonialData() {
       try {
-        // 1. Fetch Surveys
-        const surveyRes = await fetch("/api/admin/surveys").catch(() => null);
-        const surveyData = surveyRes && surveyRes.ok ? await surveyRes.json() : { submissions: [] };
+        const [surveyRes, streakRes] = await Promise.all([
+          fetch("/api/admin/surveys").catch(() => null),
+          fetch("/api/admin/users").catch(() => null),
+        ]);
 
-        // 2. Fetch User Streaks
-        const streakRes = await fetch("/api/admin/users").catch(() => null);
+        const surveyData = surveyRes && surveyRes.ok ? await surveyRes.json() : { submissions: [] };
         const streakData = streakRes && streakRes.ok ? await streakRes.json() : { users: [] };
 
-        // 3. Map Surveys to Testimonials
         const streakMap = new Map<string, number>();
         (streakData.users || []).forEach((u: any) => {
           if (u.email) streakMap.set(u.email.toLowerCase(), u.streak_count || u.streak || 0);
@@ -73,7 +70,6 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
           })
           .filter(Boolean);
 
-        // Fallback default cards if database has minimal responses yet
         const fallbackCards: TestimonialCardData[] = [
           {
             id: "fb-1",
@@ -110,13 +106,10 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
         ];
 
         if (isMounted) {
-          const combined = [...formattedSurveyCards, ...fallbackCards];
-          setCards(combined);
+          setCards([...formattedSurveyCards, ...fallbackCards]);
         }
       } catch (err) {
         console.error("Error loading support testimonials:", err);
-      } finally {
-        if (isMounted) setLoading(false);
       }
     }
 
@@ -127,7 +120,6 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
     };
   }, []);
 
-  // Split cards into two rows for marquee infinite scroll
   const row1 = cards.slice(0, Math.ceil(cards.length / 2));
   const row2 = cards.slice(Math.ceil(cards.length / 2));
 
@@ -137,15 +129,15 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
       {/* Background Red Ambient Glow Gradient */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-red-600/15 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Top Header Tag */}
+      {/* Top Tag Header */}
       <div className="relative z-10 pt-8 px-6 text-center">
         <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-950/40 border border-red-900/50 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
           <Heart className="w-3 h-3 fill-red-500 text-red-500" />
-          Support The Word
+          Bridge Daily Community
         </span>
       </div>
 
-      {/* Tilted Marquee Testimonial Visual Container (Reference Style) */}
+      {/* Tilted Marquee Testimonial Visual Container */}
       <div className="relative z-10 my-auto py-4 overflow-hidden -rotate-3 scale-105">
         
         {/* Row 1: Leftward Scroll */}
@@ -162,32 +154,32 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
           ))}
         </div>
 
-        {/* Top & Bottom Fade Overlays */}
+        {/* Side Edge Gradient Overlays */}
         <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
       </div>
 
-      {/* Bottom Description & Call To Action Area */}
+      {/* Bottom Content & Navigation Controls */}
       <div className="relative z-20 bg-gradient-to-t from-black via-black/95 to-transparent pt-8 pb-10 px-6 max-w-md mx-auto w-full text-center space-y-5">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
-            Help Us Keep The Devotional Growing ❤️
+            Support the Work ❤️
           </h1>
           <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-xs mx-auto">
-            Your support ensures daily spiritual nourishment reaches hundreds of believers around the world every day.
+            Bridge Daily is growing, and we're working hard to keep the platform running, improve your daily experience, and reach more people. Your support helps us maintain the platform and keep it free from ads.
           </p>
         </div>
 
-        {/* Action Button */}
+        {/* Continue Button */}
         <button
           onClick={onNext}
           className="w-full py-3.5 px-6 bg-red-600 hover:bg-red-500 text-white font-medium text-sm rounded-2xl shadow-xl shadow-red-950/50 transition-all flex items-center justify-center gap-2 group"
         >
-          <span>See How You Can Support</span>
+          <span>Continue</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
 
-        {/* Step Pagination Dots matched to reference image */}
+        {/* Step Pagination Dots */}
         <div className="flex items-center justify-center gap-2 pt-2">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <div
@@ -206,11 +198,10 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
   );
 };
 
-/* Individual Testimonial Card Component matched to card style */
+/* Testimonial Card Component */
 function TestimonialCard({ card }: { card: TestimonialCardData }) {
   return (
     <div className="w-[260px] sm:w-[280px] bg-neutral-950/90 border border-neutral-800/90 rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3 shrink-0 backdrop-blur-sm">
-      {/* User Avatar, Name & Streak */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {card.avatarUrl ? (
@@ -236,7 +227,6 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
           </div>
         </div>
 
-        {/* Streak Counter Badge */}
         {card.streakCount !== undefined && (
           <div className="flex items-center gap-1 bg-red-950/40 border border-red-900/40 text-red-400 text-[10px] font-mono px-2 py-0.5 rounded-full">
             <Flame className="w-3 h-3 fill-red-500 text-red-500" />
@@ -245,7 +235,6 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
         )}
       </div>
 
-      {/* Quote / Feedback Text */}
       <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-3 italic">
         "{card.feedbackText}"
       </p>
