@@ -1,16 +1,17 @@
+
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   Send,
   Mail,
   Bell,
-  Eye,
+  // Eye,
   Edit3,
   CheckCircle2,
-  Sparkles,
+  // Sparkles,
   Users,
 } from "lucide-react";
 import { getBroadcastEmailHtml } from "@/lib/email/templates/broadcast";
@@ -29,14 +30,14 @@ export default function SurveyBroadcasterModal({
   const [subject, setSubject] = useState(
     "A Special Word from The Bridge Devotional",
   );
-  const [target, setTarget] = useState<"survey_respondents" | "willing" | "all_users">(
-    "survey_respondents",
-  );
+  const [target, setTarget] = useState<
+    "survey_respondents" | "willing" | "all_users"
+  >("survey_respondents");
   const [sendEmail, setSendEmail] = useState(true);
   const [sendPush, setSendPush] = useState(true);
-  const [activeTab, setActiveTab] = useState<"editor" | "email_preview" | "push_preview">(
-    "editor",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "editor" | "email_preview" | "push_preview"
+  >("editor");
 
   // ContentEditable Div text content
   const [rawText, setRawText] = useState(
@@ -51,6 +52,15 @@ export default function SurveyBroadcasterModal({
 
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Initialize the editor only when it becomes visible.
+  // Do not bind rawText as JSX children, because React can rewrite
+  // the editable DOM on every keystroke and move the caret.
+  useEffect(() => {
+    if (isOpen && activeTab === "editor" && editorRef.current) {
+      editorRef.current.innerText = rawText;
+    }
+  }, [isOpen, activeTab]);
+
   // Parse raw text into distinct paragraph strings
   const paragraphs = rawText
     .split(/\n\s*\n|\n/)
@@ -58,21 +68,31 @@ export default function SurveyBroadcasterModal({
     .filter((p) => p.length > 0);
 
   const handleTextChange = (e: React.FormEvent<HTMLDivElement>) => {
-    const text = e.currentTarget.innerText;
-    setRawText(text);
+    setRawText(e.currentTarget.innerText);
   };
 
   const handleBroadcast = async () => {
     if (!subject.trim()) {
-      setResultMessage({ type: "error", text: "Please enter a message subject/title." });
+      setResultMessage({
+        type: "error",
+        text: "Please enter a message subject/title.",
+      });
       return;
     }
+
     if (paragraphs.length === 0) {
-      setResultMessage({ type: "error", text: "Please enter at least one paragraph of text." });
+      setResultMessage({
+        type: "error",
+        text: "Please enter at least one paragraph of text.",
+      });
       return;
     }
+
     if (!sendEmail && !sendPush) {
-      setResultMessage({ type: "error", text: "Please select at least one channel (Email or Push)." });
+      setResultMessage({
+        type: "error",
+        text: "Please select at least one channel (Email or Push).",
+      });
       return;
     }
 
@@ -81,6 +101,7 @@ export default function SurveyBroadcasterModal({
 
     try {
       const channels: string[] = [];
+
       if (sendEmail) channels.push("email");
       if (sendPush) channels.push("push");
 
@@ -98,7 +119,10 @@ export default function SurveyBroadcasterModal({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Broadcast failed");
+
+      if (!res.ok) {
+        throw new Error(data.error || "Broadcast failed");
+      }
 
       setResultMessage({
         type: "success",
@@ -118,7 +142,10 @@ export default function SurveyBroadcasterModal({
 
   const emailHtmlPreview = getBroadcastEmailHtml({
     subject,
-    paragraphs: paragraphs.length > 0 ? paragraphs : ["Your paragraph content will appear here..."],
+    paragraphs:
+      paragraphs.length > 0
+        ? paragraphs
+        : ["Your paragraph content will appear here..."],
     recipientName: "Believer",
     ctaText: "Open Daily Devotional",
     ctaUrl: "https://alexanderdbridge.com/devotional",
@@ -138,7 +165,7 @@ export default function SurveyBroadcasterModal({
           <div className="p-5 sm:p-6 bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="size-11 rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center text-red-500 shadow-inner">
-                <Sparkles className="size-5" />
+                <Send className="size-5" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -230,10 +257,9 @@ export default function SurveyBroadcasterModal({
                     onInput={handleTextChange}
                     suppressContentEditableWarning={true}
                     className="min-h-[160px] max-h-[300px] overflow-y-auto text-sm text-neutral-200 leading-relaxed focus:outline-none whitespace-pre-wrap font-sans"
-                  >
-                    {rawText}
-                  </div>
+                  />
                 </div>
+
                 <p className="text-[11px] text-neutral-500 italic">
                   * Pressing Enter twice creates distinct paragraph blocks. All paragraphs will render formatted cleanly in your email and push notification.
                 </p>
@@ -296,7 +322,9 @@ export default function SurveyBroadcasterModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-neutral-400">
                   <span>Live Rendered Premium Email Template:</span>
-                  <span className="font-mono text-emerald-400 text-[11px]">Resend Compatible HTML</span>
+                  <span className="font-mono text-emerald-400 text-[11px]">
+                    Resend Compatible HTML
+                  </span>
                 </div>
                 <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-2 overflow-hidden max-h-[380px] overflow-y-auto">
                   <iframe
@@ -325,7 +353,9 @@ export default function SurveyBroadcasterModal({
                       <h5 className="text-xs font-bold text-white truncate">
                         {subject || "Notification Title"}
                       </h5>
-                      <span className="text-[10px] text-neutral-400 shrink-0">Just now</span>
+                      <span className="text-[10px] text-neutral-400 shrink-0">
+                        Just now
+                      </span>
                     </div>
                     <p className="text-xs text-neutral-300 mt-1 line-clamp-3 leading-relaxed">
                       {paragraphs[0] || "Your broadcast message will display here..."}
