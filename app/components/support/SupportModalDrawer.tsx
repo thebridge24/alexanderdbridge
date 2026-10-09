@@ -23,139 +23,130 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const handleNextStep = () => {
+  const handleNext = () => {
     if (currentStep < 3) setCurrentStep((prev) => prev + 1);
   };
 
-  const handlePrevStep = () => {
+  const handlePrev = () => {
     if (currentStep > 0) setCurrentStep((prev) => prev - 1);
   };
 
   const handlePlanChoice = (plan: PlanType) => {
     if (onSelectPlan) onSelectPlan(plan);
-    console.log(`User selected support plan: ${plan}`);
     onClose();
+  };
+
+  // Render card based on step index
+  const renderCardContent = (stepIndex: number) => {
+    switch (stepIndex) {
+      case 0:
+        return (
+          <SupportIntroScreen
+            onNext={handleNext}
+            currentStep={0}
+            totalSteps={4}
+          />
+        );
+      case 1:
+        return (
+          <SupportPlanCard
+            planType="reader"
+            userName={userName}
+            onSelectPlan={handlePlanChoice}
+            currentStep={1}
+            totalSteps={4}
+          />
+        );
+      case 2:
+        return (
+          <SupportPlanCard
+            planType="supporter"
+            userName={userName}
+            onSelectPlan={handlePlanChoice}
+            currentStep={2}
+            totalSteps={4}
+          />
+        );
+      case 3:
+        return (
+          <SupportPlanCard
+            planType="sponsor"
+            userName={userName}
+            onSelectPlan={handlePlanChoice}
+            currentStep={3}
+            totalSteps={4}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md overflow-hidden">
         
-        {/* Modal Drawer Container */}
-        <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md h-[100dvh] bg-black overflow-hidden flex flex-col justify-between shadow-2xl"
-        >
-          {/* Top Control Overlay Navigation */}
-          <div className="absolute top-4 inset-x-4 z-30 flex items-center justify-between pointer-events-none">
-            {currentStep > 0 ? (
-              <button
-                onClick={handlePrevStep}
-                aria-label="Previous step"
-                className="p-2 rounded-full bg-black/40 border border-white/20 text-white hover:bg-black/60 transition-colors pointer-events-auto backdrop-blur-md"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            ) : <div />}
-
+        {/* Top Floating Controls */}
+        <div className="absolute top-4 inset-x-4 z-50 flex items-center justify-between max-w-md mx-auto pointer-events-none">
+          {currentStep > 0 ? (
             <button
-              onClick={onClose}
-              aria-label="Close drawer"
-              className="p-2 rounded-full bg-black/40 border border-white/20 text-white hover:bg-black/60 transition-colors pointer-events-auto backdrop-blur-md ml-auto"
+              onClick={handlePrev}
+              aria-label="Previous step"
+              className="p-2.5 rounded-full bg-black/50 border border-white/20 text-white hover:bg-black/80 transition-colors pointer-events-auto backdrop-blur-md shadow-lg"
             >
-              <X className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Swipeable Dynamic Screen Renderer */}
-          <div className="flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait">
-              {currentStep === 0 && (
-                <motion.div
-                  key="step-0"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportIntroScreen
-                    onNext={handleNextStep}
-                    currentStep={0}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-
-              {currentStep === 1 && (
-                <motion.div
-                  key="step-1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportPlanCard
-                    planType="reader"
-                    userName={userName}
-                    onSelectPlan={handlePlanChoice}
-                    currentStep={1}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-
-              {currentStep === 2 && (
-                <motion.div
-                  key="step-2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportPlanCard
-                    planType="supporter"
-                    userName={userName}
-                    onSelectPlan={handlePlanChoice}
-                    currentStep={2}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-
-              {currentStep === 3 && (
-                <motion.div
-                  key="step-3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportPlanCard
-                    planType="sponsor"
-                    userName={userName}
-                    onSelectPlan={handlePlanChoice}
-                    currentStep={3}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Side Chevron Navigation Arrows */}
-          {currentStep < 3 && (
-            <button
-              onClick={handleNextStep}
-              aria-label="Next plan"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/30 text-white/80 hover:text-white hover:bg-black/50 transition-colors backdrop-blur-sm"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+          ) : (
+            <div />
           )}
-        </motion.div>
+
+          <button
+            onClick={onClose}
+            aria-label="Close drawer"
+            className="p-2.5 rounded-full bg-black/50 border border-white/20 text-white hover:bg-black/80 transition-colors pointer-events-auto backdrop-blur-md ml-auto shadow-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Peeking Scale Carousel Container */}
+        <div className="relative w-full max-w-md h-[92dvh] flex items-center justify-center px-6">
+          {[-1, 0, 1].map((offset) => {
+            const stepIndex = currentStep + offset;
+            if (stepIndex < 0 || stepIndex > 3) return null;
+
+            const isCurrent = offset === 0;
+
+            return (
+              <motion.div
+                key={stepIndex}
+                drag={isCurrent ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -60 && currentStep < 3) handleNext();
+                  if (info.offset.x > 60 && currentStep > 0) handlePrev();
+                }}
+                animate={{
+                  x: `${offset * 88}%`,
+                  scale: isCurrent ? 1 : 0.88,
+                  opacity: isCurrent ? 1 : 0.45,
+                  zIndex: isCurrent ? 30 : 10,
+                }}
+                transition={{ type: "spring", stiffness: 260, damping: 28 }}
+                onClick={() => {
+                  if (offset === -1) handlePrev();
+                  if (offset === 1) handleNext();
+                }}
+                className={`absolute w-full h-full rounded-[32px] overflow-hidden shadow-2xl transition-shadow ${
+                  isCurrent ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                }`}
+              >
+                {renderCardContent(stepIndex)}
+              </motion.div>
+            );
+          })}
+        </div>
 
       </div>
     </AnimatePresence>
