@@ -205,7 +205,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Dynamic Bottom Controls */}
-      <div className="relative z-30 bg-white rounded-[24px] sm:rounded-[28px] w-full flex flex-col justify-between shrink-0 space-y-4 pt-4">
+      <div className="relative z-30 bg-white rounded-[24px] sm:rounded-[28px] w-full flex flex-col justify-between shrink-0 space-y-4 pt-4 p-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={activePlan.id}
