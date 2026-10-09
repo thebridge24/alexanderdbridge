@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft } from "lucide-react";
 import { SupportIntroScreen } from "./SupportIntroScreen";
 import { SupportPlanCard, PlanType } from "./SupportPlanCard";
 
@@ -24,11 +24,11 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
   if (!isOpen) return null;
 
   const handleNextStep = () => {
-    if (currentStep < 3) setCurrentStep((prev) => prev + 1);
+    if (currentStep === 0) setCurrentStep(1);
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+    if (currentStep > 0) setCurrentStep(0);
   };
 
   const handlePlanChoice = (plan: PlanType) => {
@@ -40,7 +40,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md">
-        
+
         {/* Modal Drawer Container */}
         <motion.div
           initial={{ y: "100%" }}
@@ -50,7 +50,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
           className="relative w-full max-w-md h-[100dvh] bg-black overflow-hidden flex flex-col justify-between shadow-2xl"
         >
           {/* Top Control Overlay Navigation */}
-          <div className="absolute top-4 inset-x-4 z-30 flex items-center justify-between pointer-events-none">
+          <div className="absolute top-4 inset-x-4 z-40 flex items-center justify-between pointer-events-none">
             {currentStep > 0 ? (
               <button
                 onClick={handlePrevStep}
@@ -70,12 +70,12 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
             </button>
           </div>
 
-          {/* Swipeable Dynamic Screen Renderer */}
+          {/* Screen Renderer */}
           <div className="flex-1 overflow-y-auto">
             <AnimatePresence mode="wait">
-              {currentStep === 0 && (
+              {currentStep === 0 ? (
                 <motion.div
-                  key="step-0"
+                  key="intro-step"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -84,77 +84,28 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                   <SupportIntroScreen
                     onNext={handleNextStep}
                     currentStep={0}
-                    totalSteps={4}
+                    totalSteps={2}
                   />
                 </motion.div>
-              )}
-
-              {currentStep === 1 && (
+              ) : (
                 <motion.div
-                  key="step-1"
+                  key="plan-cards-carousel"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.25 }}
+                  className="h-full"
                 >
                   <SupportPlanCard
-                    planType="reader"
+                    initialPlanType="reader"
                     userName={userName}
                     onSelectPlan={handlePlanChoice}
-                    currentStep={1}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-
-              {currentStep === 2 && (
-                <motion.div
-                  key="step-2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportPlanCard
-                    planType="supporter"
-                    userName={userName}
-                    onSelectPlan={handlePlanChoice}
-                    currentStep={2}
-                    totalSteps={4}
-                  />
-                </motion.div>
-              )}
-
-              {currentStep === 3 && (
-                <motion.div
-                  key="step-3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SupportPlanCard
-                    planType="sponsor"
-                    userName={userName}
-                    onSelectPlan={handlePlanChoice}
-                    currentStep={3}
-                    totalSteps={4}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Side Chevron Navigation Arrows */}
-          {currentStep < 3 && (
-            <button
-              onClick={handleNextStep}
-              aria-label="Next plan"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/30 text-white/80 hover:text-white hover:bg-black/50 transition-colors backdrop-blur-sm"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          )}
         </motion.div>
 
       </div>
