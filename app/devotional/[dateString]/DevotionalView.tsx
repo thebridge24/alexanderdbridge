@@ -774,15 +774,17 @@ dwellSeconds,
   const requiresAuthPrompt = !isAuthLoading && !user;
 
   if (!currentDevotional) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
-  <div className="flex flex-col items-center justify-center space-y-4">
-    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-    <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
-      Loading Devotional...
-    </p>
-  </div>    );
-  }
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
+          Loading Devotional...
+        </p>
+      </div>
+    </div>
+  );
+}
 
   return (
     <motion.div
