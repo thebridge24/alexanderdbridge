@@ -6,6 +6,7 @@ import { sendNotification } from "@/lib/notifications/sender";
 import {
   formatMorningReminderMessage,
   formatStreakSaverMessage,
+  formatStreakStarterMessage,
   formatWinbackMessage,
 } from "@/lib/notifications/messages";
 import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
@@ -14,7 +15,8 @@ import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
  * 5-minute Cron notification dispatcher.
  * Handles:
  * 1. Morning reminder at each user's custom reminder_time (default 05:00) in their local timezone.
- * 2. Evening streak-at-risk alert at 20:00 local time for users who haven't read today's devotional.
+ * 2. Evening nudge from 19:00 local time for users who haven't read today's devotional:
+ *    current-streak reminder if streak >= 1, an enticing "start your streak" message if 0.
  * 3. Weekly win-back notification for inactive users.
  */
 export async function POST(request: NextRequest) {
@@ -158,18 +160,21 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // --- RULE 4: Evening Streak Saver Alert ---
-      // Sent at 20:00 (8:00 PM) local time if user has an active streak (>= 1) and hasn't completed today
+      // --- RULE 4: Evening Streak Nudge ---
+      // Sent from 19:00 (7:00 PM) local time if the user hasn't completed today's devotional.
+      // Streak >= 1: "Current streak: N" saver. Streak 0 / no streak yet: enticing starter message.
       if (
         pref.streak_enabled !== false &&
         pref.last_streak_nudge_date !== localDateStr &&
-        localHour >= 20 &&
+        localHour >= 19 &&
         localHour < 23 &&
-        userStreak &&
-        userStreak.current_streak >= 1 &&
         !isCompletedToday
       ) {
-        const msg = formatStreakSaverMessage(userStreak.current_streak, localDateStr, pref.user_id);
+        const streakCount = userStreak?.current_streak ?? 0;
+        const msg =
+          streakCount >= 1
+            ? formatStreakSaverMessage(streakCount, localDateStr, pref.user_id)
+            : formatStreakStarterMessage(localDateStr, pref.user_id);
 
         const res = await sendNotification({
           userId: pref.user_id,

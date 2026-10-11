@@ -1,7 +1,7 @@
 -- Migration: 014_schedule_notification_cron.sql
 -- Unschedule the old generic daily 6am push and schedule the 5-minute notification dispatcher.
 -- The dispatcher handles individualized morning reminders at each user's chosen time (default 5am),
--- evening streak-at-risk reminders (at 8pm local time), and inactive user win-back notifications.
+-- evening streak reminders (from 7pm local time), and inactive user win-back notifications.
 
 create extension if not exists pg_cron with schema extensions;
 create extension if not exists pg_net with schema extensions;

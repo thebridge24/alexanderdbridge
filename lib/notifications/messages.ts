@@ -80,8 +80,22 @@ export function formatStreakSaverMessage(
 ): DevotionalNotificationPayload {
   return {
     type: "streak",
-    title: "Don't lose your streak! 🔥",
-    body: `You have an active ${currentStreak}-day streak. Spend 5 minutes with today's devotional to keep it going!`,
+    title: `Current streak: ${currentStreak} ${currentStreak === 1 ? "day" : "days"} 🔥`,
+    body: "You haven't read today's devotional yet. Let's keep the momentum going!",
+    link: `/devotional/${devotionalDateString}`,
+    dedupeKey: `streak:${userId}:${devotionalDateString}`,
+  };
+}
+
+/** Evening nudge for users with no active streak (0 days). */
+export function formatStreakStarterMessage(
+  devotionalDateString: string,
+  userId: string,
+): DevotionalNotificationPayload {
+  return {
+    type: "streak",
+    title: "Day 1 starts tonight 🌟",
+    body: "Just 5 minutes with today's devotional starts a streak you'll be proud of. Your first day is one tap away.",
     link: `/devotional/${devotionalDateString}`,
     dedupeKey: `streak:${userId}:${devotionalDateString}`,
   };
