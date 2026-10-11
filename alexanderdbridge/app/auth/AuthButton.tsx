@@ -8,7 +8,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { signInWithGoogle } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
-import { MdVerified } from "react-icons/md";
+import { MdVerified, MdAlarm } from "react-icons/md";
+import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 
 // Helper function to check if the user is verified by email
 const isVerifiedUser = (email?: string): boolean => {
@@ -93,6 +94,8 @@ export default function AuthButton() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [reminderTime, setReminderTime] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -150,6 +153,27 @@ export default function AuthButton() {
 
     await supabase.auth.signOut();
     setIsOpen(false);
+  };
+
+  // Load the user's saved reminder time so the picker opens on it, then show the picker
+  const handleOpenReminder = async () => {
+    setIsOpen(false);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      if (token) {
+        const res = await fetch("/api/notifications/preferences", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.preferences?.reminder_time) setReminderTime(json.preferences.reminder_time);
+        }
+      }
+    } catch {
+      // Fall back to the picker's default time
+    }
+    setIsReminderOpen(true);
   };
 
   if (loading) {
@@ -221,6 +245,14 @@ export default function AuthButton() {
 
             <button
               type="button"
+              onClick={handleOpenReminder}
+              className="w-full py-2.5 px-4 rounded-full text-xs font-semibold bg-white/5 text-neutral-200 hover:bg-white/10 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-neutral-800"
+            >
+              <MdAlarm className="size-4" /> Reminder Time
+            </button>
+
+            <button
+              type="button"
               onClick={handleSignOut}
               className="w-full py-2.5 px-4 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 hover:bg-red-500/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-red-500/20"
             >
@@ -229,6 +261,16 @@ export default function AuthButton() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Rendered outside the blurred dropdown so its fixed overlay covers the whole screen */}
+      <ReminderTimePicker
+        key={reminderTime ?? "default"}
+        isOpen={isReminderOpen}
+        onClose={() => setIsReminderOpen(false)}
+        userId={user.id}
+        initialTime={reminderTime}
+        onSuccess={(saved) => setReminderTime(saved)}
+      />
     </div>
   );
 }
