@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Filter, PieChart as PieIcon, DollarSign } from "lucide-react";
+import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Check } from "lucide-react";
 
 // Mock submission type mirroring survey answers structure
 export interface SurveySubmission {
@@ -120,6 +120,10 @@ export default function SurveySubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Local Storage state for tracking read/processed survey IDs
+  const [readSurveyIds, setReadSurveyIds] = useState<Record<string, boolean>>({});
+
+  // 1. Fetch survey submissions
   useEffect(() => {
     let cancelled = false;
     fetch("/api/admin/surveys")
@@ -134,6 +138,32 @@ export default function SurveySubmissionsPage() {
       cancelled = true;
     };
   }, []);
+
+  // 2. Load checked survey IDs from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("admin_read_surveys");
+      if (saved) {
+        try {
+          setReadSurveyIds(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse read surveys from localStorage", e);
+        }
+      }
+    }
+  }, []);
+
+  // Toggle read status for individual survey ID
+  const toggleSurveyRead = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents row navigation click
+    setReadSurveyIds((prev) => {
+      const updated = { ...prev, [id]: !prev[id] };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("admin_read_surveys", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
 
   // Compute breakdown metrics for Willingness Pie Chart
   const willingnessBreakdown = useMemo(() => {
@@ -180,7 +210,7 @@ export default function SurveySubmissionsPage() {
     ];
   }, [submissions]);
 
-  // Compute breakdown metrics for Agreed Price Pie Chart (500, 800, 1000, 1500, 2000, keep_free)
+  // Compute breakdown metrics for Agreed Price Pie Chart
   const priceBreakdown = useMemo(() => {
     const counts: Record<string, { label: string; count: number; color: string }> = {
       keep_free: { label: "Keep Free", count: 0, color: "#6b7280" },
@@ -242,6 +272,26 @@ export default function SurveySubmissionsPage() {
     const num = Number(amount);
     if (isNaN(num)) return String(amount);
     return `₦${num.toLocaleString()}`;
+  };
+
+  // Format date string with time (e.g. Oct 11, 2026, 08:49 PM)
+  const formatDateTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+
+    const formattedDate = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const formattedTime = d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return { formattedDate, formattedTime };
   };
 
   return (
@@ -433,11 +483,12 @@ export default function SurveySubmissionsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-neutral-800 bg-neutral-900/50 text-[11px] font-mono text-neutral-400 uppercase tracking-wider whitespace-nowrap">
+                  <th className="py-3.5 px-3 text-center w-10">Read</th>
                   <th className="py-3.5 px-4">User</th>
                   <th className="py-3.5 px-4">Rating</th>
                   <th className="py-3.5 px-4">Willingness</th>
                   <th className="py-3.5 px-4">Agreed Price</th>
-                  <th className="py-3.5 px-4 text-right">Date Submitted</th>
+                  <th className="py-3.5 px-4 text-right">Date & Time Submitted</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-900 text-xs">
@@ -449,15 +500,38 @@ export default function SurveySubmissionsPage() {
                       WILLINGNESS_CONFIG[willingnessKey] ||
                       WILLINGNESS_CONFIG.other;
 
+                    const isRead = Boolean(readSurveyIds[sub.id]);
+                    const { formattedDate, formattedTime } = formatDateTime(sub.submittedAt);
+
                     return (
                       <tr
                         key={sub.id}
                         onClick={() => router.push(`/admin/surveys/${sub.id}`)}
-                        className="hover:bg-neutral-900/60 transition-colors cursor-pointer group whitespace-nowrap"
+                        className={`transition-colors cursor-pointer group whitespace-nowrap ${
+                          isRead
+                            ? "bg-neutral-950/40 text-neutral-500 opacity-60 hover:opacity-100 hover:bg-neutral-900/40"
+                            : "hover:bg-neutral-900/60"
+                        }`}
                       >
+                        {/* Checkbox Column */}
+                        <td
+                          className="py-3.5 px-3 text-center"
+                          onClick={(e) => toggleSurveyRead(sub.id, e)}
+                        >
+                          <div
+                            className={`w-4 h-4 mx-auto rounded border flex items-center justify-center transition-all ${
+                              isRead
+                                ? "bg-red-600 border-red-600 text-white"
+                                : "border-neutral-700 bg-neutral-900 hover:border-neutral-500"
+                            }`}
+                          >
+                            {isRead && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                        </td>
+
                         {/* User Info */}
                         <td className="py-3.5 px-4">
-                          <div className="font-medium text-white group-hover:text-red-400 transition-colors">
+                          <div className={`font-medium transition-colors ${isRead ? "line-through text-neutral-400" : "text-white group-hover:text-red-400"}`}>
                             {sub.userName || "Anonymous"}
                           </div>
                           <div className="text-[11px] text-neutral-500">
@@ -487,13 +561,14 @@ export default function SurveySubmissionsPage() {
                           {formatPrice(sub.answers.monthly_amount)}
                         </td>
 
-                        {/* Date Submitted */}
-                        <td className="py-3.5 px-4 text-right text-neutral-400 font-mono text-[11px]">
-                          {new Date(sub.submittedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                        {/* Date & Time Submitted */}
+                        <td className="py-3.5 px-4 text-right font-mono text-[11px]">
+                          <div className="text-neutral-300 font-medium">
+                            {formattedDate}
+                          </div>
+                          <div className="text-[10px] text-neutral-500">
+                            {formattedTime}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -501,7 +576,7 @@ export default function SurveySubmissionsPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="py-8 text-center text-neutral-500 text-xs whitespace-nowrap"
                     >
                       No survey responses found matching your filter.
