@@ -166,8 +166,8 @@ dwellSeconds,
     };
   }, []);
 
-  const [devotionalsList, setDevotionalsList] =
-    useState<Devotional[]>(DEVOTIONALS_DATA);
+  // Starts empty so the loader shows until the API responds (no flash of hardcoded content)
+  const [devotionalsList, setDevotionalsList] = useState<Devotional[]>([]);
   const [currentDevotional, setCurrentDevotional] = useState<Devotional | null>(
     null,
   );
@@ -325,11 +325,14 @@ dwellSeconds,
           const data = await res.json();
           if (data.devotionals && data.devotionals.length > 0) {
             setDevotionalsList(data.devotionals);
+            return;
           }
         }
       } catch (err) {
         console.error("Error loading devotionals:", err);
       }
+      // Offline fallback only: use bundled data if the API failed or returned nothing
+      setDevotionalsList(DEVOTIONALS_DATA);
     }
     fetchDevotionals();
   }, []);
@@ -339,6 +342,8 @@ dwellSeconds,
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     setTodayDateString(formattedToday);
+
+    if (devotionalsList.length === 0) return;
 
     const targetDate = urlDateString || formattedToday;
     const matched = devotionalsList.find((d) => d.dateString === targetDate);

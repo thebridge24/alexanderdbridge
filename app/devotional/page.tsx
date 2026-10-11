@@ -2,11 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function DevotionalRedirectPage() {
-  const router = useRouter();
   const [statusMessage, setStatusMessage] = useState("Authenticating...");
 
   useEffect(() => {
@@ -34,7 +32,8 @@ export default function DevotionalRedirectPage() {
       ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
       // Redirect immediately to today's date path
-      router.replace(`/devotional/${todayString}`);
+      // Full page load so a stale cached build can't mismatch the server after a deploy
+      window.location.replace(`/devotional/${todayString}`);
     }
 
     handleAuthAndRedirect();
@@ -42,7 +41,7 @@ export default function DevotionalRedirectPage() {
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center p-4">
