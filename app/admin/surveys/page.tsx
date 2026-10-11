@@ -274,10 +274,12 @@ export default function SurveySubmissionsPage() {
     return `₦${num.toLocaleString()}`;
   };
 
-  // Format date string with time (e.g. Oct 11, 2026, 08:49 PM)
+    // Format date string with time (e.g. Oct 11, 2026, 08:49 PM)
   const formatDateTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    if (isNaN(d.getTime())) {
+      return { formattedDate: dateStr, formattedTime: "" };
+    }
 
     const formattedDate = d.toLocaleDateString("en-US", {
       month: "short",
