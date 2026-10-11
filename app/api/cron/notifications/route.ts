@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
         const parts = dtf.formatToParts(nowUtc);
         const getPart = (type: string) => parts.find((p) => p.type === type)?.value || "";
         localDateStr = `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
-        localHour = parseInt(getPart("hour"), 10) || 0;
+        // Some runtimes format midnight as "24" with hour12:false
+        localHour = (parseInt(getPart("hour"), 10) || 0) % 24;
         localMinute = parseInt(getPart("minute"), 10) || 0;
       } catch {
         // Fallback to UTC if timezone string is invalid
@@ -253,3 +254,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
   }
 }
+
+// Schedulers like Vercel Cron and most external cron services call with GET
+export { POST as GET };
