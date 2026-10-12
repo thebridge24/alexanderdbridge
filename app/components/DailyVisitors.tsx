@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoEyeOutline } from 'react-icons/io5';
-import { MdVerified } from 'react-icons/md';
+import { VerifiedBadge } from '@/app/components/VerifiedBadge';
 
 interface Visitor {
   id: string;
@@ -17,21 +17,6 @@ interface Visitor {
 interface DailyVisitorsProps {
   devotionalDate: string;
 }
-
-// Helper function to check if the visitor name is verified
-const isVerifiedUser = (name: string): boolean => {
-  if (!name) return false;
-
-  const cleanName = name.trim().toLowerCase();
-
-  return (
-    cleanName === 'alexander christ' ||
-    cleanName === 'alexander d bridge' ||
-    cleanName === 'edith maduku' ||
-    cleanName === 'john edheke' ||
-    cleanName === 'binah charles-agidigbi'
-  );
-};
 
 function VisitorAvatar({ visitor }: { visitor: Visitor }) {
   const [imgError, setImgError] = useState(false);
@@ -50,7 +35,6 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
   };
 
   const name = visitor.display_name || 'Believer';
-  const isVerified = isVerifiedUser(name);
 
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0">
@@ -72,12 +56,7 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 min-w-0">
           <p className="text-xs font-semibold text-neutral-200 truncate">{name}</p>
-          {isVerified && (
-            <MdVerified
-              className="w-3.5 h-3.5 text-blue-500 shrink-0 inline-block"
-              title="Verified User"
-            />
-          )}
+          <VerifiedBadge name={name} size="xs" />
         </div>
         <p className="text-[10px] text-neutral-500">{formatTime(visitor.visited_at)}</p>
       </div>

@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa6";
-import { MdVerified } from "react-icons/md";
+import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
 export interface Reply {
   id: string;
@@ -36,32 +36,6 @@ interface CommentItemProps {
   isHighlighted?: boolean;
 }
 
-// Helper function to check if the user is verified
-const isVerifiedUser = (name: string): boolean => {
-  if (!name) return false;
-
-  const cleanName = name.trim().toLowerCase();
-
-  return (
-    cleanName === "alexander christ" ||
-    cleanName === "alexander d bridge" ||
-    cleanName === "edith maduku" ||
-    cleanName === "john edheke" ||
-    cleanName === "binah charles-agidigbi"
-  );
-};
-
-// Verified Badge Icon Component
-const VerifiedBadge: React.FC<{ name: string }> = ({ name }) => {
-  if (!isVerifiedUser(name)) return null;
-
-  return (
-    <MdVerified
-      className="w-3.5 h-3.5 text-blue-500 inline-block shrink-0"
-      title="Verified User"
-    />
-  );
-};
 
 // Helper Avatar Component with image error fallback to first letter
 const CommentAvatar: React.FC<{

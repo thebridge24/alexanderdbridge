@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-import { Resend } from "resend";
+import { sendMultipleEmails, getSendByteApiKey, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import {
   getBroadcastEmailHtml,
   getBroadcastEmailText,
@@ -108,17 +108,14 @@ export async function POST(request: NextRequest) {
     let pushSentCount = 0;
     let emailError: string | null = null;
 
-    // 1. Send Bulk Emails via Resend if email channel requested
+    // 1. Send Bulk Emails via SendByte if email channel requested
     if (channels.includes("email")) {
       if (emailList.length === 0) {
         emailError = "No recipient email addresses found for the selected audience.";
       } else {
-        const apiKey = process.env.RESEND_API_KEY;
+        const apiKey = getSendByteApiKey();
         if (apiKey) {
-          const resend = new Resend(apiKey);
-          const fromEmail =
-            process.env.RESEND_FROM_EMAIL ||
-            "Alexander D. Bridge <devotional@alexanderdbridge.com>";
+          const fromEmail = getDefaultFromEmail();
 
           const htmlContent = getBroadcastEmailHtml({
             subject: cleanSubject,
@@ -134,43 +131,19 @@ export async function POST(request: NextRequest) {
             ctaUrl: cleanCtaUrl,
           });
 
-          // Send emails in batches to optimize throughput while respecting provider rate limits
-          const BATCH_SIZE = 5;
-          const failedEmails: string[] = [];
-          const errorDetails: string[] = [];
+          const result = await sendMultipleEmails(emailList, {
+            from: fromEmail,
+            subject: cleanSubject,
+            html: htmlContent,
+            text: textContent,
+          });
 
-          for (let i = 0; i < emailList.length; i += BATCH_SIZE) {
-            const batch = emailList.slice(i, i + BATCH_SIZE);
-            await Promise.all(
-              batch.map(async (email) => {
-                try {
-                  const res = await resend.emails.send({
-                    from: fromEmail,
-                    to: [email],
-                    subject: cleanSubject,
-                    html: htmlContent,
-                    text: textContent,
-                  });
-                  if (res.data?.id) {
-                    emailsSentCount++;
-                  } else if (res.error) {
-                    failedEmails.push(email);
-                    errorDetails.push(`${email}: ${res.error.message || JSON.stringify(res.error)}`);
-                  }
-                } catch (e: any) {
-                  console.error(`Failed to send email to ${email}:`, e);
-                  failedEmails.push(email);
-                  errorDetails.push(`${email}: ${e.message || "Failed"}`);
-                }
-              }),
-            );
-          }
-
-          if (failedEmails.length > 0) {
-            emailError = `Delivered to ${emailsSentCount} recipients; failed for ${failedEmails.length} addresses. Details: ${errorDetails[0] || "Unknown Resend error"}`;
+          emailsSentCount = result.sentCount;
+          if (result.failedCount > 0) {
+            emailError = `Delivered to ${result.sentCount} recipients; failed for ${result.failedCount} addresses. Details: ${result.errors[0]?.error || "Unknown SendByte delivery error"}`;
           }
         } else {
-          emailError = "RESEND_API_KEY environment variable is not configured on the server.";
+          emailError = "SENDBYTE_API_KEY environment variable is not configured on the server.";
         }
       }
     }

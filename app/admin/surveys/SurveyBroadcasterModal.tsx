@@ -306,7 +306,7 @@ export default function SurveyBroadcasterModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-neutral-400 gap-2">
                   <span>Live Rendered Premium Email Template:</span>
-                  <span className="font-mono text-emerald-400 text-[11px] shrink-0">Resend HTML</span>
+                  <span className="font-mono text-emerald-400 text-[11px] shrink-0">SendByte HTML</span>
                 </div>
                 <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-2 overflow-hidden">
                   <iframe

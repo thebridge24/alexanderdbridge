@@ -8,24 +8,10 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { signInWithGoogle } from "@/lib/utils/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
-import { MdVerified, MdAlarm } from "react-icons/md";
+import { MdAlarm } from "react-icons/md";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
-
-// Helper function to check if the user is verified by email
-const isVerifiedUser = (email?: string): boolean => {
-  if (!email) return false;
-  const cleanEmail = email.trim().toLowerCase();
-  
-  const VERIFIED_EMAILS = [
-  "alexanderchrist203@gmail.com",
-  "alexanderdbridge@gmail.com",
-  "binahcharlesagidigbi@gmail.com",
-  "johnedheke@gmail.com",
-  "madukuedith@gmail.com",
-];
-
-  return VERIFIED_EMAILS.includes(cleanEmail);
-};
+import { VerifiedBadge } from "@/app/components/VerifiedBadge";
+import { getUserVerificationTier } from "@/lib/utils/verification";
 
 // Component to handle loading states, error fallbacks, and URL caching
 function UserAvatar({
@@ -196,7 +182,11 @@ export default function AuthButton() {
 
   const avatarUrl = user.user_metadata?.avatar_url;
   const fullName = user.user_metadata?.full_name ?? user.email;
-  const verified = isVerifiedUser(user.email);
+  const tier = getUserVerificationTier({
+    metadata: user.user_metadata,
+    email: user.email,
+    name: user.user_metadata?.full_name,
+  });
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -209,9 +199,9 @@ export default function AuthButton() {
         <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-full" />
         
         {/* Bottom-right verified badge overlay */}
-        {verified && (
+        {tier && (
           <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
-            <MdVerified className="size-3.5 text-blue-500" />
+            <VerifiedBadge tier={tier} size="xs" />
           </div>
         )}
       </button>
@@ -228,16 +218,16 @@ export default function AuthButton() {
             <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/80">
               <div className="relative shrink-0">
                 <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-10" />
-                {verified && (
+                {tier && (
                   <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
-                    <MdVerified className="size-3 text-blue-500" />
+                    <VerifiedBadge tier={tier} size="xs" />
                   </div>
                 )}
               </div>
               <div className="flex flex-col truncate min-w-0">
-                <div className="flex items-center gap-1 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs font-bold text-white truncate">{fullName}</span>
-                  {verified && <MdVerified className="size-3.5 text-blue-500 shrink-0" />}
+                  {tier && <VerifiedBadge tier={tier} size="xs" />}
                 </div>
                 <span className="text-[11px] text-neutral-500 truncate">{user.email}</span>
               </div>

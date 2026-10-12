@@ -6,7 +6,7 @@ import { IoClose, IoLockClosed } from "react-icons/io5";
 import { StreakData, MILESTONE_MEDALS } from "../../lib/types/streak";
 import StreakMiniCalendar from "./StreakMiniCalendar";
 import React from "react";
-import { MdVerified } from "react-icons/md";
+import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
 interface Props {
   isOpen: boolean;
@@ -15,31 +15,6 @@ interface Props {
   userName?: string;
   onSelectMedalToPreview?: (medalId: string) => void;
 }
-  // Helper function to check if the user is verified
-  const isVerifiedUser = (userName: string): boolean => {
-  if (!userName) return false;
-
-  const cleanName = userName.trim().toLowerCase();
-
-  return (
-    cleanName === "alexander christ" ||
-    cleanName === "alexander d bridge" ||
-    cleanName === "edith maduku" ||
-    cleanName === "john edheke" ||
-    cleanName === "binah charles-agidigbi"
-  );
-};
-  // Verified Badge Icon Component
-  const VerifiedBadge: React.FC<{ userName: string }> = ({ userName }) => {
-    if (!isVerifiedUser(userName)) return null;
-
-    return (
-      <MdVerified
-        className="w-3.5 h-3.5 text-blue-500 inline-block shrink-0"
-        title="Verified User"
-      />
-    );
-  };
 
 export default function StreakDrawer({
   isOpen,
@@ -214,9 +189,9 @@ export default function StreakDrawer({
                     Day Streak
                   </h2>
                   <p className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
-                   <div className="flex gap-1">
+                   <div className="flex gap-1 items-center">
                     {userName}
-                    <VerifiedBadge userName={userName} />
+                    <VerifiedBadge name={userName} size="xs" />
                     </div> 
                     <span className="text-[#ff0000]">{currentRankTitle}</span>
                   </p>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-import { sendWelcomeEmail } from "@/lib/email/resend";
+import { sendWelcomeEmail } from "@/lib/email/sendbyte";
 import { getAuthRedirectUrl } from "@/lib/utils/auth";
 
 export async function POST(request: NextRequest) {
