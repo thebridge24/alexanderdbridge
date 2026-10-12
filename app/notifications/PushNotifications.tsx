@@ -12,6 +12,7 @@ import { BsCheck2All } from "react-icons/bs";
 import { FirstNotifications } from "@/app/data/notifications";
 import { formatRelativeTime } from "@/lib/utils/date";
 import { playNotificationSound, playAlarmSound, stopAlarmSound } from "@/lib/utils/sound";
+import NotificationPromptModal from "@/app/components/notifications/NotificationPromptModal";
 
 export interface NotificationItem {
   id: string;
