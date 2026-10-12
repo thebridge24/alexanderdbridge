@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SupportIntroScreen } from "./SupportIntroScreen";
 import { SupportPlanCard, PlanType, BillingCycle, PLAN_CONFIGS } from "./SupportPlanCard";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
-import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Loader2, AlertCircle, Mail, CreditCard } from "lucide-react";
 
 interface SupportModalDrawerProps {
   isOpen: boolean;
@@ -27,6 +27,14 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
   const [subscribedPlan, setSubscribedPlan] = useState<PlanType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Email collection state for unauthenticated users
+  const [showEmailPrompt, setShowEmailPrompt] = useState<boolean>(false);
+  const [manualEmail, setManualEmail] = useState<string>("");
+  const [pendingSelection, setPendingSelection] = useState<{
+    plan: PlanType;
+    billingCycle: BillingCycle;
+  } | null>(null);
 
   // Retrieve logged-in Supabase user if available
   useEffect(() => {
@@ -58,15 +66,27 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
     userName;
 
   /**
-   * Internal Self-Contained Subscription API Handler
-   * Anywhere this drawer is invoked, choosing a plan persists directly to the backend.
+   * Internal Self-Contained Paystack Subscription API Handler
+   * Anywhere this drawer is called, choosing a plan initializes Paystack payment.
    */
   const handlePlanChoice = async (
     plan: PlanType,
     billingCycle: BillingCycle = "monthly",
+    overrideEmail?: string,
   ) => {
+    const userEmail =
+      overrideEmail || currentUser?.email || manualEmail.trim();
+
+    // If user is not logged in and hasn't given an email, prompt for email first
+    if (!userEmail || !userEmail.includes("@")) {
+      setPendingSelection({ plan, billingCycle });
+      setShowEmailPrompt(true);
+      return;
+    }
+
     setIsSubscribing(true);
     setErrorMessage(null);
+    setShowEmailPrompt(false);
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -84,40 +104,83 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
         headers["Authorization"] = `Bearer ${accessToken}`;
       }
 
-      const res = await fetch("/api/support/subscribe", {
+      // 1. Initialize Paystack Transaction
+      const paystackRes = await fetch("/api/support/paystack/initialize", {
         method: "POST",
         headers,
         body: JSON.stringify({
           plan,
           billingCycle,
-          email: currentUser?.email,
+          email: userEmail,
           name: effectiveUserName,
         }),
       });
 
-      const data = await res.json().catch(() => null);
+      const paystackData = await paystackRes.json().catch(() => null);
 
-      if (!res.ok) {
-        throw new Error(data?.error || `Subscription failed with status ${res.status}`);
+      // If Paystack successfully provided a checkout authorization URL, redirect to Paystack
+      if (paystackRes.ok && paystackData?.authorizationUrl) {
+        window.location.href = paystackData.authorizationUrl;
+        return;
       }
 
-      // Success
-      setSubscribedPlan(plan);
-      setIsSuccess(true);
+      // If PAYSTACK_SECRET_KEY is not configured yet on the server, fall back to direct subscription
+      if (paystackData?.isPaystackConfigured === false) {
+        const directRes = await fetch("/api/support/subscribe", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            plan,
+            billingCycle,
+            email: userEmail,
+            name: effectiveUserName,
+          }),
+        });
 
-      if (onSelectPlan) {
-        onSelectPlan(plan, billingCycle);
+        const directData = await directRes.json().catch(() => null);
+
+        if (!directRes.ok) {
+          throw new Error(directData?.error || "Subscription failed");
+        }
+
+        setSubscribedPlan(plan);
+        setIsSuccess(true);
+
+        if (onSelectPlan) {
+          onSelectPlan(plan, billingCycle);
+        }
+
+        if (supabase && accessToken) {
+          supabase.auth.refreshSession().catch(() => {});
+        }
+        return;
       }
 
-      // Refresh auth user session if available to pick up updated user_metadata
-      if (supabase && accessToken) {
-        supabase.auth.refreshSession().catch(() => {});
-      }
+      throw new Error(
+        paystackData?.error || "Failed to initialize payment with Paystack.",
+      );
     } catch (err: any) {
-      console.error("Support subscription error:", err);
-      setErrorMessage(err?.message || "Failed to process subscription. Please try again.");
+      console.error("Support payment error:", err);
+      setErrorMessage(
+        err?.message || "Failed to process payment. Please try again.",
+      );
     } finally {
       setIsSubscribing(false);
+    }
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualEmail.includes("@")) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+    if (pendingSelection) {
+      handlePlanChoice(
+        pendingSelection.plan,
+        pendingSelection.billingCycle,
+        manualEmail.trim(),
+      );
     }
   };
 
@@ -125,6 +188,8 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
     setIsSuccess(false);
     setSubscribedPlan(null);
     setErrorMessage(null);
+    setShowEmailPrompt(false);
+    setPendingSelection(null);
     setCurrentStep(0);
     onClose();
   };
@@ -242,8 +307,55 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                   <SupportPlanCard
                     initialPlanType="reader"
                     userName={effectiveUserName}
-                    onSelectPlan={handlePlanChoice}
+                    onSelectPlan={(plan, cycle) => handlePlanChoice(plan, cycle)}
                   />
+
+                  {/* Email Prompt Modal for Unauthenticated Users */}
+                  {showEmailPrompt && (
+                    <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4">
+                      <div className="size-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500">
+                        <CreditCard className="size-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-base font-bold text-white">
+                          Paystack Checkout
+                        </h4>
+                        <p className="text-xs text-neutral-400 max-w-xs">
+                          Enter your email to receive payment receipts and activate your verified badge.
+                        </p>
+                      </div>
+
+                      <form onSubmit={handleEmailSubmit} className="w-full max-w-xs space-y-3">
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3.5 size-4 text-neutral-500" />
+                          <input
+                            type="email"
+                            required
+                            placeholder="your.email@example.com"
+                            value={manualEmail}
+                            onChange={(e) => setManualEmail(e.target.value)}
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-3 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowEmailPrompt(false)}
+                            className="flex-1 py-3 rounded-xl border border-neutral-800 text-xs font-semibold text-neutral-400 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg shadow-red-950/50"
+                          >
+                            Pay with Paystack
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
 
                   {/* Error Toast Notification if API fails */}
                   {errorMessage && (
@@ -261,10 +373,10 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
 
                   {/* Subscribing Loading Overlay */}
                   {isSubscribing && (
-                    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-3">
+                    <div className="absolute inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center space-y-3">
                       <Loader2 className="size-8 text-red-500 animate-spin" />
                       <p className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
-                        Processing Subscription...
+                        Connecting to Paystack...
                       </p>
                     </div>
                   )}
