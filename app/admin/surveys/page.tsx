@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Sparkles, Download } from "lucide-react";
+import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Download, Check } from "lucide-react";
 
 import AdminPinGuard from "../AdminPinGuard";
 import SurveyBroadcasterModal from "./SurveyBroadcasterModal";
@@ -124,6 +124,9 @@ export default function SurveySubmissionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isBroadcasterOpen, setIsBroadcasterOpen] = useState(false);
 
+  // Local Storage state for tracking read/processed survey IDs
+  const [readSurveyIds, setReadSurveyIds] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     let cancelled = false;
     fetch("/api/admin/surveys")
@@ -138,6 +141,32 @@ export default function SurveySubmissionsPage() {
       cancelled = true;
     };
   }, []);
+
+  // Load checked survey IDs from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("admin_read_surveys");
+      if (saved) {
+        try {
+          setReadSurveyIds(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse read surveys from localStorage", e);
+        }
+      }
+    }
+  }, []);
+
+  // Toggle read status for individual survey ID
+  const toggleSurveyRead = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents row navigation click
+    setReadSurveyIds((prev) => {
+      const updated = { ...prev, [id]: !prev[id] };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("admin_read_surveys", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
 
   // Compute breakdown metrics for Willingness Pie Chart
   const willingnessBreakdown = useMemo(() => {
@@ -184,7 +213,7 @@ export default function SurveySubmissionsPage() {
     ];
   }, [submissions]);
 
-  // Compute breakdown metrics for Agreed Price Pie Chart (500, 800, 1000, 1500, 2000, keep_free)
+  // Compute breakdown metrics for Agreed Price Pie Chart
   const priceBreakdown = useMemo(() => {
     const counts: Record<string, { label: string; count: number; color: string }> = {
       keep_free: { label: "Keep Free", count: 0, color: "#6b7280" },
@@ -248,6 +277,28 @@ export default function SurveySubmissionsPage() {
     return `₦${num.toLocaleString()}`;
   };
 
+  // Format date string with time (e.g. Oct 11, 2026, 08:49 PM)
+  const formatDateTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      return { formattedDate: dateStr, formattedTime: "" };
+    }
+
+    const formattedDate = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const formattedTime = d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return { formattedDate, formattedTime };
+  };
+
   const handleExportCSV = () => {
     if (!submissions.length) return;
     const headers = [
@@ -288,7 +339,6 @@ export default function SurveySubmissionsPage() {
     document.body.removeChild(link);
   };
 
-
   return (
     <AdminPinGuard>
       <div className="min-h-screen bg-black text-white p-4 sm:p-8">
@@ -326,7 +376,6 @@ export default function SurveySubmissionsPage() {
                 <Send className="w-3.5 h-3.5" /> Broadcast Bulk Message
               </button>
 
-
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-center">
                 <span className="text-[10px] font-mono text-neutral-500 uppercase block">
                   Total Feedback
@@ -344,247 +393,270 @@ export default function SurveySubmissionsPage() {
             </div>
           </div>
 
-        {loading && <p className="text-sm text-neutral-500">Loading responses...</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
+          {loading && <p className="text-sm text-neutral-500">Loading responses...</p>}
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
-        {/* Analytics Charts Grid */}
-        {!loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            {/* 1. Willingness Decision Chart */}
-            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
-                <div className="flex items-center gap-2">
-                  <PieIcon className="w-4 h-4 text-red-500" />
-                  <h2 className="text-xs font-bold tracking-wide uppercase text-white">
-                    Membership Willingness
-                  </h2>
+          {/* Analytics Charts Grid */}
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* 1. Willingness Decision Chart */}
+              <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+                <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
+                  <div className="flex items-center gap-2">
+                    <PieIcon className="w-4 h-4 text-red-500" />
+                    <h2 className="text-xs font-bold tracking-wide uppercase text-white">
+                      Membership Willingness
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-500">
+                    User Intent
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  User Intent
-                </span>
+
+                <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
+                  <CustomPieChart data={willingnessBreakdown} total={totalSubmissions} centerLabel="Users" />
+
+                  <div className="grid grid-cols-1 gap-2 w-full">
+                    {willingnessBreakdown.map((item) => {
+                      const percentage = totalSubmissions
+                        ? Math.round((item.count / totalSubmissions) * 100)
+                        : 0;
+
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2.5"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="text-xs text-neutral-300 font-medium">
+                              {item.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-mono">
+                            <span className="text-xs font-bold text-white">
+                              {item.count}
+                            </span>
+                            <span className="text-[10px] text-neutral-500">
+                              ({percentage}%)
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
-                <CustomPieChart data={willingnessBreakdown} total={totalSubmissions} centerLabel="Users" />
+              {/* 2. Agreed Price Distribution Chart */}
+              <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+                <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-500" />
+                    <h2 className="text-xs font-bold tracking-wide uppercase text-white">
+                      Agreed Monthly Price
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-mono text-neutral-500">
+                    Pricing Tiers
+                  </span>
+                </div>
 
-                <div className="grid grid-cols-1 gap-2 w-full">
-                  {willingnessBreakdown.map((item) => {
-                    const percentage = totalSubmissions
-                      ? Math.round((item.count / totalSubmissions) * 100)
-                      : 0;
+                <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
+                  <CustomPieChart data={priceBreakdown} total={totalSubmissions} centerLabel="Priced" />
 
-                    return (
-                      <div
-                        key={item.key}
-                        className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2.5"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="text-xs text-neutral-300 font-medium">
-                            {item.label}
-                          </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                    {priceBreakdown.map((item) => {
+                      const percentage = totalSubmissions
+                        ? Math.round((item.count / totalSubmissions) * 100)
+                        : 0;
+
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2"
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="text-[11px] text-neutral-300 font-medium truncate">
+                              {item.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 font-mono shrink-0">
+                            <span className="text-xs font-bold text-white">
+                              {item.count}
+                            </span>
+                            <span className="text-[9px] text-neutral-500">
+                              ({percentage}%)
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-xs font-bold text-white">
-                            {item.count}
-                          </span>
-                          <span className="text-[10px] text-neutral-500">
-                            ({percentage}%)
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* 2. Agreed Price Distribution Chart */}
-            <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-500" />
-                  <h2 className="text-xs font-bold tracking-wide uppercase text-white">
-                    Agreed Monthly Price
-                  </h2>
-                </div>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  Pricing Tiers
-                </span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
-                <CustomPieChart data={priceBreakdown} total={totalSubmissions} centerLabel="Priced" />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-                  {priceBreakdown.map((item) => {
-                    const percentage = totalSubmissions
-                      ? Math.round((item.count / totalSubmissions) * 100)
-                      : 0;
-
-                    return (
-                      <div
-                        key={item.key}
-                        className="flex items-center justify-between bg-neutral-900/60 border border-neutral-800/80 rounded-xl p-2"
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="text-[11px] text-neutral-300 font-medium truncate">
-                            {item.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 font-mono shrink-0">
-                          <span className="text-xs font-bold text-white">
-                            {item.count}
-                          </span>
-                          <span className="text-[9px] text-neutral-500">
-                            ({percentage}%)
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+          {/* Filter Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Search Box */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search user, email, or ID..."
+                className="w-full bg-neutral-900 border border-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 outline-none transition-all"
+              />
             </div>
 
+            {/* Rating Filter Dropdown */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-3.5 h-3.5 text-neutral-500" />
+              <span className="text-xs text-neutral-400">Rating:</span>
+              <select
+                value={ratingFilter}
+                onChange={(e) => setRatingFilter(e.target.value)}
+                className="bg-neutral-900 border border-neutral-800 focus:border-red-600 text-xs rounded-xl px-3 py-2 text-neutral-300 outline-none transition-all"
+              >
+                <option value="all">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+            </div>
           </div>
-        )}
 
-        {/* Filter Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search user, email, or ID..."
-              className="w-full bg-neutral-900 border border-neutral-800 focus:border-red-600 focus:ring-1 focus:ring-red-600 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 outline-none transition-all"
-            />
-          </div>
-
-          {/* Rating Filter Dropdown */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-3.5 h-3.5 text-neutral-500" />
-            <span className="text-xs text-neutral-400">Rating:</span>
-            <select
-              value={ratingFilter}
-              onChange={(e) => setRatingFilter(e.target.value)}
-              className="bg-neutral-900 border border-neutral-800 focus:border-red-600 text-xs rounded-xl px-3 py-2 text-neutral-300 outline-none transition-all"
-            >
-              <option value="all">All Ratings</option>
-              <option value="5">5 Stars</option>
-              <option value="4">4 Stars</option>
-              <option value="3">3 Stars</option>
-              <option value="2">2 Stars</option>
-              <option value="1">1 Star</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Submissions Table */}
-        <div className="bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-900/50 text-[11px] font-mono text-neutral-400 uppercase tracking-wider whitespace-nowrap">
-                  <th className="py-3.5 px-4">User</th>
-                  <th className="py-3.5 px-4">Rating</th>
-                  <th className="py-3.5 px-4">Willingness</th>
-                  <th className="py-3.5 px-4">Agreed Price</th>
-                  <th className="py-3.5 px-4 text-right">Date Submitted</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-900 text-xs">
-                {filteredSubmissions.length > 0 ? (
-                  filteredSubmissions.map((sub) => {
-                    const willingnessKey =
-                      sub.answers?.membership_willingness || "other";
-                    const config =
-                      WILLINGNESS_CONFIG[willingnessKey] ||
-                      WILLINGNESS_CONFIG.other;
-
-                    return (
-                      <tr
-                        key={sub.id}
-                        onClick={() => router.push(`/admin/surveys/${sub.id}`)}
-                        className="hover:bg-neutral-900/60 transition-colors cursor-pointer group whitespace-nowrap"
-                      >
-                        {/* User Info */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-medium text-white group-hover:text-red-400 transition-colors">
-                            {sub.userName || "Anonymous"}
-                          </div>
-                          <div className="text-[11px] text-neutral-500">
-                            {sub.userEmail || sub.id}
-                          </div>
-                        </td>
-
-                        {/* Overall Rating */}
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1 font-semibold text-white">
-                            <span>{sub.overallRating}</span>
-                            <Star className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-                          </div>
-                        </td>
-
-                        {/* Support Willingness */}
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-mono capitalize border ${config.badgeClass}`}
-                          >
-                            {config.label}
-                          </span>
-                        </td>
-
-                        {/* Agreed Price */}
-                        <td className="py-3.5 px-4 font-mono text-neutral-200">
-                          {formatPrice(sub.answers.monthly_amount)}
-                        </td>
-
-                        {/* Date Submitted */}
-                        <td className="py-3.5 px-4 text-right text-neutral-400 font-mono text-[11px]">
-                          {new Date(sub.submittedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="py-8 text-center text-neutral-500 text-xs whitespace-nowrap"
-                    >
-                      No survey responses found matching your filter.
-                    </td>
+          {/* Submissions Table */}
+          <div className="bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-800 bg-neutral-900/50 text-[11px] font-mono text-neutral-400 uppercase tracking-wider whitespace-nowrap">
+                    <th className="py-3.5 px-3 text-center w-10">Read</th>
+                    <th className="py-3.5 px-4">User</th>
+                    <th className="py-3.5 px-4">Rating</th>
+                    <th className="py-3.5 px-4">Willingness</th>
+                    <th className="py-3.5 px-4">Agreed Price</th>
+                    <th className="py-3.5 px-4 text-right">Date & Time Submitted</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-neutral-900 text-xs">
+                  {filteredSubmissions.length > 0 ? (
+                    filteredSubmissions.map((sub) => {
+                      const willingnessKey =
+                        sub.answers?.membership_willingness || "other";
+                      const config =
+                        WILLINGNESS_CONFIG[willingnessKey] ||
+                        WILLINGNESS_CONFIG.other;
 
-        {/* Survey Broadcaster Modal */}
-        <SurveyBroadcasterModal
-          isOpen={isBroadcasterOpen}
-          onClose={() => setIsBroadcasterOpen(false)}
-          totalRespondents={totalSubmissions}
-        />
+                      const isRead = Boolean(readSurveyIds[sub.id]);
+                      const { formattedDate, formattedTime } = formatDateTime(sub.submittedAt);
+
+                      return (
+                        <tr
+                          key={sub.id}
+                          onClick={() => router.push(`/admin/surveys/${sub.id}`)}
+                          className={`transition-colors cursor-pointer group whitespace-nowrap ${
+                            isRead
+                              ? "bg-neutral-950/40 text-neutral-500 opacity-60 hover:opacity-100 hover:bg-neutral-900/40"
+                              : "hover:bg-neutral-900/60"
+                          }`}
+                        >
+                          {/* Checkbox Column */}
+                          <td
+                            className="py-3.5 px-3 text-center"
+                            onClick={(e) => toggleSurveyRead(sub.id, e)}
+                          >
+                            <div
+                              className={`w-4 h-4 mx-auto rounded border flex items-center justify-center transition-all ${
+                                isRead
+                                  ? "bg-red-600 border-red-600 text-white"
+                                  : "border-neutral-700 bg-neutral-900 hover:border-neutral-500"
+                              }`}
+                            >
+                              {isRead && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+                          </td>
+
+                          {/* User Info */}
+                          <td className="py-3.5 px-4">
+                            <div className={`font-medium transition-colors ${isRead ? "line-through text-neutral-400" : "text-white group-hover:text-red-400"}`}>
+                              {sub.userName || "Anonymous"}
+                            </div>
+                            <div className="text-[11px] text-neutral-500">
+                              {sub.userEmail || sub.id}
+                            </div>
+                          </td>
+
+                          {/* Overall Rating */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1 font-semibold text-white">
+                              <span>{sub.overallRating}</span>
+                              <Star className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                            </div>
+                          </td>
+
+                          {/* Support Willingness */}
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-mono capitalize border ${config.badgeClass}`}
+                            >
+                              {config.label}
+                            </span>
+                          </td>
+
+                          {/* Agreed Price */}
+                          <td className="py-3.5 px-4 font-mono text-neutral-200">
+                            {formatPrice(sub.answers.monthly_amount)}
+                          </td>
+
+                          {/* Date & Time Submitted */}
+                          <td className="py-3.5 px-4 text-right font-mono text-[11px]">
+                            <div className="text-neutral-300 font-medium">
+                              {formattedDate}
+                            </div>
+                            <div className="text-[10px] text-neutral-500">
+                              {formattedTime}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-8 text-center text-neutral-500 text-xs whitespace-nowrap"
+                      >
+                        No survey responses found matching your filter.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Survey Broadcaster Modal */}
+          <SurveyBroadcasterModal
+            isOpen={isBroadcasterOpen}
+            onClose={() => setIsBroadcasterOpen(false)}
+            totalRespondents={totalSubmissions}
+          />
+        </div>
       </div>
-    </div>
-  </AdminPinGuard>
-);
+    </AdminPinGuard>
+  );
 }
