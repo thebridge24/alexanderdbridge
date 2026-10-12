@@ -42,14 +42,21 @@ export default function YesterdayPromptCallout({
   const checkReadStatus = useCallback(() => {
     if (isYesterdayRead) return true;
 
-    // Local storage backup check for completed reading
-    const readLogs = JSON.parse(
-      localStorage.getItem("completed_devotionals") || "[]"
-    );
-    if (readLogs.includes(yesterdayString)) return true;
+    try {
+      const readLogs = JSON.parse(
+        localStorage.getItem("completed_devotionals") || "[]"
+      );
+      if (Array.isArray(readLogs) && readLogs.includes(yesterdayString)) return true;
+    } catch {
+      // ignore corrupted localStorage
+    }
 
-    const dismissedDate = localStorage.getItem("yesterday_prompt_dismissed");
-    if (dismissedDate === currentDateString) return true;
+    try {
+      const dismissedDate = localStorage.getItem("yesterday_prompt_dismissed");
+      if (dismissedDate === currentDateString) return true;
+    } catch {
+      // ignore
+    }
 
     return false;
   }, [isYesterdayRead, yesterdayString, currentDateString]);

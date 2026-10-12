@@ -769,10 +769,14 @@ dwellSeconds,
   // Check if yesterday's devotional is already read (from local storage or user history)
   const isYesterdayRead = (() => {
     if (typeof window === "undefined" || !yesterdayDateString) return false;
-    const readLogs = JSON.parse(
-      localStorage.getItem("completed_devotionals") || "[]",
-    );
-    return readLogs.includes(yesterdayDateString);
+    try {
+      const readLogs = JSON.parse(
+        localStorage.getItem("completed_devotionals") || "[]",
+      );
+      return Array.isArray(readLogs) && readLogs.includes(yesterdayDateString);
+    } catch {
+      return false;
+    }
   })();
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
