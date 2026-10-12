@@ -12,7 +12,7 @@ import { BsCheck2All } from "react-icons/bs";
 import { FirstNotifications } from "@/app/data/notifications";
 import { formatRelativeTime } from "@/lib/utils/date";
 import { playNotificationSound, playAlarmSound, stopAlarmSound } from "@/lib/utils/sound";
-import NotificationPromptModal from "@/app/components/notifications/NotificationPromptModal";
+import NotificationPromptModal from "@/app/components/NotificationPromptModal";
 
 export interface NotificationItem {
   id: string;
@@ -25,6 +25,8 @@ export interface NotificationItem {
 }
 
 export default function PushNotifications() {
+
+const promptDelayMs = 4000,
   const [userId, setUserId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "idle" | "enabled" | "blocked" | "error"
@@ -397,6 +399,10 @@ export default function PushNotifications() {
 
   return (
     <div className="relative" ref={dropdownRef}>
+
+  {/* Imported Full-Screen Notification Prompt Modal Component */}
+      <NotificationPromptModal delayMs={promptDelayMs} />
+
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
