@@ -74,16 +74,25 @@ export async function POST(request: NextRequest) {
         });
       }
     } else {
-      // "all_users": collect from notification_preferences & survey_responses
-      const [prefsRes, surveyRes] = await Promise.all([
+      // "all_users": collect from auth.users, notification_preferences & survey_responses
+      const [authUsersRes, prefsRes, surveyRes] = await Promise.all([
+        supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }).catch(() => ({ data: { users: [] } })),
         supabase.from("notification_preferences").select("user_id"),
         supabase.from("survey_responses").select("user_email, user_id"),
       ]);
 
-      if (prefsRes.data) {
+      if (authUsersRes?.data?.users) {
+        authUsersRes.data.users.forEach((u) => {
+          if (u.email && u.email.includes("@")) {
+            recipientEmails.add(u.email.trim().toLowerCase());
+          }
+          if (u.id) recipientUserIds.add(u.id);
+        });
+      }
+      if (prefsRes?.data) {
         prefsRes.data.forEach((p) => p.user_id && recipientUserIds.add(p.user_id));
       }
-      if (surveyRes.data) {
+      if (surveyRes?.data) {
         surveyRes.data.forEach((s) => {
           if (s.user_email && s.user_email.includes("@")) {
             recipientEmails.add(s.user_email.trim().toLowerCase());
@@ -100,62 +109,69 @@ export async function POST(request: NextRequest) {
     let emailError: string | null = null;
 
     // 1. Send Bulk Emails via Resend if email channel requested
-    if (channels.includes("email") && emailList.length > 0) {
-      const apiKey = process.env.RESEND_API_KEY;
-      if (apiKey) {
-        const resend = new Resend(apiKey);
-        const fromEmail =
-          process.env.RESEND_FROM_EMAIL ||
-          "Alexander D. Bridge <devotional@alexanderdbridge.com>";
-
-        const htmlContent = getBroadcastEmailHtml({
-          subject: cleanSubject,
-          paragraphs: cleanParagraphs,
-          ctaText: cleanCtaText,
-          ctaUrl: cleanCtaUrl,
-        });
-
-        const textContent = getBroadcastEmailText({
-          subject: cleanSubject,
-          paragraphs: cleanParagraphs,
-          ctaText: cleanCtaText,
-          ctaUrl: cleanCtaUrl,
-        });
-
-        // Send emails in batches to optimize throughput while respecting provider rate limits
-        const BATCH_SIZE = 5;
-        const failedEmails: string[] = [];
-
-        for (let i = 0; i < emailList.length; i += BATCH_SIZE) {
-          const batch = emailList.slice(i, i + BATCH_SIZE);
-          await Promise.all(
-            batch.map(async (email) => {
-              try {
-                const res = await resend.emails.send({
-                  from: fromEmail,
-                  to: [email],
-                  subject: cleanSubject,
-                  html: htmlContent,
-                  text: textContent,
-                });
-                if (res.data?.id) {
-                  emailsSentCount++;
-                } else if (res.error) {
-                  failedEmails.push(email);
-                }
-              } catch (e: any) {
-                console.error(`Failed to send email to ${email}:`, e);
-                failedEmails.push(email);
-              }
-            }),
-          );
-        }
-
-        if (failedEmails.length > 0) {
-          emailError = `Delivered to ${emailsSentCount} recipients; failed for ${failedEmails.length} addresses.`;
-        }
+    if (channels.includes("email")) {
+      if (emailList.length === 0) {
+        emailError = "No recipient email addresses found for the selected audience.";
       } else {
-        emailError = "RESEND_API_KEY is not configured";
+        const apiKey = process.env.RESEND_API_KEY;
+        if (apiKey) {
+          const resend = new Resend(apiKey);
+          const fromEmail =
+            process.env.RESEND_FROM_EMAIL ||
+            "Alexander D. Bridge <devotional@alexanderdbridge.com>";
+
+          const htmlContent = getBroadcastEmailHtml({
+            subject: cleanSubject,
+            paragraphs: cleanParagraphs,
+            ctaText: cleanCtaText,
+            ctaUrl: cleanCtaUrl,
+          });
+
+          const textContent = getBroadcastEmailText({
+            subject: cleanSubject,
+            paragraphs: cleanParagraphs,
+            ctaText: cleanCtaText,
+            ctaUrl: cleanCtaUrl,
+          });
+
+          // Send emails in batches to optimize throughput while respecting provider rate limits
+          const BATCH_SIZE = 5;
+          const failedEmails: string[] = [];
+          const errorDetails: string[] = [];
+
+          for (let i = 0; i < emailList.length; i += BATCH_SIZE) {
+            const batch = emailList.slice(i, i + BATCH_SIZE);
+            await Promise.all(
+              batch.map(async (email) => {
+                try {
+                  const res = await resend.emails.send({
+                    from: fromEmail,
+                    to: [email],
+                    subject: cleanSubject,
+                    html: htmlContent,
+                    text: textContent,
+                  });
+                  if (res.data?.id) {
+                    emailsSentCount++;
+                  } else if (res.error) {
+                    failedEmails.push(email);
+                    errorDetails.push(`${email}: ${res.error.message || JSON.stringify(res.error)}`);
+                  }
+                } catch (e: any) {
+                  console.error(`Failed to send email to ${email}:`, e);
+                  failedEmails.push(email);
+                  errorDetails.push(`${email}: ${e.message || "Failed"}`);
+                }
+              }),
+            );
+          }
+
+          if (failedEmails.length > 0) {
+            emailError = `Delivered to ${emailsSentCount} recipients; failed for ${failedEmails.length} addresses. Details: ${errorDetails[0] || "Unknown Resend error"}`;
+          }
+        } else {
+          emailError = "RESEND_API_KEY environment variable is not configured on the server.";
+        }
       }
     }
 

@@ -100,10 +100,17 @@ export default function SurveyBroadcasterModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Broadcast failed");
 
-      setResultMessage({
-        type: "success",
-        text: `Broadcast sent! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push).`,
-      });
+      if (data.emailError) {
+        setResultMessage({
+          type: data.emailsSent > 0 ? "success" : "error",
+          text: `Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails sent, ${data.pushSent} push). Notice: ${data.emailError}`,
+        });
+      } else {
+        setResultMessage({
+          type: "success",
+          text: `Broadcast sent! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push).`,
+        });
+      }
     } catch (err: any) {
       setResultMessage({ type: "error", text: err.message || "Failed to deliver broadcast." });
     } finally {
