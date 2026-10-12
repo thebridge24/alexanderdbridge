@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
@@ -175,7 +176,47 @@ export default function PushNotifications() {
     }
   }
 
-  loadNotifications();
+      loadNotifications();
+
+      // Live in-app delivery over the user's private Pusher Channels channel
+      const pusher = getPusherClient();
+      let channel: Channel | null = null;
+
+      if (pusher) {
+        const channelName = `private-user-${userId}`;
+        channel = pusher.subscribe(channelName);
+        channel.bind("notification", (n: any) => {
+          if (!n?.id) return;
+
+          displayBrowserNotification(n.title, n.body, n.link || undefined, n.type, false);
+
+          setNotifications((prev) =>
+            prev.some((item) => item.id === n.id)
+              ? prev
+              : [
+                  {
+                    id: n.id,
+                    title: n.title,
+                    body: n.body,
+                    timestamp: "Just now",
+                    read: Boolean(n.read),
+                    type: n.type,
+                    link: n.link || undefined,
+                  },
+                  ...prev,
+                ],
+          );
+        });
+      }
+
+      return () => {
+        mounted = false;
+        if (pusher && channel) {
+          channel.unbind("notification");
+          pusher.unsubscribe(channel.name);
+        }
+      };
+    }, [userId, displayBrowserNotification]);
 
   // Synchronize document title with unread notifications count
   useEffect(() => {
@@ -188,47 +229,6 @@ export default function PushNotifications() {
       document.title = baseTitle;
     }
   }, [notifications]);
-
-  // Live in-app delivery over the user's private Pusher Channels channel
-
-  const pusher = getPusherClient();
-  let channel: Channel | null = null;
-
-  if (pusher) {
-    const channelName = `private-user-${userId}`;
-    channel = pusher.subscribe(channelName);
-    channel.bind("notification", (n: any) => {
-      if (!n?.id) return;
-
-      displayBrowserNotification(n.title, n.body, n.link || undefined, n.type, false);
-
-      setNotifications((prev) =>
-        prev.some((item) => item.id === n.id)
-          ? prev
-          : [
-              {
-                id: n.id,
-                title: n.title,
-                body: n.body,
-                timestamp: "Just now",
-                read: Boolean(n.read),
-                type: n.type,
-                link: n.link || undefined,
-              },
-              ...prev,
-            ],
-      );
-    });
-  }
-
-  return () => {
-    mounted = false;
-    if (pusher && channel) {
-      channel.unbind("notification");
-      pusher.unsubscribe(channel.name);
-    }
-  };
-}, [userId, displayBrowserNotification]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
