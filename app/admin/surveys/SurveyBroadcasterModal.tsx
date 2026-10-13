@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -10,13 +11,21 @@ import {
   Edit3,
   CheckCircle2,
   Users,
+  Search,
 } from "lucide-react";
 import { getBroadcastEmailHtml } from "@/lib/email/templates/broadcast";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface SurveyBroadcasterModalProps {
   isOpen: boolean;
   onClose: () => void;
   totalRespondents: number;
+}
+
+interface AppUser {
+  id: string;
+  email: string;
+  name?: string;
 }
 
 export default function SurveyBroadcasterModal({
@@ -28,13 +37,20 @@ export default function SurveyBroadcasterModal({
     "A Special Word from The Bridge Devotional",
   );
   const [target, setTarget] = useState<
-    "survey_respondents" | "willing" | "all_users"
+    "survey_respondents" | "willing" | "all_users" | "selected_users"
   >("survey_respondents");
+
   const [sendEmail, setSendEmail] = useState(true);
   const [sendPush, setSendPush] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "editor" | "email_preview" | "push_preview"
   >("editor");
+
+  // User search & selection state
+  const [allUsers, setAllUsers] = useState<AppUser[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<AppUser[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   // ContentEditable Div text content
   const [rawText, setRawText] = useState(
@@ -49,14 +65,49 @@ export default function SurveyBroadcasterModal({
 
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Fetch all registered users for individual targeting on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchUsers() {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        if (!supabase) return;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+
+        const res = await fetch("/api/admin/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && json.users) {
+          const mapped: AppUser[] = json.users.map((u: any) => ({
+            id: u.id || u.email,
+            email: u.email,
+            name: u.name || u.full_name || u.email.split("@")[0],
+          }));
+          setAllUsers(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load users for broadcaster:", err);
+      }
+    }
+
+    if (isOpen) {
+      fetchUsers();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
   // Initialize the editor only when it becomes visible.
-  // Do not bind rawText as JSX children — React would rewrite the editable DOM
-  // on every keystroke and move the caret.
   useEffect(() => {
     if (isOpen && activeTab === "editor" && editorRef.current) {
       editorRef.current.innerText = rawText;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, activeTab]);
 
   // Parse raw text into distinct paragraph strings
@@ -68,6 +119,24 @@ export default function SurveyBroadcasterModal({
   const handleTextChange = (e: React.FormEvent<HTMLDivElement>) => {
     setRawText(e.currentTarget.innerText);
   };
+
+  const handleSelectUser = (user: AppUser) => {
+    if (!selectedUsers.some((u) => u.email === user.email)) {
+      setSelectedUsers([...selectedUsers, user]);
+    }
+    setUserSearchQuery("");
+    setIsUserDropdownOpen(false);
+  };
+
+  const handleRemoveUser = (email: string) => {
+    setSelectedUsers(selectedUsers.filter((u) => u.email !== email));
+  };
+
+  const filteredUsersList = allUsers.filter(
+    (u) =>
+      u.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      (u.name && u.name.toLowerCase().includes(userSearchQuery.toLowerCase())),
+  );
 
   const handleBroadcast = async () => {
     if (!subject.trim()) {
@@ -82,6 +151,10 @@ export default function SurveyBroadcasterModal({
       setResultMessage({ type: "error", text: "Please select at least one channel (Email or Push)." });
       return;
     }
+    if (target === "selected_users" && selectedUsers.length === 0) {
+      setResultMessage({ type: "error", text: "Please select at least one user to broadcast to." });
+      return;
+    }
 
     setIsSending(true);
     setResultMessage(null);
@@ -91,10 +164,23 @@ export default function SurveyBroadcasterModal({
       if (sendEmail) channels.push("email");
       if (sendPush) channels.push("push");
 
+      const payload: any = {
+        subject,
+        paragraphs,
+        target,
+        channels,
+        ctaText: "Open Devotional",
+        ctaUrl: "/devotional",
+      };
+
+      if (target === "selected_users") {
+        payload.recipientEmails = selectedUsers.map((u) => u.email);
+      }
+
       const res = await fetch("/api/admin/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, paragraphs, target, channels, ctaText: "Open Devotional", ctaUrl: "/devotional" }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -130,17 +216,15 @@ export default function SurveyBroadcasterModal({
 
   return (
     <AnimatePresence>
-      {/* Full-screen overlay — slides up from bottom on mobile, centred on sm+ */}
       <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-y-auto">
         <motion.div
           initial={{ scale: 0.97, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.97, opacity: 0, y: 12 }}
           transition={{ type: "spring", stiffness: 380, damping: 30 }}
-          /* Bottom-sheet on mobile, floating card on sm+ */
           className="w-full sm:max-w-3xl bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]"
         >
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="px-4 py-4 sm:px-6 sm:py-5 bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 flex items-center justify-between shrink-0 gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="size-9 sm:size-11 rounded-xl sm:rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center text-red-500 shadow-inner shrink-0">
@@ -151,7 +235,7 @@ export default function SurveyBroadcasterModal({
                   Survey Broadcast &amp; Communications
                 </h3>
                 <p className="text-[11px] sm:text-xs text-neutral-400 truncate">
-                  Send emails and push notifications to respondents
+                  Send emails and push notifications to respondents or specific individuals
                 </p>
               </div>
             </div>
@@ -165,7 +249,7 @@ export default function SurveyBroadcasterModal({
             </button>
           </div>
 
-          {/* ── Tab Navigation — wraps on narrow phones ── */}
+          {/* Tab Navigation */}
           <div className="flex flex-wrap items-center gap-1.5 px-4 sm:px-6 py-2.5 bg-neutral-900/50 border-b border-neutral-800/80 shrink-0 text-xs font-medium">
             <button
               onClick={() => setActiveTab("editor")}
@@ -204,7 +288,7 @@ export default function SurveyBroadcasterModal({
             </button>
           </div>
 
-          {/* ── Scrollable Body ── */}
+          {/* Scrollable Body */}
           <div className="px-4 sm:px-6 py-5 overflow-y-auto space-y-5 flex-1 text-left">
 
             {/* Subject Line */}
@@ -244,15 +328,11 @@ export default function SurveyBroadcasterModal({
                   />
                 </div>
 
-                <p className="text-[11px] text-neutral-500 italic">
-                  * Press Enter twice to create a new paragraph block. Each paragraph renders cleanly in email and push.
-                </p>
-
-                {/* Recipients & Channels — stacks on mobile */}
+                {/* Recipients & Channels */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   {/* Target Select */}
-                  <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-4">
-                    <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-4 space-y-3">
+                    <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Users className="size-3.5 text-red-500 shrink-0" />
                       Target Recipients
                     </label>
@@ -266,7 +346,72 @@ export default function SurveyBroadcasterModal({
                       </option>
                       <option value="willing">Willing Members (Yes / Maybe)</option>
                       <option value="all_users">All Registered Users</option>
+                      <option value="selected_users">Select Specific Individuals</option>
                     </select>
+
+                    {/* Individual User Search & Selection Toggle Tags */}
+                    {target === "selected_users" && (
+                      <div className="space-y-2 pt-2 border-t border-neutral-800">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-neutral-500" />
+                          <input
+                            type="text"
+                            value={userSearchQuery}
+                            onChange={(e) => {
+                              setUserSearchQuery(e.target.value);
+                              setIsUserDropdownOpen(true);
+                            }}
+                            onFocus={() => setIsUserDropdownOpen(true)}
+                            placeholder="Search user name or email..."
+                            className="w-full bg-black border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-600"
+                          />
+
+                          {/* Dropdown list with overflow-y-auto */}
+                          {isUserDropdownOpen && userSearchQuery.trim().length > 0 && (
+                            <div className="absolute z-30 mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl max-h-40 overflow-y-auto">
+                              {filteredUsersList.length > 0 ? (
+                                filteredUsersList.map((u) => (
+                                  <div
+                                    key={u.id}
+                                    onClick={() => handleSelectUser(u)}
+                                    className="px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 cursor-pointer flex flex-col border-b border-neutral-800/50 last:border-none"
+                                  >
+                                    <span className="font-semibold text-white">{u.name}</span>
+                                    <span className="text-[10px] text-neutral-400 font-mono">{u.email}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="px-3 py-2 text-xs text-neutral-500">
+                                  No users found
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Selected User Pills / Tags with Cancel Icon */}
+                        {selectedUsers.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1 max-h-24 overflow-y-auto">
+                            {selectedUsers.map((u) => (
+                              <span
+                                key={u.email}
+                                className="inline-flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-white text-[11px] px-2.5 py-1 rounded-full font-medium"
+                              >
+                                <span className="truncate max-w-[120px]">{u.name || u.email}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveUser(u.email)}
+                                  className="text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
+                                  aria-label={`Remove ${u.email}`}
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Channel Toggles */}
@@ -359,7 +504,7 @@ export default function SurveyBroadcasterModal({
             )}
           </div>
 
-          {/* ── Footer Actions — stacks vertically on mobile ── */}
+          {/* Footer Actions */}
           <div className="px-4 sm:px-5 py-4 bg-neutral-900/80 border-t border-neutral-800 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 shrink-0">
             <button
               type="button"
