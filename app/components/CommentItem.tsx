@@ -12,6 +12,7 @@ export interface Reply {
   timestamp: string;
   avatarUrl?: string;
   authorUserId?: string;
+  authorVerificationTier?: string | null;
 }
 
 export interface Comment {
@@ -23,6 +24,7 @@ export interface Comment {
   liked?: boolean;
   avatarUrl?: string;
   authorUserId?: string;
+  authorVerificationTier?: string | null;
   replies?: Reply[];
 }
 
@@ -128,7 +130,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               <h4 className="text-xs font-semibold text-neutral-400 truncate">
                 {comment.name}
               </h4>
-              <VerifiedBadge name={comment.name} />
+              <VerifiedBadge tier={comment.authorVerificationTier} name={comment.name} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {renderCommentBody(comment.text)}
@@ -214,7 +216,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     <span className="text-xs font-semibold text-neutral-400 truncate">
                       {reply.name}
                     </span>
-                    <VerifiedBadge name={reply.name} />
+                    <VerifiedBadge tier={reply.authorVerificationTier} name={reply.name} />
                     <span className="text-[10px] text-neutral-500">
                       • {reply.timestamp}
                     </span>

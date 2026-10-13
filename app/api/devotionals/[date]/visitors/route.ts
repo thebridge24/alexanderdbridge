@@ -13,15 +13,44 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
     .from('devotional_visitors')
-    .select('id, display_name, avatar_url, visited_at')
+    .select('id, user_id, display_name, avatar_url, visited_at')
     .eq('devotional_date', date)
     .order('visited_at', { ascending: false })
     .limit(500);
 
   if (error) return NextResponse.json({ visitors: [] });
 
+  const visitors = data ?? [];
+  const userIds = visitors.map((v) => v.user_id).filter(Boolean);
+
+  const subMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: subs } = await supabase
+      .from('user_subscriptions')
+      .select('user_id, verification_tier')
+      .in('user_id', userIds)
+      .eq('status', 'active');
+
+    if (subs) {
+      subs.forEach((s) => {
+        if (s.user_id && s.verification_tier) {
+          subMap.set(s.user_id, s.verification_tier);
+        }
+      });
+    }
+  }
+
+  const formattedVisitors = visitors.map((v) => ({
+    id: v.id,
+    user_id: v.user_id,
+    display_name: v.display_name,
+    avatar_url: v.avatar_url,
+    visited_at: v.visited_at,
+    verification_tier: v.user_id ? subMap.get(v.user_id) || null : null,
+  }));
+
   return NextResponse.json(
-    { visitors: data ?? [] },
+    { visitors: formattedVisitors },
     { headers: { 'Cache-Control': 'no-store' } }
   );
 }

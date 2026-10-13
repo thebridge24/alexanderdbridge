@@ -76,12 +76,40 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
+  // Look up verified subscriber status securely by user_id to prevent name spoofing
+  const authorUserIds = Array.from(
+    new Set(
+      [
+        ...comments.map((c) => c.author_user_id),
+        ...Array.from(repliesMap.values()).flatMap((list) => list.map((r) => r.author_user_id)),
+      ].filter(Boolean) as string[],
+    ),
+  );
+
+  const verificationMap = new Map<string, string>();
+  if (authorUserIds.length > 0) {
+    const { data: subs } = await supabase
+      .from("user_subscriptions")
+      .select("user_id, verification_tier")
+      .in("user_id", authorUserIds)
+      .eq("status", "active");
+
+    if (subs) {
+      subs.forEach((s) => {
+        if (s.user_id && s.verification_tier) {
+          verificationMap.set(s.user_id, s.verification_tier);
+        }
+      });
+    }
+  }
+
   const formattedComments = comments.map((c) => ({
     id: c.id,
     devotional_date: c.devotional_date,
     author_name: c.author_name,
     author_avatar: c.author_avatar,
     author_user_id: c.author_user_id,
+    author_verification_tier: c.author_user_id ? verificationMap.get(c.author_user_id) || null : null,
     body: c.body,
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
@@ -91,6 +119,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       author_name: r.author_name,
       author_avatar: r.author_avatar,
       author_user_id: r.author_user_id,
+      author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
       body: r.body,
       created_at: r.created_at,
     })),

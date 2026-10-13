@@ -96,20 +96,17 @@ export function getUserVerificationTier(params?: {
   const cleanEmail = params.email ? params.email.trim().toLowerCase() : "";
   const cleanName = params.name ? params.name.trim().toLowerCase() : "";
 
-  // 2. Check for PATRON match (Alexander D Bridge & Christ)
-  if (
-    (cleanEmail && PATRON_EMAILS.includes(cleanEmail)) ||
-    (cleanName && PATRON_NAMES.includes(cleanName))
-  ) {
-    return "patron";
+  // 2. Email verification takes absolute precedence (prevents duplicate name spoofing)
+  if (cleanEmail) {
+    if (PATRON_EMAILS.includes(cleanEmail)) return "patron";
+    if (SUPPORTER_EMAILS.includes(cleanEmail)) return "supporter";
+    return null; // Known email that is not authorized -> never allow spoofing via display name
   }
 
-  // 3. Check for SUPPORTER match (Rest of the team)
-  if (
-    (cleanEmail && SUPPORTER_EMAILS.includes(cleanEmail)) ||
-    (cleanName && SUPPORTER_NAMES.includes(cleanName))
-  ) {
-    return "supporter";
+  // 3. Fallback name verification (only when email is not available)
+  if (cleanName) {
+    if (PATRON_NAMES.includes(cleanName)) return "patron";
+    if (SUPPORTER_NAMES.includes(cleanName)) return "supporter";
   }
 
   return null;

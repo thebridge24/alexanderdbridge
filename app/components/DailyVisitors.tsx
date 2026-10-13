@@ -9,9 +9,11 @@ import { VerifiedBadge } from '@/app/components/VerifiedBadge';
 
 interface Visitor {
   id: string;
+  user_id?: string;
   display_name: string;
   avatar_url: string;
   visited_at: string;
+  verification_tier?: string | null;
 }
 
 interface DailyVisitorsProps {
@@ -56,7 +58,7 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 min-w-0">
           <p className="text-xs font-semibold text-neutral-200 truncate">{name}</p>
-          <VerifiedBadge name={name} size="xs" />
+          <VerifiedBadge tier={visitor.verification_tier} name={name} size="xs" />
         </div>
         <p className="text-[10px] text-neutral-500">{formatTime(visitor.visited_at)}</p>
       </div>
