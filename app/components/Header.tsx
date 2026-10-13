@@ -8,7 +8,7 @@ import FloatingVideoPlayer from "./FloatingVideoPlayer"
 
 export default function Header() {
   return (
-    <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-50 pointer-events-none">
+    <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-100 pointer-events-none">
       {/* Back Button */}
       <div className="pointer-events-auto">
         <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
