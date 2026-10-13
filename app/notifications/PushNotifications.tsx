@@ -26,7 +26,7 @@ export interface NotificationItem {
 
 export default function PushNotifications() {
 
-const promptDelayMs = 4000,
+const promptDelayMs = 20000;
   const [userId, setUserId] = useState<string | null>(null);
   const [status, setStatus] = useState<
     "idle" | "enabled" | "blocked" | "error"
