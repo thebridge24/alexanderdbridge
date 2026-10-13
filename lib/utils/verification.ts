@@ -44,18 +44,27 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
   },
 };
 
-// Legacy verified users fallback for backward compatibility
-const LEGACY_VERIFIED_EMAILS = [
-  "alexanderchrist203@gmail.com",
+// 1. Dedicated Patron Tier Lists (Alexander D Bridge & Christ)
+const PATRON_EMAILS = [
   "alexanderdbridge@gmail.com",
+  "alexanderchrist203@gmail.com",
+];
+
+const PATRON_NAMES = [
+  "alexander d bridge",
+  "alexander d. bridge",
+  "alexander christ",
+  "christ",
+];
+
+// 2. Supporter Tier Lists (All other verified members)
+const SUPPORTER_EMAILS = [
   "binahcharlesagidigbi@gmail.com",
   "johnedheke@gmail.com",
   "madukuedith@gmail.com",
 ];
 
-const LEGACY_VERIFIED_NAMES = [
-  "alexander christ",
-  "alexander d bridge",
+const SUPPORTER_NAMES = [
   "edith maduku",
   "john edheke",
   "binah charles-agidigbi",
@@ -77,26 +86,30 @@ export function getUserVerificationTier(params?: {
     if (tier in VERIFICATION_TIERS) return tier;
   }
 
-  // If user metadata explicitly marks is_verified or has support_plan
+  // If user metadata explicitly has support_plan
   if (params.metadata?.support_plan) {
     const plan = params.metadata.support_plan.toLowerCase() as VerificationTier;
     if (plan in VERIFICATION_TIERS) return plan;
   }
 
-  // 2. Check email against legacy list
-  if (params.email) {
-    const cleanEmail = params.email.trim().toLowerCase();
-    if (LEGACY_VERIFIED_EMAILS.includes(cleanEmail)) {
-      return "patron"; // Default tier for founding legacy team
-    }
+  // Clean email and name inputs for matching
+  const cleanEmail = params.email ? params.email.trim().toLowerCase() : "";
+  const cleanName = params.name ? params.name.trim().toLowerCase() : "";
+
+  // 2. Check for PATRON match (Alexander D Bridge & Christ)
+  if (
+    (cleanEmail && PATRON_EMAILS.includes(cleanEmail)) ||
+    (cleanName && PATRON_NAMES.includes(cleanName))
+  ) {
+    return "patron";
   }
 
-  // 3. Check name against legacy list
-  if (params.name) {
-    const cleanName = params.name.trim().toLowerCase();
-    if (LEGACY_VERIFIED_NAMES.includes(cleanName)) {
-      return "patron";
-    }
+  // 3. Check for SUPPORTER match (Rest of the team)
+  if (
+    (cleanEmail && SUPPORTER_EMAILS.includes(cleanEmail)) ||
+    (cleanName && SUPPORTER_NAMES.includes(cleanName))
+  ) {
+    return "supporter";
   }
 
   return null;
