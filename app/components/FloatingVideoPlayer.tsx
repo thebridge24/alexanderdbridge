@@ -115,7 +115,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={handleExpand}
-          className="fixed bottom-12 left-4 sm:left-6 z-40 w-32 sm:w-40 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black cursor-pointer group transition-transform hover:scale-105"
+          className="fixed bottom-12 left-4 sm:left-6 z-50 w-32 sm:w-40 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black cursor-pointer group transition-transform hover:scale-105"
         >
           <video
             ref={videoRef}
