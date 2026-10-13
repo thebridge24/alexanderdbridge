@@ -13,7 +13,7 @@ import {
   FaPaperPlane,
 } from "react-icons/fa";
 
-import SurveyBroadcasterModal from "@/app/admin/surveys/SurveyBroadcasterModal";
+import SurveyBroadcasterModal, { BroadcastRecipientCategory } from "@/app/admin/surveys/SurveyBroadcasterModal";
 
 export interface UserAnalyticsItem {
   id: string;
@@ -153,6 +153,24 @@ export default function UserAnalyticsSection() {
     return matchesSearch && matchesStreak;
   });
 
+  // Build dynamic recipient categories for the broadcaster modal
+  const broadcastCategories: BroadcastRecipientCategory[] = useMemo(() => {
+    const base: BroadcastRecipientCategory[] = [
+      { id: "all_users", label: "All Registered Users", count: users.length },
+    ];
+
+    // Add dynamic streak group categories (e.g. 0-day inactive, active champions)
+    streakGroups.forEach((group) => {
+      base.push({
+        id: `streak_${group.streak}`,
+        label: `${group.streak}-Day Streak Keepers`,
+        count: group.count,
+      });
+    });
+
+    return base;
+  }, [users.length, streakGroups]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -160,11 +178,12 @@ export default function UserAnalyticsSection() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Broadcast Modal */}
+      {/* Broadcast Modal with Dynamic Categories */}
       <SurveyBroadcasterModal
         isOpen={isBroadcasterOpen}
         onClose={() => setIsBroadcasterOpen(false)}
-        totalRespondents={users.length}
+        recipientCategories={broadcastCategories}
+        defaultCategory="all_users"
       />
 
       {/* Header, Broadcast Action & Search Bar */}
