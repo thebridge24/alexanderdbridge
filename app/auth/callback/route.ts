@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSafeRedirectPath } from "@/lib/utils/auth";
+import { getSafeRedirectPath, getServerBaseUrl } from "@/lib/utils/auth";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = getServerBaseUrl(request);
   const code = searchParams.get("code");
   // Only allow same-site relative paths so this can't be used as an open redirect
   const next =

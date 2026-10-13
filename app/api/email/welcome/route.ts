@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       user.user_metadata?.name ||
       userEmail.split("@")[0];
 
-    const devotionalUrl = getAuthRedirectUrl("/devotional");
+    const devotionalUrl = getAuthRedirectUrl("/devotional", request);
 
     const emailResult = await sendWelcomeEmail(userEmail, displayName, devotionalUrl);
 

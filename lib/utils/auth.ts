@@ -1,36 +1,61 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Resolves the OAuth redirect URL using public environment variables.
- * Prioritizes configured NEXT_PUBLIC_URL, NEXT_PUBLIC_SITE_URL, or NEXT_PUBLIC_APP_URL.
- * Handles local development gracefully when running on localhost.
+ * Resolves the canonical base URL for server route handlers.
+ * Inspects reverse proxy headers (x-forwarded-proto, x-forwarded-host) first,
+ * then host header, then public env vars, and finally falls back to https://alexanderdbridge.com.
+ * Strictly prevents redirecting to localhost in production.
  */
-export function getAuthRedirectUrl(path?: string): string {
-  // 1. In browser, if running locally, use localhost to avoid redirecting to production during dev
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      const base = window.location.origin;
-      return path ? `${base}${path.startsWith("/") ? path : `/${path}`}` : base;
+export function getServerBaseUrl(request?: Request | { headers: Headers }): string {
+  if (request) {
+    const headers = "headers" in request ? request.headers : undefined;
+    if (headers) {
+      const forwardedHost = headers.get("x-forwarded-host");
+      const host = forwardedHost || headers.get("host");
+      const proto =
+        headers.get("x-forwarded-proto") ||
+        (host && (host.includes("localhost") || host.includes("127.0.0.1")) ? "http" : "https");
+
+      if (host) {
+        // Only allow localhost if we are explicitly not in production
+        const isLocalHost = host.includes("localhost") || host.includes("127.0.0.1");
+        if (!isLocalHost) {
+          return `${proto}://${host}`.replace(/\/$/, "");
+        }
+        if (process.env.NODE_ENV !== "production") {
+          return `${proto}://${host}`.replace(/\/$/, "");
+        }
+      }
     }
   }
 
-  // 2. Target public URL environment variable
   const configured =
     process.env.NEXT_PUBLIC_URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL;
 
   let baseUrl = configured ? configured.replace(/\/$/, "") : "";
-
-  // 3. Fallback to window origin in browser
-  if (!baseUrl && typeof window !== "undefined" && window.location.origin) {
-    baseUrl = window.location.origin;
+  if ((baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1")) && process.env.NODE_ENV === "production") {
+    baseUrl = "";
   }
 
-  // 4. Default fallback domain
-  if (!baseUrl) {
-    baseUrl = "https://alexanderdbridge.com";
+  return baseUrl || "https://alexanderdbridge.com";
+}
+
+/**
+ * Resolves the OAuth redirect URL.
+ * - In browser: ALWAYS uses the active window.location.origin so the user stays on their current origin.
+ * - On server: Inspects request headers or falls back to canonical https://alexanderdbridge.com.
+ */
+export function getAuthRedirectUrl(path?: string, request?: Request | { headers: Headers }): string {
+  let baseUrl = "";
+
+  // 1. In browser, ALWAYS use the active window.location.origin
+  if (typeof window !== "undefined" && window.location?.origin) {
+    baseUrl = window.location.origin.replace(/\/$/, "");
+  } else {
+    // 2. On server, resolve dynamically from request or production canonical fallback
+    baseUrl = getServerBaseUrl(request);
   }
 
   if (path) {

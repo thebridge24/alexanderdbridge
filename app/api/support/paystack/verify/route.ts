@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { verifyPaystackTransaction } from "@/lib/payments/paystack";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
+import { getServerBaseUrl } from "@/lib/utils/auth";
 import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/app/components/support/SupportPlanCard";
 
 async function processPaymentActivation(reference: string) {
@@ -167,22 +168,23 @@ async function processPaymentActivation(reference: string) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const baseUrl = getServerBaseUrl(request);
 
   if (!reference) {
-    return NextResponse.redirect(new URL("/devotional?error=missing_reference", request.url));
+    return NextResponse.redirect(new URL("/devotional?error=missing_reference", baseUrl));
   }
 
   const result = await processPaymentActivation(reference);
 
   if (!result.success) {
     return NextResponse.redirect(
-      new URL(`/devotional?error=${encodeURIComponent(result.error || "payment_failed")}`, request.url),
+      new URL(`/devotional?error=${encodeURIComponent(result.error || "payment_failed")}`, baseUrl),
     );
   }
 
   // Redirect back to Devotional with verified celebration query
   return NextResponse.redirect(
-    new URL(`/devotional?supported=true&tier=${result.tier || "reader"}`, request.url),
+    new URL(`/devotional?supported=true&tier=${result.tier || "reader"}`, baseUrl),
   );
 }
 

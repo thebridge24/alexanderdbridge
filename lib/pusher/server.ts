@@ -68,7 +68,8 @@ export function getPusherBeams(): PushNotifications | null {
 /** Beams requires absolute URLs for deep links and icons. */
 export function absoluteUrl(path: string): string {
   if (/^https?:\/\//.test(path)) return path;
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://personal-library-xi.vercel.app").replace(/\/$/, "");
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_URL;
+  const base = (configured && !configured.includes("localhost") ? configured : "https://alexanderdbridge.com").replace(/\/$/, "");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 

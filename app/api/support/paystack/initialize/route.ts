@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { initializePaystackTransaction, getPaystackSecretKey } from "@/lib/payments/paystack";
+import { getServerBaseUrl } from "@/lib/utils/auth";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/app/components/support/SupportPlanCard";
 
 export async function POST(request: NextRequest) {
@@ -66,9 +67,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const host = request.headers.get("host") || "alexanderdbridge.com";
-    const protocol = host.includes("localhost") ? "http" : "https";
-    const defaultCallback = `${protocol}://${host}/support/verify`;
+    const baseUrl = getServerBaseUrl(request);
+    const defaultCallback = `${baseUrl}/support/verify`;
     const callbackUrl = returnUrl || defaultCallback;
 
     const result = await initializePaystackTransaction({
