@@ -1,10 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { FaFire, FaUser, FaTrophy, FaCrown } from "react-icons/fa";
+import { ChevronLeft } from "lucide-react";
+
+// Imports
+import VerifiedBadge from "@/app/components/VerifiedBadge";
+import FloatingVideoPlayer from "@/app/components/FloatingVideoPlayer";
 
 export interface UserAnalyticsItem {
   id: string;
@@ -19,9 +25,21 @@ export interface UserAnalyticsItem {
 }
 
 export default function LeaderboardPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserAnalyticsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"september" | "allTime">("september");
+  const [activeTab, setActiveTab] = useState<"monthly" | "allTime">("monthly");
+
+  // Dynamic Current Month Name Calculation (e.g. "October 2026")
+  const currentMonthName = useMemo(() => {
+    const now = new Date();
+    return now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  }, []);
+
+  const currentMonthShort = useMemo(() => {
+    const now = new Date();
+    return now.toLocaleDateString("en-US", { month: "long" });
+  }, []);
 
   useEffect(() => {
     // 30-Second Continuous Confetti (Reduced particle density)
@@ -30,14 +48,14 @@ export default function LeaderboardPage() {
 
     const frame = () => {
       confetti({
-        particleCount: 3, // Reduced particle density per burst
+        particleCount: 3,
         angle: 60,
         spread: 50,
         origin: { x: 0, y: 0.2 },
         colors: ["#ef4444", "#dc2626", "#f59e0b", "#ffffff"],
       });
       confetti({
-        particleCount: 3, // Reduced particle density per burst
+        particleCount: 3,
         angle: 120,
         spread: 50,
         origin: { x: 1, y: 0.2 },
@@ -57,7 +75,7 @@ export default function LeaderboardPage() {
         const res = await fetch("/api/admin/users");
         if (res.ok) {
           const data = await res.json();
-          
+
           // Filter out Alexander D Bridge and Alexander Christ
           const filtered = (data.users || []).filter((u: UserAnalyticsItem) => {
             const nameLower = (u.name || "").toLowerCase().trim();
@@ -67,44 +85,7 @@ export default function LeaderboardPage() {
             );
           });
 
-          // Sort Users Logic:
-          // 1. Highest currentStreak
-          // 2. Earliest timestamp of last active/visit date (First-come, first-served)
-          // 3. Earliest account creation date
-          const sorted = filtered.sort(
-            (a: UserAnalyticsItem, b: UserAnalyticsItem) => {
-              const streakA = a.currentStreak || 0;
-              const streakB = b.currentStreak || 0;
-
-              if (streakB !== streakA) {
-                return streakB - streakA; // Higher streak wins
-              }
-
-              // Tie-breaker: Who recorded/updated their streak earliest?
-              const timeA = a.lastActiveDate
-                ? new Date(a.lastActiveDate).getTime()
-                : Infinity;
-              const timeB = b.lastActiveDate
-                ? new Date(b.lastActiveDate).getTime()
-                : Infinity;
-
-              if (timeA !== timeB) {
-                return timeA - timeB; // Earlier time comes first
-              }
-
-              // Fallback tie-breaker: Account creation date
-              const createdA = a.createdAt
-                ? new Date(a.createdAt).getTime()
-                : Infinity;
-              const createdB = b.createdAt
-                ? new Date(b.createdAt).getTime()
-                : Infinity;
-
-              return createdA - createdB;
-            }
-          );
-
-          setUsers(sorted);
+          setUsers(filtered);
         }
       } catch (err) {
         console.error("Failed to load user analytics:", err);
@@ -116,49 +97,100 @@ export default function LeaderboardPage() {
     fetchUsers();
   }, []);
 
+  // Dynamic Sorting Logic based on active tab ("monthly" vs "allTime")
+  const sortedUsers = useMemo(() => {
+    const copy = [...users];
+    return copy.sort((a, b) => {
+      const streakA = activeTab === "monthly" ? a.currentStreak || 0 : a.highestStreak || 0;
+      const streakB = activeTab === "monthly" ? b.currentStreak || 0 : b.highestStreak || 0;
+
+      if (streakB !== streakA) {
+        return streakB - streakA; // Higher streak wins
+      }
+
+      // Tie-breaker: Who recorded/updated their streak earliest?
+      const timeA = a.lastActiveDate ? new Date(a.lastActiveDate).getTime() : Infinity;
+      const timeB = b.lastActiveDate ? new Date(b.lastActiveDate).getTime() : Infinity;
+
+      if (timeA !== timeB) {
+        return timeA - timeB; // Earlier time comes first
+      }
+
+      // Fallback tie-breaker: Account creation date
+      const createdA = a.createdAt ? new Date(a.createdAt).getTime() : Infinity;
+      const createdB = b.createdAt ? new Date(b.createdAt).getTime() : Infinity;
+
+      return createdA - createdB;
+    });
+  }, [users, activeTab]);
+
   // Split top 3 podium entries vs remaining list entries
-  const top1 = users[0];
-  const top2 = users[1];
-  const top3 = users[2];
-  const listUsers = users.slice(3);
+  const top1 = sortedUsers[0];
+  const top2 = sortedUsers[1];
+  const top3 = sortedUsers[2];
+  const listUsers = sortedUsers.slice(3);
 
   return (
     <div className="h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col overflow-hidden relative">
+      {/* Floating Video Player Component */}
+      <FloatingVideoPlayer
+        videos={[
+          {
+            id: "devotional-vid-active",
+            videoUrl:
+              "https://res.cloudinary.com/dd5ppwbyi/video/upload/v1791876484/lv_0_20261013082356_w01hdo.mp4",
+            title: "Daily Devotional Message",
+          },
+        ]}
+      />
+
       {/* Background Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] pointer-events-none rounded-full" />
 
       {/* TOP SECTION: Dark Theme Podium & Header */}
-      <div className="w-full max-w-xl mx-auto pt-8 pb-6 px-4 sm:px-6 shrink-0 relative z-10">
-        {/* Header Badge */}
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="inline-block size-2 rounded-full bg-red-500 animate-ping" />
-          <span className="text-xs font-bold text-neutral-300 tracking-wide uppercase">
-            Live Standings
-          </span>
+      <div className="w-full max-w-xl mx-auto pt-6 pb-6 px-4 sm:px-6 shrink-0 relative z-10">
+        
+        {/* Glassmorphism Back Button & Header Badge */}
+        <div className="relative flex items-center justify-center mb-3">
+          <button
+            onClick={() => router.push("/devotional")}
+            aria-label="Back to Devotional"
+            className="absolute left-0 p-2.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-white hover:bg-white/20 active:scale-95 transition-all shadow-lg cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-block size-2 rounded-full bg-red-500 animate-ping" />
+            <span className="text-xs font-bold text-neutral-300 tracking-wide uppercase">
+              Live Standings
+            </span>
+          </div>
         </div>
 
         {/* Title */}
-        <div className="text-center space-y-1 mb-5">
+        <div className="text-center space-y-1 mb-5 pt-1">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2.5">
             <FaTrophy className="text-amber-400 size-6 sm:size-7" />
             Streak Leaderboard
           </h1>
           <p className="text-xs text-neutral-400">
-            Top devotion champions for <span className="text-red-400 font-semibold">September 2026</span>
+            Top devotion champions for{" "}
+            <span className="text-red-400 font-semibold">{currentMonthName}</span>
           </p>
         </div>
 
-        {/* Filter Toggle Switch */}
+        {/* Dynamic Filter Toggle Switch */}
         <div className="p-1 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center max-w-xs mx-auto mb-6">
           <button
-            onClick={() => setActiveTab("september")}
+            onClick={() => setActiveTab("monthly")}
             className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${
-              activeTab === "september"
+              activeTab === "monthly"
                 ? "bg-red-600 text-white shadow-lg shadow-red-600/30"
                 : "text-neutral-400 hover:text-white"
             }`}
           >
-            September
+            {currentMonthShort}
           </button>
           <button
             onClick={() => setActiveTab("allTime")}
@@ -173,7 +205,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Podium Area */}
-        {!loading && users.length > 0 && (
+        {!loading && sortedUsers.length > 0 && (
           <div className="pt-6 pb-2 relative overflow-visible">
             <div className="flex items-end justify-center gap-3 sm:gap-6 min-h-[190px]">
               {/* Rank 2 */}
@@ -196,12 +228,19 @@ export default function LeaderboardPage() {
                         2
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-neutral-200 truncate max-w-full text-center">
-                      {top2.name}
-                    </span>
+                    <div className="flex items-center justify-center gap-1 max-w-full">
+                      <span className="text-xs font-bold text-neutral-200 truncate">
+                        {top2.name}
+                      </span>
+                      <VerifiedBadge name={top2.name} email={top2.email} size="xs" />
+                    </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
-                      <span>{top2.currentStreak || 0}</span>
+                      <span>
+                        {activeTab === "monthly"
+                          ? top2.currentStreak || 0
+                          : top2.highestStreak || 0}
+                      </span>
                     </div>
                     <div className="w-full h-20 bg-gradient-to-t from-neutral-900 to-slate-500/20 rounded-t-2xl border-t border-x border-slate-400/30 flex items-center justify-center text-2xl font-black text-slate-400/40 mt-2">
                       2
@@ -233,12 +272,19 @@ export default function LeaderboardPage() {
                         1
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-white truncate max-w-full text-center">
-                      {top1.name}
-                    </span>
+                    <div className="flex items-center justify-center gap-1 max-w-full">
+                      <span className="text-xs font-bold text-white truncate">
+                        {top1.name}
+                      </span>
+                      <VerifiedBadge name={top1.name} email={top1.email} size="xs" />
+                    </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs sm:text-sm mt-0.5">
                       <FaFire className="size-3.5" />
-                      <span>{top1.currentStreak || 0}</span>
+                      <span>
+                        {activeTab === "monthly"
+                          ? top1.currentStreak || 0
+                          : top1.highestStreak || 0}
+                      </span>
                     </div>
                     <div className="w-full h-28 bg-gradient-to-t from-neutral-900 to-amber-500/20 rounded-t-2xl border-t border-x border-amber-400/40 flex items-center justify-center text-3xl font-black text-amber-400/40 mt-2">
                       1
@@ -267,12 +313,19 @@ export default function LeaderboardPage() {
                         3
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-neutral-200 truncate max-w-full text-center">
-                      {top3.name}
-                    </span>
+                    <div className="flex items-center justify-center gap-1 max-w-full">
+                      <span className="text-xs font-bold text-neutral-200 truncate">
+                        {top3.name}
+                      </span>
+                      <VerifiedBadge name={top3.name} email={top3.email} size="xs" />
+                    </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
-                      <span>{top3.currentStreak || 0}</span>
+                      <span>
+                        {activeTab === "monthly"
+                          ? top3.currentStreak || 0
+                          : top3.highestStreak || 0}
+                      </span>
                     </div>
                     <div className="w-full h-14 bg-gradient-to-t from-neutral-900 to-amber-800/20 rounded-t-2xl border-t border-x border-amber-700/30 flex items-center justify-center text-xl font-black text-amber-700/40 mt-2">
                       3
@@ -302,6 +355,9 @@ export default function LeaderboardPage() {
             <div className="divide-y divide-neutral-100">
               {listUsers.map((user, idx) => {
                 const rank = idx + 4;
+                const streakDisplay =
+                  activeTab === "monthly" ? user.currentStreak || 0 : user.highestStreak || 0;
+
                 return (
                   <motion.div
                     key={user.id || rank}
@@ -327,16 +383,17 @@ export default function LeaderboardPage() {
                         </div>
                       )}
 
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex items-center gap-1.5">
                         <h3 className="text-xs sm:text-sm font-bold text-neutral-900 truncate">
                           {user.name || "Anonymous User"}
                         </h3>
+                        <VerifiedBadge name={user.name} email={user.email} size="xs" />
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-red-600 font-black text-xs shrink-0 ml-3 bg-red-50 px-3 py-1.5 rounded-full border border-red-100">
                       <FaFire className="size-3.5" />
-                      <span>{user.currentStreak || 0}</span>
+                      <span>{streakDisplay}</span>
                     </div>
                   </motion.div>
                 );
