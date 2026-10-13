@@ -3,7 +3,17 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { FaFire, FaUser, FaEnvelope, FaSearch, FaTrophy, FaChartPie } from "react-icons/fa";
+import {
+  FaFire,
+  FaUser,
+  FaEnvelope,
+  FaSearch,
+  FaTrophy,
+  FaChartPie,
+  FaPaperPlane,
+} from "react-icons/fa";
+
+import SurveyBroadcasterModal from "@/app/admin/surveys/SurveyBroadcasterModal";
 
 export interface UserAnalyticsItem {
   id: string;
@@ -41,6 +51,9 @@ export default function UserAnalyticsSection() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredStreak, setHoveredStreak] = useState<number | null>(null);
+
+  // Broadcaster Modal State
+  const [isBroadcasterOpen, setIsBroadcasterOpen] = useState(false);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -101,7 +114,6 @@ export default function UserAnalyticsSection() {
       const endAngle = cumulativeAngle + angle;
       cumulativeAngle += angle;
 
-      // Handle full circle case when only 1 group exists
       if (angle >= 359.9) {
         return {
           ...group,
@@ -109,7 +121,6 @@ export default function UserAnalyticsSection() {
         };
       }
 
-      // Convert polar coordinates to Cartesian
       const startRad = ((startAngle - 90) * Math.PI) / 180;
       const endRad = ((endAngle - 90) * Math.PI) / 180;
 
@@ -149,26 +160,51 @@ export default function UserAnalyticsSection() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Header & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-950 border border-neutral-900">
+      {/* Broadcast Modal */}
+      <SurveyBroadcasterModal
+        isOpen={isBroadcasterOpen}
+        onClose={() => setIsBroadcasterOpen(false)}
+        totalRespondents={users.length}
+      />
+
+      {/* Header, Broadcast Action & Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-950 border border-neutral-900">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <FaTrophy className="text-amber-500 size-5" /> User Leaderboard & Streaks
           </h2>
           <p className="text-xs text-neutral-400 mt-0.5">
             Total Users: <span className="text-white font-bold">{users.length}</span>
+            {hoveredStreak !== null && (
+              <span className="text-red-400 font-semibold ml-2">
+                (Filtered: {hoveredStreak}d Streak – {filteredUsers.length} Users)
+              </span>
+            )}
           </p>
         </div>
 
-        <div className="relative">
-          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 size-3.5" />
-          <input
-            type="text"
-            placeholder="Search user or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
-          />
+        <div className="flex items-center flex-wrap gap-3">
+          {/* Broadcast Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsBroadcasterOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
+          >
+            <FaPaperPlane className="size-3" />
+            <span>Broadcast Message</span>
+          </button>
+
+          {/* Search Box */}
+          <div className="relative">
+            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 size-3.5" />
+            <input
+              type="text"
+              placeholder="Search user or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-56 pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+            />
+          </div>
         </div>
       </div>
 
@@ -182,7 +218,7 @@ export default function UserAnalyticsSection() {
             {hoveredStreak !== null && (
               <button
                 onClick={() => setHoveredStreak(null)}
-                className="text-[11px] text-neutral-400 hover:text-white transition-colors underline underline-offset-2"
+                className="text-[11px] text-neutral-400 hover:text-white transition-colors underline underline-offset-2 cursor-pointer"
               >
                 Clear filter
               </button>
@@ -208,8 +244,8 @@ export default function UserAnalyticsSection() {
                         transform: isSelected ? "scale(1.04)" : "scale(1)",
                         transformOrigin: "center",
                       }}
+                      onClick={() => setHoveredStreak(slice.streak)}
                       onMouseEnter={() => setHoveredStreak(slice.streak)}
-                      onMouseLeave={() => setHoveredStreak(null)}
                     />
                   );
                 })}
@@ -238,8 +274,7 @@ export default function UserAnalyticsSection() {
                 return (
                   <div
                     key={group.streak}
-                    onMouseEnter={() => setHoveredStreak(group.streak)}
-                    onMouseLeave={() => setHoveredStreak(null)}
+                    onClick={() => setHoveredStreak(group.streak)}
                     className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
                       isActive
                         ? "bg-neutral-900 border-neutral-700 shadow-lg scale-[1.02]"
@@ -317,8 +352,17 @@ export default function UserAnalyticsSection() {
                 </div>
               </div>
 
-              {/* Streak Stats */}
+              {/* Streak Stats & Quick Direct Message Trigger */}
               <div className="flex items-center gap-3 shrink-0 ml-4">
+                <button
+                  type="button"
+                  onClick={() => setIsBroadcasterOpen(true)}
+                  title={`Send broadcast email/push to ${user.name}`}
+                  className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-neutral-800 transition-colors cursor-pointer mr-1"
+                >
+                  <FaPaperPlane className="size-3 text-red-500" />
+                </button>
+
                 <div className="flex flex-col items-end">
                   <div className="flex items-center gap-1 text-red-500 font-black text-sm">
                     <FaFire className="size-4 animate-pulse" />
