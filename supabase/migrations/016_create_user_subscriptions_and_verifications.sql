@@ -9,10 +9,11 @@ create table if not exists public.user_subscriptions (
   billing_cycle text not null check (billing_cycle in ('monthly', 'yearly')),
   verification_tier text check (verification_tier in ('supporter', 'sponsor', 'patron', null)),
   badge_color text, -- '#3b82f6' for Supporter, '#8b5cf6' for Sponsor, '#d4a017' for Patron
-  status text not null default 'active' check (status in ('active', 'canceled', 'expired', 'paused')),
+  status text not null default 'active' check (status in ('active', 'canceled', 'expired', 'paused', 'pending_review')),
   amount integer not null default 0,
   paystack_reference text,
   paystack_channel text,
+  notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
