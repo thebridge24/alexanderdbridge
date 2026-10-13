@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Star, Search, Filter, PieChart as PieIcon, DollarSign, Send, Download, Check } from "lucide-react";
 
 import AdminPinGuard from "../AdminPinGuard";
-import SurveyBroadcasterModal from "./SurveyBroadcasterModal";
+import SurveyBroadcasterModal, { BroadcastRecipientCategory } from "./SurveyBroadcasterModal";
 
-// Mock submission type mirroring survey answers structure
 export interface SurveySubmission {
   id: string;
   userName?: string;
@@ -17,34 +16,32 @@ export interface SurveySubmission {
   answers: Record<string, any>;
 }
 
-// Config for Willingness categories & colors
 const WILLINGNESS_CONFIG: Record<
   string,
   { label: string; color: string; badgeClass: string }
 > = {
   yes_definitely: {
     label: "Yes, Definitely",
-    color: "#10b981", // Emerald-500
+    color: "#10b981",
     badgeClass: "bg-emerald-950/60 border-emerald-800 text-emerald-400",
   },
   maybe: {
     label: "Maybe",
-    color: "#f59e0b", // Amber-500
+    color: "#f59e0b",
     badgeClass: "bg-amber-950/60 border-amber-800 text-amber-400",
   },
   no: {
     label: "No / Unwilling",
-    color: "#ef4444", // Red-500
+    color: "#ef4444",
     badgeClass: "bg-red-950/60 border-red-800 text-red-400",
   },
   other: {
     label: "Unspecified / N/A",
-    color: "#6b7280", // Neutral-500
+    color: "#6b7280",
     badgeClass: "bg-neutral-900 border-neutral-800 text-neutral-400",
   },
 };
 
-// Pure SVG Pie Chart Component
 function CustomPieChart({
   data,
   total,
@@ -104,7 +101,6 @@ function CustomPieChart({
             )
         )}
       </svg>
-      {/* Inner Ring Overlay */}
       <div className="absolute inset-0 m-auto w-16 h-16 bg-neutral-950 rounded-full border border-neutral-800/80 flex flex-col items-center justify-center shadow-inner text-center">
         <span className="text-xs font-bold text-white font-mono">{total}</span>
         <span className="text-[9px] text-neutral-500 uppercase tracking-tighter">
@@ -124,7 +120,6 @@ export default function SurveySubmissionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isBroadcasterOpen, setIsBroadcasterOpen] = useState(false);
 
-  // Local Storage state for tracking read/processed survey IDs
   const [readSurveyIds, setReadSurveyIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -142,7 +137,6 @@ export default function SurveySubmissionsPage() {
     };
   }, []);
 
-  // Load checked survey IDs from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("admin_read_surveys");
@@ -156,9 +150,8 @@ export default function SurveySubmissionsPage() {
     }
   }, []);
 
-  // Toggle read status for individual survey ID
   const toggleSurveyRead = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents row navigation click
+    e.stopPropagation();
     setReadSurveyIds((prev) => {
       const updated = { ...prev, [id]: !prev[id] };
       if (typeof window !== "undefined") {
@@ -168,7 +161,6 @@ export default function SurveySubmissionsPage() {
     });
   };
 
-  // Compute breakdown metrics for Willingness Pie Chart
   const willingnessBreakdown = useMemo(() => {
     const counts: Record<string, number> = {
       yes_definitely: 0,
@@ -213,7 +205,6 @@ export default function SurveySubmissionsPage() {
     ];
   }, [submissions]);
 
-  // Compute breakdown metrics for Agreed Price Pie Chart
   const priceBreakdown = useMemo(() => {
     const counts: Record<string, { label: string; count: number; color: string }> = {
       keep_free: { label: "Keep Free", count: 0, color: "#6b7280" },
@@ -277,7 +268,6 @@ export default function SurveySubmissionsPage() {
     return `₦${num.toLocaleString()}`;
   };
 
-  // Format date string with time (e.g. Oct 11, 2026, 08:49 PM)
   const formatDateTime = (dateStr: string) => {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) {
@@ -338,6 +328,13 @@ export default function SurveySubmissionsPage() {
     link.click();
     document.body.removeChild(link);
   };
+
+  // Define dynamic recipient categories for the broadcaster modal
+  const broadcastCategories: BroadcastRecipientCategory[] = [
+    { id: "all_users", label: "All Registered Users" },
+    { id: "survey_respondents", label: "Survey Respondents", count: totalSubmissions },
+    { id: "willing", label: "Willing Members (Yes / Maybe)" },
+  ];
 
   return (
     <AdminPinGuard>
@@ -649,11 +646,12 @@ export default function SurveySubmissionsPage() {
             </div>
           </div>
 
-          {/* Survey Broadcaster Modal */}
+          {/* Survey Broadcaster Modal with Dynamic Categories */}
           <SurveyBroadcasterModal
             isOpen={isBroadcasterOpen}
             onClose={() => setIsBroadcasterOpen(false)}
-            totalRespondents={totalSubmissions}
+            recipientCategories={broadcastCategories}
+            defaultCategory="survey_respondents"
           />
         </div>
       </div>
