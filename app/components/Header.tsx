@@ -4,6 +4,7 @@ import Link from "next/link";
 import { IoArrowBack } from "react-icons/io5";
 import PushNotifications from "@/app/notifications/PushNotifications";
 import AuthButton from "@/app/auth/AuthButton";
+import FloatingVideoPlayer from "./FloatingVideoPlayer"
 
 export default function Header() {
   return (
@@ -26,6 +27,17 @@ export default function Header() {
         <PushNotifications />
         <AuthButton />
       </div>
+
+{/* Floating Video Component */}
+    <FloatingVideoPlayer
+      videos={[
+        {
+          id: "devotional-vid-oct-13",
+          videoUrl: "https://res.cloudinary.com/dd5ppwbyi/video/upload/v1791876484/lv_0_20261013082356_w01hdo.mp4",
+          title: "Salutation from Author",
+        },
+      ]}
+    />
     </header>
   );
 }
