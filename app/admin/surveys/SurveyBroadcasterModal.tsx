@@ -12,14 +12,25 @@ import {
   CheckCircle2,
   Users,
   Search,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { getBroadcastEmailHtml } from "@/lib/email/templates/broadcast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+export interface BroadcastRecipientCategory {
+  id: string;
+  label: string;
+  count?: number;
+  emails?: string[];
+}
+
 interface SurveyBroadcasterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  totalRespondents: number;
+  /** Dynamic recipient categories passed from parent components */
+  recipientCategories?: BroadcastRecipientCategory[];
+  defaultCategory?: string;
 }
 
 interface AppUser {
@@ -28,17 +39,26 @@ interface AppUser {
   name?: string;
 }
 
+interface FailedEmailItem {
+  id: string;
+  email: string;
+  errorReason: string;
+  failedAt: string;
+}
+
 export default function SurveyBroadcasterModal({
   isOpen,
   onClose,
-  totalRespondents,
+  recipientCategories = [
+    { id: "all_users", label: "All Registered Users" },
+    { id: "survey_respondents", label: "Survey Respondents" },
+  ],
+  defaultCategory = "all_users",
 }: SurveyBroadcasterModalProps) {
   const [subject, setSubject] = useState(
     "A Special Word from The Bridge Devotional",
   );
-  const [target, setTarget] = useState<
-    "survey_respondents" | "willing" | "all_users" | "selected_users"
-  >("survey_respondents");
+  const [target, setTarget] = useState<string>(defaultCategory);
 
   const [sendEmail, setSendEmail] = useState(true);
   const [sendPush, setSendPush] = useState(true);
@@ -46,15 +66,20 @@ export default function SurveyBroadcasterModal({
     "editor" | "email_preview" | "push_preview"
   >("editor");
 
-  // User search & selection state
+  // User search & selection state for individual targeting
   const [allUsers, setAllUsers] = useState<AppUser[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<AppUser[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
+  // Failed Emails Sub-Modal State
+  const [isFailedMailsOpen, setIsFailedMailsOpen] = useState(false);
+  const [failedMails, setFailedMails] = useState<FailedEmailItem[]>([]);
+  const [isResending, setIsResending] = useState<string | null>(null);
+
   // ContentEditable Div text content
   const [rawText, setRawText] = useState(
-    "Thank you for sharing your feedback on The Bridge Daily Devotional!\n\nWe are excited to build a deeper, more enriching devotional experience for you every single day.\n\nStay tuned as we continue to launch new spiritual engagement features.",
+    "Thank you for being an active part of The Bridge Daily Devotional community!\n\nWe are excited to build a deeper, more enriching devotional experience for you every single day.",
   );
 
   const [isSending, setIsSending] = useState(false);
@@ -65,10 +90,10 @@ export default function SurveyBroadcasterModal({
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all registered users for individual targeting on mount
+  // Fetch all registered users for individual targeting & failed logs on mount
   useEffect(() => {
     let cancelled = false;
-    async function fetchUsers() {
+    async function fetchAppData() {
       try {
         const supabase = createSupabaseBrowserClient();
         if (!supabase) return;
@@ -89,28 +114,39 @@ export default function SurveyBroadcasterModal({
           }));
           setAllUsers(mapped);
         }
+
+        // Fetch mock or real failed email logs if endpoint exists
+        const failRes = await fetch("/api/admin/broadcast/failed", {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => null);
+
+        if (failRes && failRes.ok) {
+          const failJson = await failRes.json();
+          if (!cancelled && failJson.failed) {
+            setFailedMails(failJson.failed);
+          }
+        }
       } catch (err) {
         console.error("Failed to load users for broadcaster:", err);
       }
     }
 
     if (isOpen) {
-      fetchUsers();
+      fetchAppData();
+      setTarget(defaultCategory);
     }
 
     return () => {
       cancelled = true;
     };
-  }, [isOpen]);
+  }, [isOpen, defaultCategory]);
 
-  // Initialize the editor only when it becomes visible.
   useEffect(() => {
     if (isOpen && activeTab === "editor" && editorRef.current) {
       editorRef.current.innerText = rawText;
     }
   }, [isOpen, activeTab]);
 
-  // Parse raw text into distinct paragraph strings
   const paragraphs = rawText
     .split(/\n\s*\n|\n/)
     .map((p) => p.trim())
@@ -186,21 +222,32 @@ export default function SurveyBroadcasterModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Broadcast failed");
 
-      if (data.emailError) {
-        setResultMessage({
-          type: data.emailsSent > 0 ? "success" : "error",
-          text: `Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails sent, ${data.pushSent} push). Notice: ${data.emailError}`,
-        });
-      } else {
-        setResultMessage({
-          type: "success",
-          text: `Broadcast sent! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push).`,
-        });
-      }
+      setResultMessage({
+        type: "success",
+        text: `Broadcast sent! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push).`,
+      });
     } catch (err: any) {
       setResultMessage({ type: "error", text: err.message || "Failed to deliver broadcast." });
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleResendFailedEmail = async (id: string, email: string) => {
+    setIsResending(id);
+    try {
+      const res = await fetch("/api/admin/broadcast/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId: id, email }),
+      });
+      if (res.ok) {
+        setFailedMails((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error("Resend failed:", err);
+    } finally {
+      setIsResending(null);
     }
   };
 
@@ -232,21 +279,37 @@ export default function SurveyBroadcasterModal({
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white truncate">
-                  Survey Broadcast &amp; Communications
+                  Targeted Broadcast &amp; Communications
                 </h3>
                 <p className="text-[11px] sm:text-xs text-neutral-400 truncate">
-                  Send emails and push notifications to respondents or specific individuals
+                  Send emails and push notifications to dynamic recipient tiers
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              aria-label="Close modal"
-              className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer shrink-0"
-            >
-              <X className="size-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsFailedMailsOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 text-xs font-medium transition-all cursor-pointer"
+              >
+                <AlertTriangle className="size-3.5 text-amber-500" />
+                <span>Failed Mails</span>
+                {failedMails.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-mono text-[10px]">
+                    {failedMails.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={onClose}
+                aria-label="Close modal"
+                className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer shrink-0"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
           </div>
 
           {/* Tab Navigation */}
@@ -290,7 +353,6 @@ export default function SurveyBroadcasterModal({
 
           {/* Scrollable Body */}
           <div className="px-4 sm:px-6 py-5 overflow-y-auto space-y-5 flex-1 text-left">
-
             {/* Subject Line */}
             <div>
               <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
@@ -317,7 +379,6 @@ export default function SurveyBroadcasterModal({
                   </span>
                 </div>
 
-                {/* ContentEditable Paragraph Div */}
                 <div className="relative rounded-2xl bg-black border border-neutral-800 focus-within:border-red-600/80 transition-all p-4 shadow-inner">
                   <div
                     ref={editorRef}
@@ -328,9 +389,8 @@ export default function SurveyBroadcasterModal({
                   />
                 </div>
 
-                {/* Recipients & Channels */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  {/* Target Select */}
+                  {/* Dynamic Target Select */}
                   <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-4 space-y-3">
                     <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Users className="size-3.5 text-red-500 shrink-0" />
@@ -338,14 +398,14 @@ export default function SurveyBroadcasterModal({
                     </label>
                     <select
                       value={target}
-                      onChange={(e: any) => setTarget(e.target.value)}
+                      onChange={(e) => setTarget(e.target.value)}
                       className="w-full bg-black border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-600 font-medium cursor-pointer"
                     >
-                      <option value="survey_respondents">
-                        Survey Respondents ({totalRespondents})
-                      </option>
-                      <option value="willing">Willing Members (Yes / Maybe)</option>
-                      <option value="all_users">All Registered Users</option>
+                      {recipientCategories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.label} {cat.count !== undefined ? `(${cat.count})` : ""}
+                        </option>
+                      ))}
                       <option value="selected_users">Select Specific Individuals</option>
                     </select>
 
@@ -366,7 +426,6 @@ export default function SurveyBroadcasterModal({
                             className="w-full bg-black border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-600"
                           />
 
-                          {/* Dropdown list with overflow-y-auto */}
                           {isUserDropdownOpen && userSearchQuery.trim().length > 0 && (
                             <div className="absolute z-30 mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl max-h-40 overflow-y-auto">
                               {filteredUsersList.length > 0 ? (
@@ -389,7 +448,6 @@ export default function SurveyBroadcasterModal({
                           )}
                         </div>
 
-                        {/* Selected User Pills / Tags with Cancel Icon */}
                         {selectedUsers.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 pt-1 max-h-24 overflow-y-auto">
                             {selectedUsers.map((u) => (
@@ -489,7 +547,6 @@ export default function SurveyBroadcasterModal({
               </div>
             )}
 
-            {/* Result / Status Banner */}
             {resultMessage && (
               <div
                 className={`p-4 rounded-2xl text-xs font-medium flex items-start gap-2.5 ${
@@ -527,6 +584,65 @@ export default function SurveyBroadcasterModal({
           </div>
         </motion.div>
       </div>
+
+      {/* ── Failed Mails Sub-Modal ── */}
+      {isFailedMailsOpen && (
+        <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+          >
+            <div className="px-5 py-4 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="size-5 text-amber-500" />
+                <h4 className="text-sm font-bold text-white">Failed Email Deliveries</h4>
+              </div>
+              <button
+                onClick={() => setIsFailedMailsOpen(false)}
+                className="p-1.5 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto space-y-3 flex-1 text-left">
+              {failedMails.length === 0 ? (
+                <div className="py-12 text-center text-xs text-neutral-500">
+                  No failed emails recorded. All broadcasts delivered successfully!
+                </div>
+              ) : (
+                failedMails.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-neutral-900/60 border border-neutral-800 gap-3"
+                  >
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-white truncate block">
+                        {item.email}
+                      </span>
+                      <span className="text-[10px] text-red-400 font-mono block truncate">
+                        {item.errorReason}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isResending === item.id}
+                      onClick={() => handleResendFailedEmail(item.id, item.email)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold shrink-0 cursor-pointer shadow-md transition-all"
+                    >
+                      <RotateCcw className={`size-3 ${isResending === item.id ? "animate-spin" : ""}`} />
+                      <span>{isResending === item.id ? "Resending..." : "Resend"}</span>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 }
