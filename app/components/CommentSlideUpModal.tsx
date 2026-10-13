@@ -190,25 +190,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               )}
             </div>
 
-            {/* Replying Status Indicator Bar */}
-            {replyingToName && (
-              <div className="px-5 py-2 flex items-center justify-between text-xs bg-neutral-900 border-t border-neutral-800 text-neutral-300 shrink-0">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
-                  <span className="truncate">
-                    Replying to <strong className="text-white font-semibold">@{replyingToName}</strong>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClearReply}
-                  className="text-xs text-neutral-400 hover:text-white font-medium ml-3 shrink-0 cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-
             {/* Input Section */}
             <div className="p-4 border-t border-neutral-900 bg-neutral-950/90 backdrop-blur-md shrink-0">
               <form
