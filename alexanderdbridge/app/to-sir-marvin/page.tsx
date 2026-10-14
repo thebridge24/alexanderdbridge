@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+
 
 // ==========================================
 // 1. TYPES & CONTENT BREAKDOWN (21 STEPS)
@@ -445,7 +447,7 @@ export default function ApologyPage() {
                       className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-red-600 hover:bg-red-700 text-white font-mono text-xs tracking-widest uppercase font-semibold transition-all shadow-lg shadow-red-600/20 active:scale-95"
                     >
                       <span>Schedule a Call</span>
-                      <span className="ml-2">→</span>
+                      <span className="ml-2"> <ChevronRight className="size-5"/></span>
                     </a>
 
                     {/* Decline Option Button */}
