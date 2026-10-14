@@ -14,6 +14,8 @@ import {
   Search,
   AlertTriangle,
   RotateCcw,
+  Copy,
+  Check,
 } from "lucide-react";
 import { getBroadcastEmailHtml } from "@/lib/email/templates/broadcast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -87,8 +89,20 @@ export default function SurveyBroadcasterModal({
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [failedEmails, setFailedEmails] = useState<
+    { email: string; error: string; statusCode?: number; timestamp?: string }[]
+  >([]);
+  const [isCopied, setIsCopied] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const handleCopyFailed = () => {
+    if (failedEmails.length === 0) return;
+    const text = failedEmails.map((f) => `${f.email} - ${f.error}`).join("\n");
+    navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   // Fetch all registered users for individual targeting & failed logs on mount
   useEffect(() => {
@@ -194,6 +208,7 @@ export default function SurveyBroadcasterModal({
 
     setIsSending(true);
     setResultMessage(null);
+    setFailedEmails([]);
 
     try {
       const channels: string[] = [];
@@ -222,10 +237,28 @@ export default function SurveyBroadcasterModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Broadcast failed");
 
-      setResultMessage({
-        type: "success",
-        text: `Broadcast sent! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push).`,
-      });
+      if (data.failedDetails && Array.isArray(data.failedDetails) && data.failedDetails.length > 0) {
+        setFailedEmails(data.failedDetails);
+        const newFailedItems: FailedEmailItem[] = data.failedDetails.map((f: any, idx: number) => ({
+          id: `broadcast-${Date.now()}-${idx}`,
+          email: f.email,
+          errorReason: f.error || "Delivery failure",
+          failedAt: f.timestamp || new Date().toISOString(),
+        }));
+        setFailedMails((prev) => [...newFailedItems, ...prev]);
+      }
+
+      if (data.emailsFailed > 0 || data.emailError) {
+        setResultMessage({
+          type: data.emailsSent > 0 ? "success" : "error",
+          text: `Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails delivered, ${data.emailsFailed || 0} failed, ${data.pushSent} push).`,
+        });
+      } else {
+        setResultMessage({
+          type: "success",
+          text: `Broadcast delivered! Targeted ${data.recipientsTargeted} recipients (${data.emailsSent} emails, ${data.pushSent} push). All delivered successfully.`,
+        });
+      }
     } catch (err: any) {
       setResultMessage({ type: "error", text: err.message || "Failed to deliver broadcast." });
     } finally {
@@ -555,8 +588,57 @@ export default function SurveyBroadcasterModal({
                     : "bg-red-950/80 border border-red-800 text-red-300"
                 }`}
               >
-                <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
+                {resultMessage.type === "success" ? (
+                  <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-400" />
+                ) : (
+                  <AlertTriangle className="size-4 shrink-0 mt-0.5 text-red-400" />
+                )}
                 <span>{resultMessage.text}</span>
+              </div>
+            )}
+
+            {/* Detailed Failed Emails Breakdown */}
+            {failedEmails.length > 0 && (
+              <div className="p-4 rounded-2xl bg-red-950/30 border border-red-800/80 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase tracking-wider">
+                    <AlertTriangle className="size-4 shrink-0 text-red-500" />
+                    <span>Failed Deliveries ({failedEmails.length})</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyFailed}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-red-900/60 hover:bg-red-800 text-red-200 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="size-3 text-emerald-400" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3" />
+                        <span>Copy Failed List</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                  {failedEmails.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl bg-black/60 border border-red-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px]"
+                    >
+                      <span className="font-mono text-neutral-200 font-medium truncate max-w-xs sm:max-w-sm">
+                        {item.email}
+                      </span>
+                      <span className="text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-800/50 text-[10px] sm:text-[11px] shrink-0 font-medium">
+                        {item.error}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

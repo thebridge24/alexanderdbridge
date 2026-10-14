@@ -64,24 +64,42 @@ export async function POST(request: NextRequest) {
 
     // If single recipient, send directly
     if (uniqueRecipients.length === 1) {
+      const email = uniqueRecipients[0];
       const result = await sendEmail({
         from,
-        to: uniqueRecipients[0],
+        to: email,
         subject,
         html,
         text,
       });
 
       if (!result.success) {
+        const errorReason = result.error || "Failed to send email via SendByte";
         return NextResponse.json(
-          { error: result.error || "Failed to send email via SendByte" },
+          {
+            success: false,
+            error: errorReason,
+            totalTargeted: 1,
+            sentCount: 0,
+            failedCount: 1,
+            failedDetails: [
+              {
+                email,
+                error: errorReason,
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          },
           { status: 502 },
         );
       }
 
       return NextResponse.json({
         success: true,
+        totalTargeted: 1,
         sentCount: 1,
+        failedCount: 0,
+        failedDetails: [],
         id: result.id,
       });
     }
@@ -99,6 +117,7 @@ export async function POST(request: NextRequest) {
       totalTargeted: result.totalTargeted,
       sentCount: result.sentCount,
       failedCount: result.failedCount,
+      failedDetails: result.failedDetails,
       errors: result.failedDetails,
     });
   } catch (error: any) {

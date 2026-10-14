@@ -105,6 +105,8 @@ export async function POST(request: NextRequest) {
     const emailList = Array.from(recipientEmails);
     const userIdList = Array.from(recipientUserIds);
     let emailsSentCount = 0;
+    let emailsFailedCount = 0;
+    let emailFailedDetails: { email: string; error: string; statusCode?: number; timestamp: string }[] = [];
     let pushSentCount = 0;
     let emailError: string | null = null;
 
@@ -136,11 +138,15 @@ export async function POST(request: NextRequest) {
             subject: cleanSubject,
             html: htmlContent,
             text: textContent,
+            metadata: { type: "admin_broadcast", target },
           });
 
           emailsSentCount = result.sentCount;
+          emailsFailedCount = result.failedCount;
+          emailFailedDetails = result.failedDetails;
+
           if (result.failedCount > 0) {
-            emailError = `Delivered to ${result.sentCount} recipients; failed for ${result.failedCount} addresses. Details: ${result.errors[0]?.error || "Unknown SendByte delivery error"}`;
+            emailError = `Delivered to ${result.sentCount} recipients; ${result.failedCount} email(s) failed.`;
           }
         } else {
           emailError = "SENDBYTE_API_KEY environment variable is not configured on the server.";
@@ -179,6 +185,8 @@ export async function POST(request: NextRequest) {
       recipientsTargeted: Math.max(emailList.length, userIdList.length),
       totalTargeted: Math.max(emailList.length, userIdList.length),
       emailsSent: emailsSentCount,
+      emailsFailed: emailsFailedCount,
+      failedDetails: emailFailedDetails,
       pushSent: pushSentCount,
       inAppNotificationsInserted: channels.includes("push") ? userIdList.length : 0,
       emailError,

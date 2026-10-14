@@ -63,8 +63,15 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ success: true, sentAt: nowIso });
     } else {
+      console.error(
+        `[Welcome Email Failed] Recipient: "${userEmail}" | Reason: "${emailResult.error}"`,
+      );
       return NextResponse.json(
-        { error: emailResult.error || "Failed to send welcome email" },
+        {
+          error: emailResult.error || "Failed to send welcome email",
+          failedRecipient: userEmail,
+          reason: emailResult.error || "Unknown SendByte delivery error",
+        },
         { status: 500 },
       );
     }
