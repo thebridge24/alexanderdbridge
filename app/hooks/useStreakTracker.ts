@@ -21,6 +21,10 @@ export function useStreakTracker(userIdProp?: string | null) {
     attendanceHistory: {},
   });
 
+  // True once the saved streak has been loaded (or confirmed absent). Nothing is synced before
+  // this, otherwise the empty initial state could overwrite a real streak in the database.
+  const [remoteLoaded, setRemoteLoaded] = useState(false);
+
   const [dwellSeconds, setDwellSeconds] = useState(0);
   const [todayCompleted, setTodayCompleted] = useState(false);
   const [newlyUnlockedMedal, setNewlyUnlockedMedal] = useState<Medal | null>(
@@ -63,9 +67,13 @@ export function useStreakTracker(userIdProp?: string | null) {
   useEffect(() => {
     if (!activeUserId) return;
     const today = getTodayString();
+    setRemoteLoaded(false);
 
     fetch(`/api/streaks?userId=${encodeURIComponent(activeUserId)}`)
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (!res.ok) throw new Error(`Streak load failed (${res.status})`);
+        return res.json();
+      })
       .then((remote) => {
         if (remote && remote.found && remote.streakData) {
           const remoteData = remote.streakData as StreakData;
@@ -75,8 +83,10 @@ export function useStreakTracker(userIdProp?: string | null) {
             setTodayCompleted(true);
           }
         }
+        setRemoteLoaded(true);
       })
       .catch((err) => {
+        // Leave remoteLoaded false so we never save over a streak we failed to read
         console.error("Failed to load remote streak from database:", err);
       });
   }, [activeUserId, getTodayString]);
@@ -111,6 +121,7 @@ export function useStreakTracker(userIdProp?: string | null) {
 
   // 4. Mark Today Complete
   const markTodayComplete = useCallback(() => {
+    if (activeUserId && !remoteLoaded) return;
     const today = getTodayString();
 
     setStreakData((prev) => {
@@ -159,11 +170,12 @@ export function useStreakTracker(userIdProp?: string | null) {
 
     setTodayCompleted(true);
     setDwellSeconds(MIN_DWELL_SECONDS);
-  }, [activeUserId, getTodayString, syncToDatabase]);
+  }, [activeUserId, remoteLoaded, getTodayString, syncToDatabase]);
 
   // 5. Robust Timestamp-Based Interval Tracker
   useEffect(() => {
     if (todayCompleted) return;
+    if (activeUserId && !remoteLoaded) return;
 
     startTimeRef.current = Date.now() - dwellSeconds * 1000;
 
@@ -182,7 +194,7 @@ export function useStreakTracker(userIdProp?: string | null) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [todayCompleted, markTodayComplete]);
+  }, [todayCompleted, markTodayComplete, activeUserId, remoteLoaded]);
 
   const getNextMilestone = () => {
     const current = streakData.currentStreak;

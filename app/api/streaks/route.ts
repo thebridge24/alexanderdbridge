@@ -126,18 +126,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Merge with what is already stored instead of overwriting it. A client that synced before
+    // it finished loading (or from a fresh device) must never be able to wipe a saved streak.
+    const { data: existing } = await supabase
+      .from("user_streaks")
+      .select("*")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+
+    const incomingHistory: Record<string, any> =
+      streakData.attendanceHistory && typeof streakData.attendanceHistory === "object"
+        ? streakData.attendanceHistory
+        : {};
+    const storedHistory: Record<string, any> = existing?.attendance_history ?? {};
+    const mergedHistory: Record<string, any> = { ...storedHistory, ...incomingHistory };
+    for (const date of Object.keys(mergedHistory)) {
+      // A day completed on either side stays completed
+      if (storedHistory[date]?.completed || incomingHistory[date]?.completed) {
+        mergedHistory[date] = { ...mergedHistory[date], completed: true };
+      }
+    }
+
+    const completedFromHistory = Object.keys(mergedHistory).filter(
+      (d) => mergedHistory[d]?.completed,
+    );
+    const mergedCompleted = Array.from(
+      new Set<string>([
+        ...(Array.isArray(existing?.completed_devotionals) ? existing.completed_devotionals : []),
+        ...(Array.isArray(completedDevotionals) ? completedDevotionals : []),
+        ...completedFromHistory,
+      ]),
+    ).sort();
+
+    const mergedMedals = Array.from(
+      new Set<string>([
+        ...(Array.isArray(existing?.unlocked_medal_ids) ? existing.unlocked_medal_ids : []),
+        ...(Array.isArray(streakData.unlockedMedalIds) ? streakData.unlockedMedalIds : []),
+      ]),
+    );
+
+    const lastVisit = [existing?.last_visit_date, String(streakData.lastVisitDate || "")]
+      .filter(Boolean)
+      .sort()
+      .pop();
+
+    const currentStreak = Math.max(
+      Number(existing?.current_streak) || 0,
+      Number(streakData.currentStreak) || 0,
+    );
+
     const upsertPayload: Record<string, unknown> = {
       user_id: targetUserId,
-      current_streak: Number(streakData.currentStreak) || 0,
-      best_streak: Number(streakData.bestStreak) || 0,
-      last_visit_date: String(streakData.lastVisitDate || ""),
-      unlocked_medal_ids: Array.isArray(streakData.unlockedMedalIds)
-        ? streakData.unlockedMedalIds
-        : [],
-      attendance_history: streakData.attendanceHistory || {},
-      completed_devotionals: Array.isArray(completedDevotionals)
-        ? completedDevotionals
-        : [],
+      current_streak: currentStreak,
+      best_streak: Math.max(
+        Number(existing?.best_streak) || 0,
+        Number(streakData.bestStreak) || 0,
+        currentStreak,
+      ),
+      last_visit_date: lastVisit ?? "",
+      unlocked_medal_ids: mergedMedals,
+      attendance_history: mergedHistory,
+      completed_devotionals: mergedCompleted,
       updated_at: new Date().toISOString(),
     };
 
