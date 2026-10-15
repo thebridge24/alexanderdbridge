@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
+import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
+import { sendNotification } from "@/lib/notifications/sender";
+import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
 
 type RouteContext = {
   params: Promise<{ date: string }>;
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const sessionId = request.nextUrl.searchParams.get("sessionId")?.trim();
   const supabase = createSupabaseAdmin();
-
+  
   const { data: rawComments, error } = await supabase
     .from("devotional_comments")
     .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count")
@@ -73,7 +76,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
-  // 1. Collect distinct author user IDs from both comments and replies
+  // Look up verified subscriber status securely by user_id to prevent name spoofing
   const authorUserIds = Array.from(
     new Set(
       [
@@ -84,11 +87,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   );
 
   const verificationMap = new Map<string, string>();
-  const streakMap = new Map<string, number>();
-  const globalPositionMap = new Map<string, number>();
-
   if (authorUserIds.length > 0) {
-    // 2. Fetch active verification tiers for comment/reply authors
     const { data: subs } = await supabase
       .from("user_subscriptions")
       .select("user_id, verification_tier")
@@ -102,81 +101,29 @@ export async function GET(request: NextRequest, context: RouteContext) {
         }
       });
     }
-
-    // 3. Fetch streaks and calculate completed lengths + global ranks
-    const { data: allStreaks } = await supabase
-      .from("user_streaks")
-      .select("user_id, streak_data, updated_at, created_at");
-
-    if (allStreaks) {
-      const computedStreaks = allStreaks.map((row) => {
-        let length = 0;
-        const sData = row.streak_data as any;
-        if (sData && sData.attendanceHistory) {
-          length = Object.values(sData.attendanceHistory).filter(
-            (entry: any) => entry && entry.completed === true
-          ).length;
-        }
-        return {
-          user_id: row.user_id,
-          length,
-          updated_at: row.updated_at,
-          created_at: row.created_at,
-        };
-      });
-
-      computedStreaks.sort((a, b) => {
-        if (b.length !== a.length) return b.length - a.length;
-        const timeA = a.updated_at ? new Date(a.updated_at).getTime() : Infinity;
-        const timeB = b.updated_at ? new Date(b.updated_at).getTime() : Infinity;
-        if (timeA !== timeB) return timeA - timeB;
-        const createdA = a.created_at ? new Date(a.created_at).getTime() : Infinity;
-        const createdB = b.created_at ? new Date(b.created_at).getTime() : Infinity;
-        return createdA - createdB;
-      });
-
-      computedStreaks.forEach((item, index) => {
-        if (item.user_id) {
-          streakMap.set(item.user_id, item.length);
-          globalPositionMap.set(item.user_id, index + 1);
-        }
-      });
-    }
   }
 
-  // 4. Attach verification tier, streak count, and global position to every comment & reply
-  const formattedComments = comments.map((c) => {
-    const userId = c.author_user_id;
-
-    return {
-      id: c.id,
-      devotional_date: c.devotional_date,
-      author_name: c.author_name,
-      author_avatar: c.author_avatar,
-      author_user_id: userId,
-      author_verification_tier: userId ? verificationMap.get(userId) || null : null,
-      streakCount: userId ? streakMap.get(userId) || 0 : 0,
-      globalPosition: userId ? globalPositionMap.get(userId) : undefined,
-      body: c.body,
-      created_at: c.created_at,
-      like_count: c.like_count ?? 0,
-      liked: likedSet.has(c.id),
-      replies: (repliesMap.get(c.id) || []).map((r) => {
-        const replyUserId = r.author_user_id;
-        return {
-          id: r.id,
-          author_name: r.author_name,
-          author_avatar: r.author_avatar,
-          author_user_id: replyUserId,
-          author_verification_tier: replyUserId ? verificationMap.get(replyUserId) || null : null,
-          streakCount: replyUserId ? streakMap.get(replyUserId) || 0 : 0,
-          globalPosition: replyUserId ? globalPositionMap.get(replyUserId) : undefined,
-          body: r.body,
-          created_at: r.created_at,
-        };
-      }),
-    };
-  });
+  const formattedComments = comments.map((c) => ({
+    id: c.id,
+    devotional_date: c.devotional_date,
+    author_name: c.author_name,
+    author_avatar: c.author_avatar,
+    author_user_id: c.author_user_id,
+    author_verification_tier: c.author_user_id ? verificationMap.get(c.author_user_id) || null : null,
+    body: c.body,
+    created_at: c.created_at,
+    like_count: c.like_count ?? 0,
+    liked: likedSet.has(c.id),
+    replies: (repliesMap.get(c.id) || []).map((r) => ({
+      id: r.id,
+      author_name: r.author_name,
+      author_avatar: r.author_avatar,
+      author_user_id: r.author_user_id,
+      author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
+      body: r.body,
+      created_at: r.created_at,
+    })),
+  }));
 
   return NextResponse.json(
     { comments: formattedComments },
@@ -186,4 +133,115 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     }
   );
+}
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  const configError = assertSupabaseConfigured();
+  if (configError) {
+    return configError;
+  }
+
+  const { date } = await context.params;
+  if (!isValidDevotionalDate(date)) {
+    return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
+  }
+
+  let body: { name?: string; text?: string; avatarUrl?: string; authorUserId?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  let name = body.name?.trim();
+  const text = body.text?.trim();
+  const avatarUrl = (body.avatarUrl || "").trim() || "";
+  let authorUserId = body.authorUserId?.trim() || null;
+
+  // Extract authenticated user if available
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  const supabase = createSupabaseAdmin();
+
+  if (accessToken) {
+    const { data: authUser } = await supabase.auth.getUser(accessToken);
+    if (authUser?.user) {
+      authorUserId = authUser.user.id;
+      name =
+        authUser.user.user_metadata?.full_name ||
+        authUser.user.user_metadata?.name ||
+        name;
+    }
+  }
+
+  if (!name || name.length > 100) {
+    return NextResponse.json(
+      { error: "Name is required and must be 100 characters or fewer" },
+      { status: 400 },
+    );
+  }
+
+  if (!text || text.length > 2000) {
+    return NextResponse.json(
+      { error: "Comment is required and must be 2000 characters or fewer" },
+      { status: 400 },
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("devotional_comments")
+    .insert({
+      devotional_date: date,
+      author_name: name,
+      author_avatar: avatarUrl,
+      author_user_id: authorUserId,
+      body: text,
+    })
+    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at")
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Find devotional topic
+  let topic = "Daily Devotional";
+  const staticDevotional = DEVOTIONALS_DATA.find((d) => d.dateString === date);
+  if (staticDevotional?.topic) {
+    topic = staticDevotional.topic;
+  } else {
+    const { data: dbDevo } = await supabase
+      .from("devotionals")
+      .select("topic")
+      .eq("date_string", date)
+      .maybeSingle();
+    if (dbDevo?.topic) topic = dbDevo.topic;
+  }
+
+  // Notify Admin(s) if configured
+  const adminIdsStr = process.env.ADMIN_USER_IDS || "";
+  const adminIds = adminIdsStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const adminId of adminIds) {
+    if (adminId && adminId !== authorUserId) {
+      const notif = formatDevotionalCommentMessage(name, topic, date, data.id);
+      await sendNotification({
+        userId: adminId,
+        type: "comment",
+        title: notif.title,
+        body: notif.body,
+        link: notif.link,
+        dedupeKey: `admin-comment:${data.id}:${adminId}`,
+        push: true,
+      });
+    }
+  }
+
+  return NextResponse.json({ comment: data }, { status: 201 });
 }
