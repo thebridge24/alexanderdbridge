@@ -13,9 +13,9 @@ export interface Reply {
   timestamp: string;
   avatarUrl?: string;
   authorUserId?: string;
-  authorVerificationTier?: string | null;
-  streakCount?: number;
-  globalPosition?: number; // e.g. 1, 2, 3, 4...
+  authorVerificationTier?: string | null;  // <--- Add this
+  streakCount?: number;                   // <--- Add this
+  globalPosition?: number;                // <--- Add this
 }
 
 export interface Comment {
@@ -27,9 +27,9 @@ export interface Comment {
   liked?: boolean;
   avatarUrl?: string;
   authorUserId?: string;
-  authorVerificationTier?: string | null;
-  streakCount?: number;
-  globalPosition?: number; // e.g. 1, 2, 3, 4...
+  authorVerificationTier?: string | null;  // <--- Add this
+  streakCount?: number;                   // <--- Add this
+  globalPosition?: number;                // <--- Add this
   replies?: Reply[];
 }
 

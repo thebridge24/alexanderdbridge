@@ -407,7 +407,7 @@ dwellSeconds,
       }
     }
 
-        async function fetchComments() {
+       async function fetchComments() {
       try {
         const res = await fetch(
           `/api/devotionals/${date}/comments?sessionId=${sessionId}&_t=${Date.now()}`,
@@ -426,9 +426,9 @@ dwellSeconds,
             liked: Boolean(c.liked),
             authorUserId: c.author_user_id || undefined,
             avatarUrl: c.author_avatar || undefined,
-            authorVerificationTier: c.author_verification_tier || null, // Map verification tier
-            streakCount: c.streakCount || 0,                         // Map streak count
-            globalPosition: c.globalPosition,                       // Map global rank position
+            authorVerificationTier: c.author_verification_tier || null, // <--- MAP THIS
+            streakCount: c.streakCount || 0,                           // <--- MAP THIS
+            globalPosition: c.globalPosition,                         // <--- MAP THIS
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
               name: r.author_name,
@@ -436,9 +436,9 @@ dwellSeconds,
               timestamp: formatRelativeTime(r.created_at),
               authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
-              authorVerificationTier: r.author_verification_tier || null, // Map reply tier
-              streakCount: r.streakCount || 0,                         // Map reply streak count
-              globalPosition: r.globalPosition,                       // Map reply global rank position
+              authorVerificationTier: r.author_verification_tier || null,
+              streakCount: r.streakCount || 0,
+              globalPosition: r.globalPosition,
             })),
           }));
           setComments(mappedComments);
