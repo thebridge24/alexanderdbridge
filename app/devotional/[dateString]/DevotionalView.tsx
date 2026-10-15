@@ -768,16 +768,11 @@ dwellSeconds,
 
   // Check if yesterday's devotional is already read (from local storage or user history)
   const isYesterdayRead = (() => {
-    if (typeof window === "undefined" || !yesterdayDateString) return false;
-    try {
-      const readLogs = JSON.parse(
-        localStorage.getItem("completed_devotionals") || "[]",
-      );
-      return Array.isArray(readLogs) && readLogs.includes(yesterdayDateString);
-    } catch {
-      return false;
-    }
+    if (!yesterdayDateString || !streakData?.attendanceHistory) return false;
+    const record = streakData.attendanceHistory[yesterdayDateString];
+    return Boolean(record && record.completed);
   })();
+
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const requiresAuthPrompt = !isAuthLoading && !user;
