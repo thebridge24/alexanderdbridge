@@ -4,7 +4,7 @@
  * Three verification tiers with distinct badge colors:
  * - Supporter: Blue (#3b82f6 / text-blue-500)
  * - Sponsor: Purple (#8b5cf6 / text-purple-500)
- * - Patron: Metallic Gold (#eab308 / warm linear gradient)
+ * - Patron: Metallic Gold (#f59e0b / text-amber-400)
  */
 
 export type VerificationTier = "supporter" | "sponsor" | "patron";
@@ -16,6 +16,7 @@ export interface VerificationTierInfo {
   gradientClass?: string;
   textColorClass: string;
   badgeBgClass: string;
+  iconColorClass: string;
   description: string;
 }
 
@@ -25,6 +26,7 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
     label: "Supporter",
     hexColor: "#3b82f6",
     textColorClass: "text-blue-500",
+    iconColorClass: "text-blue-400",
     badgeBgClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
     description: "Helps us improve and reach more believers.",
   },
@@ -33,16 +35,17 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
     label: "Sponsor",
     hexColor: "#8b5cf6",
     textColorClass: "text-purple-500",
+    iconColorClass: "text-purple-400",
     badgeBgClass: "bg-purple-500/10 text-purple-400 border-purple-500/30",
     description: "Keeps Bridge Daily accessible to the world.",
   },
   patron: {
     tier: "patron",
     label: "Patron",
-    hexColor: "#eab308", // Bright warm gold base
-    gradientClass: "bg-gradient-to-r from-[#eab308] via-[#fef08a] to-[#ca8a04]", // Rich gold metallic sheen
-    textColorClass: "bg-gradient-to-r from-[#eab308] via-[#fef08a] to-[#ca8a04] bg-clip-text text-transparent font-bold",
-    badgeBgClass: "bg-gradient-to-r from-amber-500/15 via-yellow-400/20 to-amber-600/15 text-yellow-400 border-yellow-500/40 shadow-[0_0_12px_rgba(234,179,8,0.25)]",
+    hexColor: "#f59e0b", // Rich warm gold
+    textColorClass: "text-amber-400 font-bold",
+    iconColorClass: "text-amber-400 fill-amber-400", // Guarantees full visibility for SVG icons
+    badgeBgClass: "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.35)]",
     description: "Builds the future of Bridge Daily.",
   },
 };
