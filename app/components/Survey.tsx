@@ -26,13 +26,34 @@ function markDone() {
 
 export default function Survey() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Show the survey 30s after the devotional view mounts (once per user).
+  // 1. Verify user session login status on mount
   useEffect(() => {
-    if (alreadyDone()) return;
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id) {
+        setIsLoggedIn(true);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(Boolean(session?.user?.id));
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 2. Show the survey 30s after mount ONLY if logged in and not already completed
+  useEffect(() => {
+    if (!isLoggedIn || alreadyDone()) return;
     const timer = setTimeout(() => setIsOpen(true), SHOW_AFTER_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isLoggedIn]);
 
   const handleSubmit = async (answers: Record<string, any>) => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -58,6 +79,9 @@ export default function Survey() {
 
     markDone();
   };
+
+  // Do not render anything if the user is not logged in
+  if (!isLoggedIn) return null;
 
   return (
     <SurveyEngine
