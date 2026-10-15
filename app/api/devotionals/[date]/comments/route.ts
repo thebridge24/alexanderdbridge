@@ -73,7 +73,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
-  // Collect distinct author_user_ids across comments & replies
+  // 1. Collect distinct author user IDs from both comments and replies
   const authorUserIds = Array.from(
     new Set(
       [
@@ -88,6 +88,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const globalPositionMap = new Map<string, number>();
 
   if (authorUserIds.length > 0) {
+    // 2. Fetch active verification tiers for comment/reply authors
     const { data: subs } = await supabase
       .from("user_subscriptions")
       .select("user_id, verification_tier")
@@ -101,50 +102,49 @@ export async function GET(request: NextRequest, context: RouteContext) {
         }
       });
     }
+
+    // 3. Fetch streaks and calculate completed lengths + global ranks
+    const { data: allStreaks } = await supabase
+      .from("user_streaks")
+      .select("user_id, streak_data, updated_at, created_at");
+
+    if (allStreaks) {
+      const computedStreaks = allStreaks.map((row) => {
+        let length = 0;
+        const sData = row.streak_data as any;
+        if (sData && sData.attendanceHistory) {
+          length = Object.values(sData.attendanceHistory).filter(
+            (entry: any) => entry && entry.completed === true
+          ).length;
+        }
+        return {
+          user_id: row.user_id,
+          length,
+          updated_at: row.updated_at,
+          created_at: row.created_at,
+        };
+      });
+
+      computedStreaks.sort((a, b) => {
+        if (b.length !== a.length) return b.length - a.length;
+        const timeA = a.updated_at ? new Date(a.updated_at).getTime() : Infinity;
+        const timeB = b.updated_at ? new Date(b.updated_at).getTime() : Infinity;
+        if (timeA !== timeB) return timeA - timeB;
+        const createdA = a.created_at ? new Date(a.created_at).getTime() : Infinity;
+        const createdB = b.created_at ? new Date(b.created_at).getTime() : Infinity;
+        return createdA - createdB;
+      });
+
+      computedStreaks.forEach((item, index) => {
+        if (item.user_id) {
+          streakMap.set(item.user_id, item.length);
+          globalPositionMap.set(item.user_id, index + 1);
+        }
+      });
+    }
   }
 
-  // Fetch ALL user streaks from database to compute exact completed length & rankings globally
-  const { data: allStreaks } = await supabase
-    .from("user_streaks")
-    .select("user_id, streak_data, updated_at, created_at");
-
-  if (allStreaks) {
-    // Compute exact streak length from attendanceHistory items where completed === true
-    const computedStreaks = allStreaks.map((row) => {
-      let length = 0;
-      const sData = row.streak_data as any;
-      if (sData && sData.attendanceHistory) {
-        length = Object.values(sData.attendanceHistory).filter(
-          (entry: any) => entry && entry.completed === true
-        ).length;
-      }
-      return {
-        user_id: row.user_id,
-        length,
-        updated_at: row.updated_at,
-        created_at: row.created_at,
-      };
-    });
-
-    // Sort globally by highest completed length first, then tie-breakers
-    computedStreaks.sort((a, b) => {
-      if (b.length !== a.length) return b.length - a.length;
-      const timeA = a.updated_at ? new Date(a.updated_at).getTime() : Infinity;
-      const timeB = b.updated_at ? new Date(b.updated_at).getTime() : Infinity;
-      if (timeA !== timeB) return timeA - timeB;
-      const createdA = a.created_at ? new Date(a.created_at).getTime() : Infinity;
-      const createdB = b.created_at ? new Date(b.created_at).getTime() : Infinity;
-      return createdA - createdB;
-    });
-
-    computedStreaks.forEach((item, index) => {
-      if (item.user_id) {
-        streakMap.set(item.user_id, item.length);
-        globalPositionMap.set(item.user_id, index + 1); // 1st, 2nd, 3rd global rank
-      }
-    });
-  }
-
+  // 4. Attach verification tier, streak count, and global position to every comment & reply
   const formattedComments = comments.map((c) => {
     const userId = c.author_user_id;
 
@@ -186,76 +186,4 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     }
   );
-}
-
-export async function POST(request: NextRequest, context: RouteContext) {
-  const configError = assertSupabaseConfigured();
-  if (configError) return configError;
-
-  const { date } = await context.params;
-  if (!isValidDevotionalDate(date)) {
-    return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
-  }
-
-  let body: { name?: string; text?: string; avatarUrl?: string; authorUserId?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  let name = body.name?.trim();
-  const text = body.text?.trim();
-  const avatarUrl = (body.avatarUrl || "").trim() || "";
-  let authorUserId = body.authorUserId?.trim() || null;
-
-  const authorization = request.headers.get("authorization");
-  const accessToken = authorization?.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
-    : null;
-
-  const supabase = createSupabaseAdmin();
-
-  if (accessToken) {
-    const { data: authUser } = await supabase.auth.getUser(accessToken);
-    if (authUser?.user) {
-      authorUserId = authUser.user.id;
-      name =
-        authUser.user.user_metadata?.full_name ||
-        authUser.user.user_metadata?.name ||
-        name;
-    }
-  }
-
-  if (!name || name.length > 100) {
-    return NextResponse.json(
-      { error: "Name is required and must be 100 characters or fewer" },
-      { status: 400 },
-    );
-  }
-
-  if (!text || text.length > 2000) {
-    return NextResponse.json(
-      { error: "Comment is required and must be 2000 characters or fewer" },
-      { status: 400 },
-    );
-  }
-
-  const { data, error } = await supabase
-    .from("devotional_comments")
-    .insert({
-      devotional_date: date,
-      author_name: name,
-      author_avatar: avatarUrl,
-      author_user_id: authorUserId,
-      body: text,
-    })
-    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ comment: data }, { status: 201 });
 }
