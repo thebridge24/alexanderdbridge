@@ -139,7 +139,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
-              className="min-h-[110px] flex items-center cursor-grab active:cursor-grabbing overflow-hidden"
+              className="min-h-27.5 flex items-center cursor-grab active:cursor-grabbing overflow-hidden"
             >
               <AnimatePresence mode="wait">
                 <motion.p
