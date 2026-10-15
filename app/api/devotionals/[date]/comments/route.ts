@@ -105,22 +105,36 @@ export async function GET(request: NextRequest, context: RouteContext) {
         }
       });
     }
+  }
 
-    // 2. Fetch all user streaks to calculate true global standings (like the Leaderboard)
-    const { data: allStreaks } = await supabase
-      .from("user_streaks")
-      .select("user_id, current_streak, updated_at, created_at")
-      .order("current_streak", { ascending: false });
+  // 2. Fetch ALL user streaks globally from the database to compute rankings identical to the Leaderboard
+  const { data: allStreaks } = await supabase
+    .from("user_streaks")
+    .select("user_id, current_streak, highest_streak, updated_at, created_at")
+    .order("current_streak", { ascending: false });
 
-    if (allStreaks) {
-      // Exclude special excluded accounts from ranking index if necessary
-      const rankedStreaks = allStreaks.filter((s) => Boolean(s.user_id));
+  if (allStreaks) {
+    // Sort matching the Leaderboard page logic (highest current streak, then tie-breakers)
+    const sortedStreaks = [...allStreaks].sort((a, b) => {
+      const streakA = a.current_streak || 0;
+      const streakB = b.current_streak || 0;
+      if (streakB !== streakA) return streakB - streakA;
 
-      rankedStreaks.forEach((item, index) => {
+      const timeA = a.updated_at ? new Date(a.updated_at).getTime() : Infinity;
+      const timeB = b.updated_at ? new Date(b.updated_at).getTime() : Infinity;
+      if (timeA !== timeB) return timeA - timeB;
+
+      const createdA = a.created_at ? new Date(a.created_at).getTime() : Infinity;
+      const createdB = b.created_at ? new Date(b.created_at).getTime() : Infinity;
+      return createdA - createdB;
+    });
+
+    sortedStreaks.forEach((item, index) => {
+      if (item.user_id) {
         streakMap.set(item.user_id, item.current_streak || 0);
-        globalPositionMap.set(item.user_id, index + 1); // Rank 1st, 2nd, 3rd...
-      });
-    }
+        globalPositionMap.set(item.user_id, index + 1); // 1st, 2nd, 3rd globally calculated position
+      }
+    });
   }
 
   const formattedComments = comments.map((c) => {
@@ -189,7 +203,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const avatarUrl = (body.avatarUrl || "").trim() || "";
   let authorUserId = body.authorUserId?.trim() || null;
 
-  // Extract authenticated user if available
   const authorization = request.headers.get("authorization");
   const accessToken = authorization?.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length)
@@ -225,7 +238,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { data, error } = await supabase
     .from("devotional_comments")
     .insert({
-      devotional_date: date,
+      devotionals_date: date,
       author_name: name,
       author_avatar: avatarUrl,
       author_user_id: authorUserId,
@@ -236,42 +249,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Find devotional topic
-  let topic = "Daily Devotional";
-  const staticDevotional = DEVOTIONALS_DATA.find((d) => d.dateString === date);
-  if (staticDevotional?.topic) {
-    topic = staticDevotional.topic;
-  } else {
-    const { data: dbDevo } = await supabase
-      .from("devotionals")
-      .select("topic")
-      .eq("date_string", date)
-      .maybeSingle();
-    if (dbDevo?.topic) topic = dbDevo.topic;
-  }
-
-  // Notify Admin(s) if configured
-  const adminIdsStr = process.env.ADMIN_USER_IDS || "";
-  const adminIds = adminIdsStr
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  for (const adminId of adminIds) {
-    if (adminId && adminId !== authorUserId) {
-      const notif = formatDevotionalCommentMessage(name, topic, date, data.id);
-      await sendNotification({
-        userId: adminId,
-        type: "comment",
-        title: notif.title,
-        body: notif.body,
-        link: notif.link,
-        dedupeKey: `admin-comment:${data.id}:${adminId}`,
-        push: true,
-      });
-    }
   }
 
   return NextResponse.json({ comment: data }, { status: 201 });
