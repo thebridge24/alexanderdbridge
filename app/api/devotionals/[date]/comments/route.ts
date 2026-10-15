@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
-import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
-import { sendNotification } from "@/lib/notifications/sender";
-import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
 
 type RouteContext = {
   params: Promise<{ date: string }>;
@@ -91,7 +88,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const globalPositionMap = new Map<string, number>();
 
   if (authorUserIds.length > 0) {
-    // 1. Fetch user subscription verification tiers
     const { data: subs } = await supabase
       .from("user_subscriptions")
       .select("user_id, verification_tier")
@@ -107,32 +103,44 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
-  // 2. Fetch ALL user streaks globally from the database to compute rankings identical to the Leaderboard
+  // Fetch ALL user streaks from database to compute exact completed length & rankings globally
   const { data: allStreaks } = await supabase
     .from("user_streaks")
-    .select("user_id, current_streak, highest_streak, updated_at, created_at")
-    .order("current_streak", { ascending: false });
+    .select("user_id, streak_data, updated_at, created_at");
 
   if (allStreaks) {
-    // Sort matching the Leaderboard page logic (highest current streak, then tie-breakers)
-    const sortedStreaks = [...allStreaks].sort((a, b) => {
-      const streakA = a.current_streak || 0;
-      const streakB = b.current_streak || 0;
-      if (streakB !== streakA) return streakB - streakA;
+    // Compute exact streak length from attendanceHistory items where completed === true
+    const computedStreaks = allStreaks.map((row) => {
+      let length = 0;
+      const sData = row.streak_data as any;
+      if (sData && sData.attendanceHistory) {
+        length = Object.values(sData.attendanceHistory).filter(
+          (entry: any) => entry && entry.completed === true
+        ).length;
+      }
+      return {
+        user_id: row.user_id,
+        length,
+        updated_at: row.updated_at,
+        created_at: row.created_at,
+      };
+    });
 
+    // Sort globally by highest completed length first, then tie-breakers
+    computedStreaks.sort((a, b) => {
+      if (b.length !== a.length) return b.length - a.length;
       const timeA = a.updated_at ? new Date(a.updated_at).getTime() : Infinity;
       const timeB = b.updated_at ? new Date(b.updated_at).getTime() : Infinity;
       if (timeA !== timeB) return timeA - timeB;
-
       const createdA = a.created_at ? new Date(a.created_at).getTime() : Infinity;
       const createdB = b.created_at ? new Date(b.created_at).getTime() : Infinity;
       return createdA - createdB;
     });
 
-    sortedStreaks.forEach((item, index) => {
+    computedStreaks.forEach((item, index) => {
       if (item.user_id) {
-        streakMap.set(item.user_id, item.current_streak || 0);
-        globalPositionMap.set(item.user_id, index + 1); // 1st, 2nd, 3rd globally calculated position
+        streakMap.set(item.user_id, item.length);
+        globalPositionMap.set(item.user_id, index + 1); // 1st, 2nd, 3rd global rank
       }
     });
   }
@@ -182,9 +190,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   const configError = assertSupabaseConfigured();
-  if (configError) {
-    return configError;
-  }
+  if (configError) return configError;
 
   const { date } = await context.params;
   if (!isValidDevotionalDate(date)) {
@@ -238,7 +244,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { data, error } = await supabase
     .from("devotional_comments")
     .insert({
-      devotionals_date: date,
+      devotional_date: date,
       author_name: name,
       author_avatar: avatarUrl,
       author_user_id: authorUserId,

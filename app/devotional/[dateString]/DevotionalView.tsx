@@ -732,15 +732,6 @@ dwellSeconds,
     }
   };
 
-  const handleSaveName = (): void => {
-    const trimmedName = userName.trim();
-    if (trimmedName) {
-      storeUserName(trimmedName);
-      setShowNamePrompt(false);
-      executePostComment(trimmedName);
-    }
-  };
-
   const isFutureDate = (dateStr: string) => {
     if (!todayDateString) return false;
     return dateStr > todayDateString;

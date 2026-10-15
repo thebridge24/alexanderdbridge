@@ -115,7 +115,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-
   const handleReplySelect = (id: string, name: string) => {
     setReplyingTo(id, name);
     setTimeout(() => {
