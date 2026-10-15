@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Centralized verification tier and badge configuration.
  * Three verification tiers with distinct badge colors:
  * - Supporter: Blue (#3b82f6 / text-blue-500)
  * - Sponsor: Purple (#8b5cf6 / text-purple-500)
- * - Patron: Gold/Yellow (#d4a017 / text-yellow-600)
+ * - Patron: Metallic Gold (#eab308 / warm linear gradient)
  */
 
 export type VerificationTier = "supporter" | "sponsor" | "patron";
@@ -12,6 +13,7 @@ export interface VerificationTierInfo {
   tier: VerificationTier;
   label: string;
   hexColor: string;
+  gradientClass?: string;
   textColorClass: string;
   badgeBgClass: string;
   description: string;
@@ -37,9 +39,10 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
   patron: {
     tier: "patron",
     label: "Patron",
-    hexColor: "#d4a017",
-    textColorClass: "text-yellow-600 dark:text-yellow-500",
-    badgeBgClass: "bg-yellow-500/10 text-yellow-500 border-yellow-500/30",
+    hexColor: "#eab308", // Bright warm gold base
+    gradientClass: "bg-gradient-to-r from-[#eab308] via-[#fef08a] to-[#ca8a04]", // Rich gold metallic sheen
+    textColorClass: "bg-gradient-to-r from-[#eab308] via-[#fef08a] to-[#ca8a04] bg-clip-text text-transparent font-bold",
+    badgeBgClass: "bg-gradient-to-r from-amber-500/15 via-yellow-400/20 to-amber-600/15 text-yellow-400 border-yellow-500/40 shadow-[0_0_12px_rgba(234,179,8,0.25)]",
     description: "Builds the future of Bridge Daily.",
   },
 };
