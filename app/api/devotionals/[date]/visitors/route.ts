@@ -6,7 +6,7 @@ type RouteContext = { params: Promise<{ date: string }> };
 
 export async function GET(_request: NextRequest, context: RouteContext) {
   if (!isSupabaseConfigured()) return NextResponse.json({ visitors: [] });
-  
+
   const { date } = await context.params;
   if (!isValidDevotionalDate(date)) return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
 
@@ -24,7 +24,10 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   const userIds = visitors.map((v) => v.user_id).filter(Boolean);
 
   const subMap = new Map<string, string>();
+  const streakMap = new Map<string, number>();
+
   if (userIds.length > 0) {
+    // 1. Fetch verification tiers
     const { data: subs } = await supabase
       .from('user_subscriptions')
       .select('user_id, verification_tier')
@@ -38,6 +41,21 @@ export async function GET(_request: NextRequest, context: RouteContext) {
         }
       });
     }
+
+    // 2. Fetch user streaks from your streak table (e.g. user_streaks / streaks)
+    // Adjust table name if your schema uses something else (e.g., 'user_streaks')
+    const { data: streaks } = await supabase
+      .from('user_streaks')
+      .select('user_id, current_streak')
+      .in('user_id', userIds);
+
+    if (streaks) {
+      streaks.forEach((st) => {
+        if (st.user_id) {
+          streakMap.set(st.user_id, st.current_streak || 0);
+        }
+      });
+    }
   }
 
   const formattedVisitors = visitors.map((v) => ({
@@ -47,6 +65,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     avatar_url: v.avatar_url,
     visited_at: v.visited_at,
     verification_tier: v.user_id ? subMap.get(v.user_id) || null : null,
+    streakCount: v.user_id ? streakMap.get(v.user_id) || 0 : 0,
   }));
 
   return NextResponse.json(
