@@ -1078,19 +1078,14 @@ dwellSeconds,
   isAlreadyCompleted={todayCompleted}
   onMarkAsRead={markTodayComplete}
 />
-      <AuthorMessageModal
-messageId="v1.1_october_support"
-delayMs={2000}
-title="Let's Build This Together ❤️"
-authorImage="https://res.cloudinary.com/glqzvvh2/image/upload/v1791448597/Sos20231224_112632_a87hnk.jpg"
-paragraphs={[
-"Hey, I want to share something important with you. Our devotional community is growing, and we're grateful for every person who shows up to study God's Word. But with this growth, some users have started experiencing difficulty accessing the site because our current server capacity is reaching its limits.",
-
-"My team and I are working hard to keep Bridge Daily running and make it better. We're also committed to keeping it free from ads so you can focus on God's Word without distractions. But the servers, emails, and development all come with real costs, and we can no longer carry everything alone.",
-
-"Very soon, we'll introduce a monthly support system to help us sustain and grow this platform. If Bridge Daily has truly blessed you, this is an opportunity to help us keep that impact going. We have so much more we want to build, and I'd love for you to be part of it. ❤️"
-
-]}
+<AuthorMessageModal
+  messageId="v1.2_october_invite"
+  delayMs={2000}
+  title="Keep Growing With Us ❤️"
+  paragraphs={[
+    "Hey, I'm glad you're part of Bridge Daily. ❤️ Keep showing up, keep studying God's Word, and keep growing in your walk with Him. Every day counts, even the small ones.",
+    "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!"
+  ]}
 />
       <Survey />
     </motion.div>
