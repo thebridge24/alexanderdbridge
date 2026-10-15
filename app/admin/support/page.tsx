@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { SupportModalDrawer } from "../../components/support/SupportModalDrawer";
-import { SupportPlanCard, PlanType } from "../../components/support/SupportPlanCard";
+import { PlanType } from "../../components/support/SupportPlanCard";
 import { Smartphone } from "lucide-react";
 
 export default function SupportPreviewPage() {
