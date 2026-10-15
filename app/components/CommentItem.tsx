@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaHeart, FaRegHeart } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaFire } from "react-icons/fa6";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
+import { MILESTONE_MEDALS, Medal } from "@/lib/types/streak";
 
 export interface Reply {
   id: string;
@@ -13,6 +14,8 @@ export interface Reply {
   avatarUrl?: string;
   authorUserId?: string;
   authorVerificationTier?: string | null;
+  streakCount?: number;
+  globalPosition?: number; // e.g. 1, 2, 3, 4...
 }
 
 export interface Comment {
@@ -25,6 +28,8 @@ export interface Comment {
   avatarUrl?: string;
   authorUserId?: string;
   authorVerificationTier?: string | null;
+  streakCount?: number;
+  globalPosition?: number; // e.g. 1, 2, 3, 4...
   replies?: Reply[];
 }
 
@@ -38,6 +43,35 @@ interface CommentItemProps {
   isHighlighted?: boolean;
 }
 
+// Helper to convert numeric position to ordinal (1st, 2nd, 3rd, 4th, etc.)
+function formatOrdinalPosition(pos?: number): string {
+  if (!pos || pos <= 0) return "";
+  const j = pos % 10;
+  const k = pos % 100;
+  if (j === 1 && k !== 11) return `${pos}st`;
+  if (j === 2 && k !== 12) return `${pos}nd`;
+  if (j === 3 && k !== 13) return `${pos}rd`;
+  return `${pos}th`;
+}
+
+// Helper to get the correct milestone medal icon or fallback to FaFire
+function renderStreakMedalIcon(streak: number) {
+  // Find the highest milestone medal the user qualifies for based on targetDays
+  const sortedMedals = [...MILESTONE_MEDALS].sort((a, b) => b.targetDays - a.targetDays);
+  const earnedMedal = sortedMedals.find((m) => streak >= m.targetDays);
+
+  const IconComponent = earnedMedal ? earnedMedal.icon : FaFire;
+  const label = earnedMedal ? earnedMedal.name : "Streak";
+
+  return (
+    <span
+      className="inline-flex items-center justify-center shrink-0 text-white drop-shadow-sm"
+      title={`${label} (${streak} days)`}
+    >
+      <IconComponent className="w-3 h-3 text-white" />
+    </span>
+  );
+}
 
 // Helper Avatar Component with image error fallback to first letter
 const CommentAvatar: React.FC<{
@@ -90,6 +124,40 @@ const renderCommentBody = (text: string) => {
   return text;
 };
 
+// Reusable user metadata header (Name -> Verified Badge -> Current Milestone Medal -> Streak Count -> Global Position)
+const UserMetaHeader: React.FC<{
+  name: string;
+  verificationTier?: string | null;
+  streakCount?: number;
+  globalPosition?: number;
+}> = ({ name, verificationTier, streakCount = 0, globalPosition }) => {
+  const ordinalPos = formatOrdinalPosition(globalPosition);
+
+  return (
+    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+      <h4 className="text-xs font-semibold text-neutral-400 truncate">
+        {name}
+      </h4>
+      <VerifiedBadge tier={verificationTier} name={name} />
+
+      {/* Streak Medal & Streak Count */}
+      {streakCount > 0 && (
+        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-300 bg-neutral-800/80 px-1.5 py-0.5 rounded-md border border-neutral-700/50">
+          {renderStreakMedalIcon(streakCount)}
+          <span className="text-[10px] font-bold text-orange-400">{streakCount}</span>
+        </span>
+      )}
+
+      {/* Global Position */}
+      {ordinalPos && (
+        <span className="text-[10px] font-bold text-amber-400/90 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 tracking-wide">
+          {ordinalPos}
+        </span>
+      )}
+    </div>
+  );
+};
+
 export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   onLike,
@@ -126,12 +194,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
           {/* Details */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1 min-w-0">
-              <h4 className="text-xs font-semibold text-neutral-400 truncate">
-                {comment.name}
-              </h4>
-              <VerifiedBadge tier={comment.authorVerificationTier} name={comment.name} />
-            </div>
+            <UserMetaHeader
+              name={comment.name}
+              verificationTier={comment.authorVerificationTier}
+              streakCount={comment.streakCount}
+              globalPosition={comment.globalPosition}
+            />
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {renderCommentBody(comment.text)}
             </p>
@@ -212,19 +280,18 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
                 {/* Reply Details */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-neutral-400 truncate">
-                      {reply.name}
-                    </span>
-                    <VerifiedBadge tier={reply.authorVerificationTier} name={reply.name} />
-                    <span className="text-[10px] text-neutral-500">
-                      • {reply.timestamp}
-                    </span>
-                  </div>
+                  <UserMetaHeader
+                    name={reply.name}
+                    verificationTier={reply.authorVerificationTier}
+                    streakCount={reply.streakCount}
+                    globalPosition={reply.globalPosition}
+                  />
                   <p className="text-sm text-neutral-200 mt-0.5 leading-snug wrap-break-word">
                     {renderCommentBody(reply.text)}
                   </p>
-                  <div className="flex items-center gap-3 mt-1 text-[11px] text-neutral-500 font-medium">
+                  
+                  {/* Footer toolbar: Reply action + Timestamp moved here for clean spacing */}
+                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-neutral-500 font-medium flex-wrap">
                     <button
                       type="button"
                       disabled={isSubmitting}
@@ -243,6 +310,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                         Replying
                       </span>
                     )}
+                    <span>•</span>
+                    <span>{reply.timestamp}</span>
                   </div>
                 </div>
               </div>
