@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const sessionId = request.nextUrl.searchParams.get("sessionId")?.trim();
   const supabase = createSupabaseAdmin();
-  
+
   const { data: rawComments, error } = await supabase
     .from("devotional_comments")
     .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count")
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
-  // Look up verified subscriber status securely by user_id to prevent name spoofing
+  // Collect distinct author_user_ids across comments & replies
   const authorUserIds = Array.from(
     new Set(
       [
@@ -87,7 +87,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
   );
 
   const verificationMap = new Map<string, string>();
+  const streakMap = new Map<string, number>();
+  const globalPositionMap = new Map<string, number>();
+
   if (authorUserIds.length > 0) {
+    // 1. Fetch user subscription verification tiers
     const { data: subs } = await supabase
       .from("user_subscriptions")
       .select("user_id, verification_tier")
@@ -101,29 +105,56 @@ export async function GET(request: NextRequest, context: RouteContext) {
         }
       });
     }
+
+    // 2. Fetch all user streaks to calculate true global standings (like the Leaderboard)
+    const { data: allStreaks } = await supabase
+      .from("user_streaks")
+      .select("user_id, current_streak, updated_at, created_at")
+      .order("current_streak", { ascending: false });
+
+    if (allStreaks) {
+      // Exclude special excluded accounts from ranking index if necessary
+      const rankedStreaks = allStreaks.filter((s) => Boolean(s.user_id));
+
+      rankedStreaks.forEach((item, index) => {
+        streakMap.set(item.user_id, item.current_streak || 0);
+        globalPositionMap.set(item.user_id, index + 1); // Rank 1st, 2nd, 3rd...
+      });
+    }
   }
 
-  const formattedComments = comments.map((c) => ({
-    id: c.id,
-    devotional_date: c.devotional_date,
-    author_name: c.author_name,
-    author_avatar: c.author_avatar,
-    author_user_id: c.author_user_id,
-    author_verification_tier: c.author_user_id ? verificationMap.get(c.author_user_id) || null : null,
-    body: c.body,
-    created_at: c.created_at,
-    like_count: c.like_count ?? 0,
-    liked: likedSet.has(c.id),
-    replies: (repliesMap.get(c.id) || []).map((r) => ({
-      id: r.id,
-      author_name: r.author_name,
-      author_avatar: r.author_avatar,
-      author_user_id: r.author_user_id,
-      author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
-      body: r.body,
-      created_at: r.created_at,
-    })),
-  }));
+  const formattedComments = comments.map((c) => {
+    const userId = c.author_user_id;
+
+    return {
+      id: c.id,
+      devotional_date: c.devotional_date,
+      author_name: c.author_name,
+      author_avatar: c.author_avatar,
+      author_user_id: userId,
+      author_verification_tier: userId ? verificationMap.get(userId) || null : null,
+      streakCount: userId ? streakMap.get(userId) || 0 : 0,
+      globalPosition: userId ? globalPositionMap.get(userId) : undefined,
+      body: c.body,
+      created_at: c.created_at,
+      like_count: c.like_count ?? 0,
+      liked: likedSet.has(c.id),
+      replies: (repliesMap.get(c.id) || []).map((r) => {
+        const replyUserId = r.author_user_id;
+        return {
+          id: r.id,
+          author_name: r.author_name,
+          author_avatar: r.author_avatar,
+          author_user_id: replyUserId,
+          author_verification_tier: replyUserId ? verificationMap.get(replyUserId) || null : null,
+          streakCount: replyUserId ? streakMap.get(replyUserId) || 0 : 0,
+          globalPosition: replyUserId ? globalPositionMap.get(replyUserId) : undefined,
+          body: r.body,
+          created_at: r.created_at,
+        };
+      }),
+    };
+  });
 
   return NextResponse.json(
     { comments: formattedComments },
