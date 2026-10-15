@@ -23,7 +23,7 @@ interface DailyVisitorsProps {
   devotionalDate: string;
 }
 
-// Helper to get the correct milestone medal icon or fallback to FaFire
+// Helper to get the correct white milestone medal icon or fallback to FaFire
 function renderStreakMedalIcon(streak: number) {
   const sortedMedals = [...MILESTONE_MEDALS].sort((a, b) => b.targetDays - a.targetDays);
   const earnedMedal = sortedMedals.find((m) => streak >= m.targetDays);
