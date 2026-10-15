@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/purity */
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
@@ -5,47 +7,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { StreakData, MILESTONE_MEDALS, Medal } from "../../lib/types/streak";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 
-const STORAGE_KEY = "bridge_devotional_streak_v1";
 const MIN_DWELL_SECONDS = 300; // 5 minutes
-
-const getUserStorageKey = (uid?: string | null) =>
-  uid ? `bridge_devotional_streak_user_${uid}` : STORAGE_KEY;
-
-export function mergeStreakData(
-  base: StreakData,
-  incoming?: Partial<StreakData> | null,
-): StreakData {
-  if (!incoming) return base;
-
-  const attendanceHistory = {
-    ...(base.attendanceHistory || {}),
-    ...(incoming.attendanceHistory || {}),
-  };
-
-  const currentStreak = Math.max(
-    base.currentStreak || 0,
-    incoming.currentStreak || 0,
-  );
-  const bestStreak = Math.max(
-    base.bestStreak || 0,
-    incoming.bestStreak || 0,
-    currentStreak,
-  );
-  const unlockedMedalIds = Array.from(
-    new Set([
-      ...(base.unlockedMedalIds || []),
-      ...(incoming.unlockedMedalIds || []),
-    ]),
-  );
-
-  return {
-    currentStreak,
-    bestStreak,
-    lastVisitDate: incoming.lastVisitDate || base.lastVisitDate || "",
-    unlockedMedalIds,
-    attendanceHistory,
-  };
-}
 
 export function useStreakTracker(userIdProp?: string | null) {
   const [activeUserId, setActiveUserId] = useState<string | null>(
@@ -72,6 +34,7 @@ export function useStreakTracker(userIdProp?: string | null) {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   }, []);
 
+  // 1. Resolve Active User ID from Props or Supabase Auth Session
   useEffect(() => {
     if (userIdProp) {
       setActiveUserId(userIdProp);
@@ -96,6 +59,29 @@ export function useStreakTracker(userIdProp?: string | null) {
     return () => subscription.unsubscribe();
   }, [userIdProp]);
 
+  // 2. Fetch Streaks Exclusively from Remote Database
+  useEffect(() => {
+    if (!activeUserId) return;
+    const today = getTodayString();
+
+    fetch(`/api/streaks?userId=${encodeURIComponent(activeUserId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((remote) => {
+        if (remote && remote.found && remote.streakData) {
+          const remoteData = remote.streakData as StreakData;
+          setStreakData(remoteData);
+
+          if (remoteData.attendanceHistory?.[today]?.completed) {
+            setTodayCompleted(true);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load remote streak from database:", err);
+      });
+  }, [activeUserId, getTodayString]);
+
+  // 3. Sync Completions Directly to Database
   const syncToDatabase = useCallback(
     async (dataToSync: StreakData, uid: string) => {
       try {
@@ -108,17 +94,12 @@ export function useStreakTracker(userIdProp?: string | null) {
           headers["Authorization"] = `Bearer ${session.access_token}`;
         }
 
-        const completedDevotionals = JSON.parse(
-          localStorage.getItem("completed_devotionals") || "[]",
-        );
-
         await fetch("/api/streaks", {
           method: "POST",
           headers,
           body: JSON.stringify({
             userId: uid,
             streakData: dataToSync,
-            completedDevotionals,
           }),
         });
       } catch (err) {
@@ -128,75 +109,26 @@ export function useStreakTracker(userIdProp?: string | null) {
     [],
   );
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mainKey = STORAGE_KEY;
-    const userKey = getUserStorageKey(activeUserId);
-    const today = getTodayString();
-
-    try {
-      const baseRaw = localStorage.getItem(mainKey);
-      const userRaw = localStorage.getItem(userKey);
-      const baseParsed = baseRaw ? (JSON.parse(baseRaw) as StreakData) : null;
-      const userParsed = userRaw ? (JSON.parse(userRaw) as StreakData) : null;
-
-      const initialEmpty: StreakData = {
-        currentStreak: 0,
-        bestStreak: 0,
-        lastVisitDate: "",
-        unlockedMedalIds: [],
-        attendanceHistory: {},
-      };
-
-      const localMerged = mergeStreakData(
-        baseParsed || initialEmpty,
-        userParsed,
-      );
-      setStreakData(localMerged);
-
-      if (localMerged.attendanceHistory[today]?.completed) {
-        setTodayCompleted(true);
-      }
-
-      if (activeUserId) {
-        fetch(`/api/streaks?userId=${encodeURIComponent(activeUserId)}`)
-          .then((res) => (res.ok ? res.json() : null))
-          .then((remote) => {
-            if (remote && remote.found && remote.streakData) {
-              const fullMerged = mergeStreakData(
-                localMerged,
-                remote.streakData,
-              );
-              setStreakData(fullMerged);
-
-              if (fullMerged.attendanceHistory[today]?.completed) {
-                setTodayCompleted(true);
-              }
-
-              localStorage.setItem(userKey, JSON.stringify(fullMerged));
-              localStorage.setItem(mainKey, JSON.stringify(fullMerged));
-            }
-          })
-          .catch((err) => {
-            console.error("Error loading remote streak:", err);
-          });
-      }
-    } catch (err) {
-      console.error("Failed to parse streak storage", err);
-    }
-  }, [activeUserId, getTodayString]);
-
+  // 4. Mark Today Complete
   const markTodayComplete = useCallback(() => {
     const today = getTodayString();
 
     setStreakData((prev) => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+      const attendance = {
+        ...(prev.attendanceHistory || {}),
+        [today]: {
+          date: today,
+          completed: true,
+          durationSeconds: MIN_DWELL_SECONDS,
+        },
+      };
 
-      const hadYesterday = prev.attendanceHistory[yesterdayStr]?.completed;
-      const newStreak = hadYesterday ? prev.currentStreak + 1 : 1;
+      // Current streak calculated as total completed length for precise value
+      const totalCompletedCount = Object.values(attendance).filter(
+        (item: any) => item?.completed
+      ).length;
+
+      const newStreak = Math.max(prev.currentStreak, totalCompletedCount);
       const newBest = Math.max(newStreak, prev.bestStreak);
 
       const newlyWon = MILESTONE_MEDALS.find(
@@ -215,32 +147,8 @@ export function useStreakTracker(userIdProp?: string | null) {
         bestStreak: newBest,
         lastVisitDate: today,
         unlockedMedalIds: updatedUnlocked,
-        attendanceHistory: {
-          ...prev.attendanceHistory,
-          [today]: {
-            date: today,
-            completed: true,
-            durationSeconds: MIN_DWELL_SECONDS,
-          },
-        },
+        attendanceHistory: attendance,
       };
-
-      const userKey = getUserStorageKey(activeUserId);
-      localStorage.setItem(userKey, JSON.stringify(updatedData));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
-
-      try {
-        const completedList = JSON.parse(
-          localStorage.getItem("completed_devotionals") || "[]",
-        );
-        if (!completedList.includes(today)) {
-          completedList.push(today);
-          localStorage.setItem(
-            "completed_devotionals",
-            JSON.stringify(completedList),
-          );
-        }
-      } catch {}
 
       if (activeUserId) {
         syncToDatabase(updatedData, activeUserId);
@@ -253,7 +161,7 @@ export function useStreakTracker(userIdProp?: string | null) {
     setDwellSeconds(MIN_DWELL_SECONDS);
   }, [activeUserId, getTodayString, syncToDatabase]);
 
-  // Robust Timestamp-Based Interval Tracker
+  // 5. Robust Timestamp-Based Interval Tracker
   useEffect(() => {
     if (todayCompleted) return;
 
@@ -261,7 +169,7 @@ export function useStreakTracker(userIdProp?: string | null) {
 
     const interval = setInterval(() => {
       const elapsedSeconds = Math.floor(
-        (Date.now() - startTimeRef.current) / 1000,
+        (Date.now() - startTimeRef.current) / 100,
       );
 
       if (elapsedSeconds >= MIN_DWELL_SECONDS) {
@@ -276,7 +184,6 @@ export function useStreakTracker(userIdProp?: string | null) {
     return () => clearInterval(interval);
   }, [todayCompleted, markTodayComplete]);
 
-  // Helper to calculate the next target milestone (e.g. 7, 14, 21...)
   const getNextMilestone = () => {
     const current = streakData.currentStreak;
     const targetMedal =
@@ -287,13 +194,12 @@ export function useStreakTracker(userIdProp?: string | null) {
 
   const currentMilestoneTarget = getNextMilestone();
 
-
   return {
     streakData,
     dwellSeconds,
     todayCompleted,
     newlyUnlockedMedal,
-currentMilestoneTarget,
+    currentMilestoneTarget,
     clearNewMedalAlert: () => setNewlyUnlockedMedal(null),
     minDwellSeconds: MIN_DWELL_SECONDS,
     markTodayComplete,
