@@ -111,7 +111,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
           </div>
 
           {/* Overlapping Glass Content Card */}
-          <div className="relative -mt-6 bg-black/75 backdrop-blur-md border-t border-neutral-800/80 rounded-tl-[56px] p-6 sm:p-7 flex flex-col justify-between space-y-5">
+          <div className="relative -mt-6 bg-black/75 backdrop-blur-md border-t border-neutral-800/80 rounded-tl-2xl sm:rounded-tl-4xl p-6 sm:p-7 flex flex-col justify-between space-y-5">
             {/* Pagination & Message Header */}
             <div className="space-y-3">
               {/* Pagination Indicators (Active is wider) */}
