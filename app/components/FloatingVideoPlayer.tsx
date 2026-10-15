@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, X, Volume2 } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export interface VideoItem {
   id: string;
@@ -16,11 +17,11 @@ interface FloatingVideoPlayerProps {
 }
 
 export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayerProps) {
+  const [userId, setUserId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string>("0:00");
   const [progress, setProgress] = useState(0);
-  const [isFullyViewed, setIsFullyViewed] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const expandedVideoRef = useRef<HTMLVideoElement>(null);
@@ -28,17 +29,32 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
   // Get the active/latest video
   const activeVideo = videos[videos.length - 1];
 
-  // Check if this specific video ID has already been fully watched/dismissed
+  // 1. Check if user is logged in via Supabase session
   useEffect(() => {
-    if (!activeVideo) return;
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user?.id ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 2. Derive whether active video is fully viewed without synchronous effect setState triggers
+  const isFullyViewed = (() => {
+    if (!activeVideo || typeof window === "undefined") return false;
     const viewedKey = `bridge_video_viewed_${activeVideo.id}`;
-    const viewed = localStorage.getItem(viewedKey);
-    if (viewed === "true") {
-      setIsFullyViewed(true);
-    } else {
-      setIsFullyViewed(false);
-    }
-  }, [activeVideo]);
+    return localStorage.getItem(viewedKey) === "true";
+  })();
+
+  const [, forceUpdate] = useState({});
 
   // Format seconds into M:SS remaining countdown
   const formatTime = (seconds: number) => {
@@ -64,8 +80,8 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
       if (current >= duration - 0.5) {
         if (activeVideo) {
           localStorage.setItem(`bridge_video_viewed_${activeVideo.id}`, "true");
-          setIsFullyViewed(true);
           setIsExpanded(false);
+          forceUpdate({}); // Trigger re-render to hide player
         }
       }
     }
@@ -104,7 +120,8 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
     }
   };
 
-  if (!activeVideo || isFullyViewed) return null;
+  // Hide if user is not logged in, no active video, or video is fully viewed
+  if (!userId || !activeVideo || isFullyViewed) return null;
 
   return (
     <>
@@ -145,7 +162,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
         {isExpanded && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl overflow-hidden">
             
-            {/* Top-Left Cancel / Minimize Button (Outside video frame, inside screen) */}
+            {/* Top-Left Cancel / Minimize Button */}
             <button
               onClick={handleMinimize}
               aria-label="Close video"
