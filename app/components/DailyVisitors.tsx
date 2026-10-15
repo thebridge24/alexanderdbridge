@@ -5,7 +5,9 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoEyeOutline } from 'react-icons/io5';
+import { FaFire } from 'react-icons/fa6';
 import { VerifiedBadge } from '@/app/components/VerifiedBadge';
+import { MILESTONE_MEDALS } from '@/lib/types/streak';
 
 interface Visitor {
   id: string;
@@ -14,15 +16,35 @@ interface Visitor {
   avatar_url: string;
   visited_at: string;
   verification_tier?: string | null;
+  streakCount?: number;
 }
 
 interface DailyVisitorsProps {
   devotionalDate: string;
 }
 
+// Helper to get the correct milestone medal icon or fallback to FaFire
+function renderStreakMedalIcon(streak: number) {
+  const sortedMedals = [...MILESTONE_MEDALS].sort((a, b) => b.targetDays - a.targetDays);
+  const earnedMedal = sortedMedals.find((m) => streak >= m.targetDays);
+
+  const IconComponent = earnedMedal ? earnedMedal.icon : FaFire;
+  const label = earnedMedal ? earnedMedal.name : "Streak";
+
+  return (
+    <span
+      className="inline-flex items-center justify-center shrink-0 text-white drop-shadow-sm"
+      title={`${label} (${streak} days)`}
+    >
+      <IconComponent className="w-3 h-3 text-white" />
+    </span>
+  );
+}
+
 function VisitorAvatar({ visitor }: { visitor: Visitor }) {
   const [imgError, setImgError] = useState(false);
   const initial = visitor.display_name ? visitor.display_name.charAt(0).toUpperCase() : '?';
+  const streakCount = visitor.streakCount || 0;
 
   const formatTime = (iso: string) => {
     try {
@@ -56,9 +78,17 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           <p className="text-xs font-semibold text-neutral-200 truncate">{name}</p>
           <VerifiedBadge tier={visitor.verification_tier} name={name} size="xs" />
+          
+          {/* Streak Medal & Count */}
+          {streakCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-neutral-300 bg-neutral-800/80 px-1.5 py-0.5 rounded-md border border-neutral-700/50">
+              {renderStreakMedalIcon(streakCount)}
+              <span className="text-[10px] font-bold text-orange-400">{streakCount}</span>
+            </span>
+          )}
         </div>
         <p className="text-[10px] text-neutral-500">{formatTime(visitor.visited_at)}</p>
       </div>
@@ -133,7 +163,7 @@ export default function DailyVisitors({ devotionalDate }: DailyVisitorsProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="absolute left-0 mt-3 w-64 rounded-3xl bg-neutral-950/95 border border-neutral-800 backdrop-blur-2xl p-4 shadow-2xl z-50"
+            className="absolute left-0 mt-3 w-72 rounded-3xl bg-neutral-950/95 border border-neutral-800 backdrop-blur-2xl p-4 shadow-2xl z-50"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
