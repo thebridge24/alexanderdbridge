@@ -36,7 +36,7 @@ function renderStreakMedalIcon(streak: number) {
       className="inline-flex items-center justify-center shrink-0 text-white drop-shadow-sm"
       title={`${label} (${streak} days)`}
     >
-      <IconComponent className="w-3 h-3 text-white" />
+      <IconComponent className="w-2 h-2 text-white/80" />
     </span>
   );
 }
@@ -84,9 +84,9 @@ function VisitorAvatar({ visitor }: { visitor: Visitor }) {
           
           {/* Streak Medal & Count */}
           {streakCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-neutral-300 bg-neutral-800/80 px-1.5 py-0.5 rounded-md border border-neutral-700/50">
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-neutral-300">
               {renderStreakMedalIcon(streakCount)}
-              <span className="text-[10px] font-bold text-orange-400">{streakCount}</span>
+              <span className="text-[10px] text-orange-400">{streakCount}</span>
             </span>
           )}
         </div>
