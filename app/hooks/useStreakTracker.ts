@@ -181,7 +181,7 @@ export function useStreakTracker(userIdProp?: string | null) {
 
     const interval = setInterval(() => {
       const elapsedSeconds = Math.floor(
-        (Date.now() - startTimeRef.current) / 100,
+        (Date.now() - startTimeRef.current) / 1000,
       );
 
       if (elapsedSeconds >= MIN_DWELL_SECONDS) {
