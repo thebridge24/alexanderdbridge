@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaHeart, FaRegHeart } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaFire } from "react-icons/fa6";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
 export interface Reply {
@@ -13,6 +13,7 @@ export interface Reply {
   avatarUrl?: string;
   authorUserId?: string;
   authorVerificationTier?: string | null;
+  streakCount?: number;
 }
 
 export interface Comment {
@@ -25,6 +26,7 @@ export interface Comment {
   avatarUrl?: string;
   authorUserId?: string;
   authorVerificationTier?: string | null;
+  streakCount?: number;
   replies?: Reply[];
 }
 
@@ -40,6 +42,18 @@ interface CommentItemProps {
 
 
 // Helper Avatar Component with image error fallback to first letter
+// Small fire badge showing the author's current streak (counted from their completed days)
+const StreakBadge: React.FC<{ count?: number }> = ({ count }) =>
+  count && count > 0 ? (
+    <span
+      title={`${count}-day streak`}
+      className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-orange-400 shrink-0"
+    >
+      <FaFire className="size-2.5" />
+      {count}
+    </span>
+  ) : null;
+
 const CommentAvatar: React.FC<{
   avatarUrl?: string;
   name: string;
@@ -131,6 +145,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 {comment.name}
               </h4>
               <VerifiedBadge tier={comment.authorVerificationTier} name={comment.name} />
+              <StreakBadge count={comment.streakCount} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {renderCommentBody(comment.text)}
@@ -217,6 +232,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       {reply.name}
                     </span>
                     <VerifiedBadge tier={reply.authorVerificationTier} name={reply.name} />
+                    <StreakBadge count={reply.streakCount} />
                     <span className="text-[10px] text-neutral-500">
                       • {reply.timestamp}
                     </span>

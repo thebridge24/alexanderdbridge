@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSupabaseConfigured, createSupabaseAdmin } from "@/lib/supabase/server";
+import { computeStreaks } from "@/lib/utils/streak";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const userIdParam = searchParams.get("userId")?.trim();
+    const todayParam = searchParams.get("today")?.trim();
+    const today = todayParam && /^d{4}-d{2}-d{2}$/.test(todayParam) ? todayParam : undefined;
 
     // Check optional bearer token
     const authorization = request.headers.get("authorization");
@@ -55,20 +58,30 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Streak numbers are always counted from the completed days, never read from stored columns
+    const computed = computeStreaks(data.attendance_history, data.completed_devotionals, today);
+
     return NextResponse.json({
       found: true,
       streakData: {
-        currentStreak: data.current_streak ?? 0,
-        bestStreak: data.best_streak ?? 0,
+        currentStreak: computed.currentStreak,
+        bestStreak: computed.bestStreak,
         lastVisitDate: data.last_visit_date ?? "",
         unlockedMedalIds: Array.isArray(data.unlocked_medal_ids)
           ? data.unlocked_medal_ids
           : [],
-        attendanceHistory: data.attendance_history ?? {},
+        // Days only present in completed_devotionals are folded in so clients count the same days
+        attendanceHistory: {
+          ...Object.fromEntries(
+            computed.completedDates.map((date) => [
+              date,
+              { date, completed: true, durationSeconds: 0 },
+            ]),
+          ),
+          ...(data.attendance_history ?? {}),
+        },
       },
-      completedDevotionals: Array.isArray(data.completed_devotionals)
-        ? data.completed_devotionals
-        : [],
+      completedDevotionals: computed.completedDates,
     });
   } catch (error) {
     console.error("Failed to load streak:", error);
@@ -170,19 +183,14 @@ export async function POST(request: NextRequest) {
       .sort()
       .pop();
 
-    const currentStreak = Math.max(
-      Number(existing?.current_streak) || 0,
-      Number(streakData.currentStreak) || 0,
-    );
+    // Counted from the merged days; the incoming numbers are ignored
+    const computed = computeStreaks(mergedHistory, mergedCompleted);
 
     const upsertPayload: Record<string, unknown> = {
       user_id: targetUserId,
-      current_streak: currentStreak,
-      best_streak: Math.max(
-        Number(existing?.best_streak) || 0,
-        Number(streakData.bestStreak) || 0,
-        currentStreak,
-      ),
+      // Columns kept only as a cached copy for SQL/dashboards; readers compute from the days
+      current_streak: computed.currentStreak,
+      best_streak: Math.max(Number(existing?.best_streak) || 0, computed.bestStreak),
       last_visit_date: lastVisit ?? "",
       unlocked_medal_ids: mergedMedals,
       attendance_history: mergedHistory,
@@ -207,8 +215,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       streakData: {
-        currentStreak: data.current_streak,
-        bestStreak: data.best_streak,
+        currentStreak: computed.currentStreak,
+        bestStreak: computed.bestStreak,
         lastVisitDate: data.last_visit_date,
         unlockedMedalIds: data.unlocked_medal_ids,
         attendanceHistory: data.attendance_history,

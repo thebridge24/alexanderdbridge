@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { StreakData, MILESTONE_MEDALS, Medal } from "../../lib/types/streak";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
+import { computeStreaks } from "../../lib/utils/streak";
 
 const MIN_DWELL_SECONDS = 300; // 5 minutes
 
@@ -69,7 +70,9 @@ export function useStreakTracker(userIdProp?: string | null) {
     const today = getTodayString();
     setRemoteLoaded(false);
 
-    fetch(`/api/streaks?userId=${encodeURIComponent(activeUserId)}`)
+    fetch(
+      `/api/streaks?userId=${encodeURIComponent(activeUserId)}&today=${today}`,
+    )
       .then((res) => {
         if (!res.ok) throw new Error(`Streak load failed (${res.status})`);
         return res.json();
@@ -134,13 +137,10 @@ export function useStreakTracker(userIdProp?: string | null) {
         },
       };
 
-      // Current streak calculated as total completed length for precise value
-      const totalCompletedCount = Object.values(attendance).filter(
-        (item: any) => item?.completed
-      ).length;
-
-      const newStreak = Math.max(prev.currentStreak, totalCompletedCount);
-      const newBest = Math.max(newStreak, prev.bestStreak);
+      // Streaks are counted from the completed days, never stored as a number
+      const counted = computeStreaks(attendance, [], today);
+      const newStreak = counted.currentStreak;
+      const newBest = counted.bestStreak;
 
       const newlyWon = MILESTONE_MEDALS.find(
         (m) =>

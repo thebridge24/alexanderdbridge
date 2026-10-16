@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendNotification } from "@/lib/notifications/sender";
+import { computeStreaks } from "@/lib/utils/streak";
 import {
   formatMorningReminderMessage,
   formatStreakSaverMessage,
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     // 3. Fetch user streaks to check attendance
     const { data: userStreaksList } = await supabase
       .from("user_streaks")
-      .select("user_id, current_streak, last_visit_date, attendance_history, completed_devotionals");
+      .select("user_id, last_visit_date, attendance_history, completed_devotionals");
 
     const streaksMap = new Map<string, any>();
     if (userStreaksList) {
@@ -171,7 +172,11 @@ export async function POST(request: NextRequest) {
         localHour < 23 &&
         !isCompletedToday
       ) {
-        const streakCount = userStreak?.current_streak ?? 0;
+        const streakCount = computeStreaks(
+          userStreak?.attendance_history,
+          userStreak?.completed_devotionals,
+          localDateStr,
+        ).currentStreak;
         const msg =
           streakCount >= 1
             ? formatStreakSaverMessage(streakCount, localDateStr, pref.user_id)
@@ -208,7 +213,8 @@ export async function POST(request: NextRequest) {
 
       if (
         pref.streak_enabled !== false &&
-        (!userStreak || userStreak.current_streak === 0) &&
+        computeStreaks(userStreak?.attendance_history, userStreak?.completed_devotionals, localDateStr)
+          .currentStreak === 0 &&
         !isCompletedToday &&
         daysSinceWinback >= 7 &&
         currentMinutesFromMidnight >= reminderMinutesFromMidnight &&
