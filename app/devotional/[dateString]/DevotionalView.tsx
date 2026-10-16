@@ -426,6 +426,7 @@ dwellSeconds,
             liked: Boolean(c.liked),
             authorUserId: c.author_user_id || undefined,
             avatarUrl: c.author_avatar || undefined,
+            streakCount: c.author_streak || 0,
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
               name: r.author_name,
@@ -433,6 +434,7 @@ dwellSeconds,
               timestamp: formatRelativeTime(r.created_at),
               authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
+              streakCount: r.author_streak || 0,
             })),
           }));
           setComments(mappedComments);

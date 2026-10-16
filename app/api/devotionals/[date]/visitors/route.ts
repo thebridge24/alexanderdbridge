@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentStreaks } from '@/lib/utils/streak';
 import { isSupabaseConfigured, createSupabaseAdmin } from '@/lib/supabase/server';
 import { isValidDevotionalDate } from '@/lib/utils/date';
 
@@ -44,18 +45,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     // 2. Fetch user streaks from your streak table (e.g. user_streaks / streaks)
     // Adjust table name if your schema uses something else (e.g., 'user_streaks')
-    const { data: streaks } = await supabase
-      .from('user_streaks')
-      .select('user_id, current_streak')
-      .in('user_id', userIds);
-
-    if (streaks) {
-      streaks.forEach((st) => {
-        if (st.user_id) {
-          streakMap.set(st.user_id, st.current_streak || 0);
-        }
-      });
-    }
+    const streaks = await getCurrentStreaks(supabase, userIds);
+    streaks.forEach((count, id) => streakMap.set(id, count));
   }
 
   const formattedVisitors = visitors.map((v) => ({

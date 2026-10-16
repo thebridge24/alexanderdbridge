@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentStreaks } from "@/lib/utils/streak";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
@@ -103,6 +104,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
   }
 
+  // Streaks are counted from each author's completed days
+  const streakMap = await getCurrentStreaks(supabase, authorUserIds);
+
   const formattedComments = comments.map((c) => ({
     id: c.id,
     devotional_date: c.devotional_date,
@@ -110,6 +114,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     author_avatar: c.author_avatar,
     author_user_id: c.author_user_id,
     author_verification_tier: c.author_user_id ? verificationMap.get(c.author_user_id) || null : null,
+    author_streak: c.author_user_id ? streakMap.get(c.author_user_id) || 0 : 0,
     body: c.body,
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
@@ -120,6 +125,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       author_avatar: r.author_avatar,
       author_user_id: r.author_user_id,
       author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
+      author_streak: r.author_user_id ? streakMap.get(r.author_user_id) || 0 : 0,
       body: r.body,
       created_at: r.created_at,
     })),

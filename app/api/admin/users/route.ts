@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { computeStreaks } from "@/lib/utils/streak";
 
 export async function GET() {
   try {
@@ -10,8 +11,7 @@ export async function GET() {
       .from("user_streaks")
       .select(
         "user_id, current_streak, best_streak, last_visit_date, display_name, avatar_url, attendance_history, completed_devotionals, created_at"
-      )
-      .order("current_streak", { ascending: false });
+      );
 
     if (streakError) {
       console.error("Error loading user streaks:", streakError);
@@ -42,6 +42,7 @@ export async function GET() {
     const streaksMapped = (streakRows || []).map((streak) => {
       const authUser = authMap.get(streak.user_id);
       const meta = authUser?.user_metadata || {};
+      const computed = computeStreaks(streak.attendance_history, streak.completed_devotionals);
 
       return {
         id: streak.user_id,
@@ -57,13 +58,17 @@ export async function GET() {
           meta.avatar_url ||
           meta.picture ||
           "",
-        currentStreak: streak.current_streak ?? 0,
-        highestStreak: streak.best_streak ?? 0,
+        currentStreak: computed.currentStreak,
+        highestStreak: computed.bestStreak,
         lastActiveDate: streak.last_visit_date || "",
         createdAt: streak.created_at || authUser?.created_at,
         lastSignedIn: authUser?.last_sign_in_at,
       };
     });
+
+    streaksMapped.sort(
+      (a, b) => b.currentStreak - a.currentStreak || b.highestStreak - a.highestStreak,
+    );
 
     // Option: Include any auth users who don't have a user_streaks row yet
     const streakUserIds = new Set((streakRows || []).map((s) => s.user_id));
