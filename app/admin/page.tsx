@@ -14,7 +14,6 @@ import {
   FaChartLine,
   FaUsers,
   FaPencilAlt,
-  FaTimes,
   FaBell,
 } from "react-icons/fa";
 import Link from "next/link";
