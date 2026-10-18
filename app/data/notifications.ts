@@ -1,4 +1,4 @@
-import { NotificationItem } from "@/app/notifications/PushNotifications";
+import { NotificationItem } from "../api/notifications/PushNotifications";
 
  // Dynamic notification list state (can later be fetched via API/Supabase/Sockets)
 export const FirstNotifications: NotificationItem[] = [];
