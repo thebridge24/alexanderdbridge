@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { IoArrowBack } from "react-icons/io5";
-import PushNotifications from "@/app/notifications/PushNotifications";
+import PushNotifications from "../api/notifications/PushNotifications";
 import AuthButton from "@/app/auth/AuthButton";
 import FloatingVideoPlayer from "./FloatingVideoPlayer"
 
