@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://personal-library-xi.vercel.app"),
+  metadataBase: new URL("https://alexanderdbridge.com"),
 
   title: {
     default: "Alexander D Bridge | Founder, Software Engineer & Writer",
@@ -51,7 +51,7 @@ icons: {
   authors: [
     {
       name: "Alexander D Bridge",
-      url: "https://personal-library-xi.vercel.app",
+      url: "https://alexanderdbridge.com",
     },
   ],
 
@@ -59,13 +59,13 @@ icons: {
   publisher: "Stackgate International",
 
   alternates: {
-    canonical: "https://personal-library-xi.vercel.app",
+    canonical: "https://alexanderdbridge.com",
   },
 
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://personal-library-xi.vercel.app",
+    url: "https://alexanderdbridge.com",
     siteName: "Alexander D Bridge",
     title: "Alexander D Bridge | Founder, Software Engineer & Writer",
     description:

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Community Feedback | Bridge Daily Devotional",
     description:
       "Has the devotional helped you in your personal walk with God? Read community feedback and active streaks.",
-    url: "https://alexanderdbride.com/feedback",
+    url: "https://alexanderdbridge.com/feedback",
     siteName: "Bridge Daily",
     images: [
       {
