@@ -224,9 +224,7 @@ export default function FeedbackPage() {
                             </span>
                           </div>
 
-                          <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 bg-neutral-900 border border-neutral-800 px-2 py-0.5 rounded-md">
-                            Rank <span className="text-white font-bold">#{card.rank}</span>
-                          </div>
+                  
                         </div>
 
                         {/* Feedback Text */}
