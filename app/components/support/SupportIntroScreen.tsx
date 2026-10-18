@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -106,7 +108,7 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-hidden">
       {/* Background Red Ambient Glow Gradient */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-red-600/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-87.5 h-87.5 bg-red-600/15 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Top Tag Header */}
       <div className="relative z-10 pt-8 px-6 text-center">
@@ -117,7 +119,7 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
       </div>
 
       {/* Tilted Marquee Testimonial Visual Container or Loader */}
-      <div className="relative z-10 my-auto py-8 overflow-hidden min-h-[220px] flex items-center justify-center">
+      <div className="relative z-10 my-auto py-8 overflow-hidden min-h-55 flex items-center justify-center">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center space-y-3 py-12">
             <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
@@ -144,8 +146,8 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
             )}
 
             {/* Side Edge Gradient Overlays */}
-            <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-black to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-black to-transparent z-10 pointer-events-none" />
           </div>
         ) : (
           <div className="text-center py-8 text-neutral-500 text-xs font-mono">
@@ -155,13 +157,13 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
       </div>
 
       {/* Bottom Content & Navigation Controls */}
-      <div className="relative z-20 bg-gradient-to-t from-black via-black/95 to-transparent pt-8 pb-10 px-6 max-w-md mx-auto w-full text-center space-y-5">
+      <div className="relative z-20 bg-linear-to-t from-black via-black/95 to-transparent pt-8 pb-10 px-6 max-w-md mx-auto w-full text-center space-y-5">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
             Support the Work ❤️
           </h1>
           <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed max-w-xs mx-auto">
-            Bridge Daily is growing, and we're working hard to keep the platform
+            Bridge Daily is growing, and we&apos;re working hard to keep the platform
             running, improve your daily experience, and reach more people. Your
             support helps us maintain the platform and keep it free from ads.
           </p>
@@ -194,7 +196,7 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
 /* Testimonial Card Component */
 function TestimonialCard({ card }: { card: TestimonialCardData }) {
   return (
-    <div className="w-[260px] sm:w-[280px] bg-neutral-950/90 border border-neutral-800/90 rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3 shrink-0 backdrop-blur-sm">
+    <div className="w-65 sm:w-70 bg-neutral-950/90 border border-neutral-800/90 rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3 shrink-0 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {card.avatarUrl ? (
@@ -210,7 +212,7 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
           )}
 
           <div>
-            <h4 className="text-xs font-bold text-white truncate max-w-[110px]">
+            <h4 className="text-xs font-bold text-white truncate max-w-27.5">
               {card.name}
             </h4>
             <div className="flex items-center gap-1 text-[10px] text-red-500 font-mono">
@@ -229,7 +231,7 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
       </div>
 
       <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-3 italic">
-        "{card.feedbackText}"
+        &quot;{card.feedbackText}&quot;
       </p>
     </div>
   );
