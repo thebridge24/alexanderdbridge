@@ -20,7 +20,10 @@ export interface VerificationTierInfo {
   description: string;
 }
 
-export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> = {
+export const VERIFICATION_TIERS: Record<
+  VerificationTier,
+  VerificationTierInfo
+> = {
   supporter: {
     tier: "supporter",
     label: "Supporter",
@@ -45,7 +48,8 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
     hexColor: "#f59e0b", // Rich warm gold
     textColorClass: "text-amber-400 font-bold",
     iconColorClass: "text-amber-400 fill-amber-400", // Guarantees full visibility for SVG icons
-    badgeBgClass: "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.35)]",
+    badgeBgClass:
+      "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.35)]",
     description: "Builds the future of Bridge Daily.",
   },
 };
@@ -54,7 +58,7 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
 const PATRON_EMAILS = [
   "alexanderdbridge@gmail.com",
   "alexanderchrist203@gmail.com",
-  "imatessy49@gmail.com"
+  "imatessy49@gmail.com",
 ];
 
 const PATRON_NAMES = [
@@ -77,6 +81,11 @@ const SUPPORTER_NAMES = [
   "binah charles-agidigbi",
 ];
 
+// Sponsor Tier Lists
+const SPONSOR_EMAILS = ["giftangelwite@gmail.com"];
+
+const SPONSOR_NAMES = ["gift angelwite"];
+
 /**
  * Determines whether a user is verified and returns their tier.
  */
@@ -89,7 +98,8 @@ export function getUserVerificationTier(params?: {
 
   // 1. Check user metadata for explicit tier
   if (params.metadata?.verification_tier) {
-    const tier = params.metadata.verification_tier.toLowerCase() as VerificationTier;
+    const tier =
+      params.metadata.verification_tier.toLowerCase() as VerificationTier;
     if (tier in VERIFICATION_TIERS) return tier;
   }
 
@@ -106,16 +116,17 @@ export function getUserVerificationTier(params?: {
   // 2. Email verification takes absolute precedence (prevents duplicate name spoofing)
   if (cleanEmail) {
     if (PATRON_EMAILS.includes(cleanEmail)) return "patron";
+    if (SPONSOR_EMAILS.includes(cleanEmail)) return "sponsor";
     if (SUPPORTER_EMAILS.includes(cleanEmail)) return "supporter";
-    return null; // Known email that is not authorized -> never allow spoofing via display name
+    return null;
   }
 
   // 3. Fallback name verification (only when email is not available)
   if (cleanName) {
     if (PATRON_NAMES.includes(cleanName)) return "patron";
+    if (SPONSOR_NAMES.includes(cleanName)) return "sponsor";
     if (SUPPORTER_NAMES.includes(cleanName)) return "supporter";
   }
-
   return null;
 }
 
