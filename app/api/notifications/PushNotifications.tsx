@@ -20,8 +20,9 @@ export interface NotificationItem {
   body: string;
   timestamp: string;
   read: boolean;
-  type: "like" | "reply" | "reminder" | "admin";
+  type: "like" | "reply" | "comment" | "reminder" | "streak" | "milestone" | "admin";
   link?: string;
+  avatarUrl?: string;
 }
 
 export default function PushNotifications() {
@@ -44,11 +45,19 @@ const promptDelayMs = 20000;
     title: string;
     body: string;
     link?: string;
+    avatarUrl?: string;
   } | null>(null);
 
   // Cross-device native browser notification trigger (works on Android, iOS, Windows, Mac)
   const displayBrowserNotification = useCallback(
-    async (title: string, body: string, link?: string, type?: string, showNative = true) => {
+    async (
+      title: string,
+      body: string,
+      link?: string,
+      type?: string,
+      showNative = true,
+      avatarUrl?: string,
+    ) => {
       // Sound feature:
       // notification-ring for comment/reply/general notifications
       // alarm-beep for devotional alarms and reminders
@@ -69,6 +78,7 @@ const promptDelayMs = 20000;
         title,
         body,
         link,
+        avatarUrl,
       });
 
       // Auto dismiss after 6 seconds
@@ -90,6 +100,8 @@ const promptDelayMs = 20000;
         return;
       }
 
+      const iconToUse = avatarUrl && avatarUrl.trim() ? avatarUrl.trim() : "/devotional.png";
+
       // 2. Service Worker showNotification (standard for Mobile Android & modern PWAs)
       if ("serviceWorker" in navigator) {
         try {
@@ -97,7 +109,7 @@ const promptDelayMs = 20000;
           if (reg && reg.showNotification) {
             const notifOptions: any = {
               body,
-              icon: "/devotional.png",
+              icon: iconToUse,
               badge: "/devotional.png",
               vibrate: [200, 100, 200],
               tag: `bridge-${Date.now()}`,
@@ -121,7 +133,7 @@ const promptDelayMs = 20000;
       try {
         const n = new Notification(title, {
           body,
-          icon: "/devotional.png",
+          icon: iconToUse,
         });
         n.onclick = () => {
           window.focus();
@@ -170,6 +182,7 @@ const promptDelayMs = 20000;
         read: Boolean(n.read),
         type: n.type,
         link: n.link || undefined,
+        avatarUrl: n.avatar_url || n.avatarUrl || undefined,
       }));
 
       // Always update state (even if empty) to clear default mock data
@@ -191,7 +204,8 @@ const promptDelayMs = 20000;
         channel.bind("notification", (n: any) => {
           if (!n?.id) return;
 
-          displayBrowserNotification(n.title, n.body, n.link || undefined, n.type, false);
+          const avatarUrl = n.avatar_url || n.avatarUrl || undefined;
+          displayBrowserNotification(n.title, n.body, n.link || undefined, n.type, false, avatarUrl);
 
           setNotifications((prev) =>
             prev.some((item) => item.id === n.id)
@@ -205,6 +219,7 @@ const promptDelayMs = 20000;
                     read: Boolean(n.read),
                     type: n.type,
                     link: n.link || undefined,
+                    avatarUrl,
                   },
                   ...prev,
                 ],
@@ -529,22 +544,33 @@ const promptDelayMs = 20000;
                           : "bg-white/10 border-white/15 shadow-xl shadow-black/20"
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="text-xs font-semibold text-neutral-200 leading-tight">
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-neutral-400 font-mono shrink-0 flex items-center gap-1">
-                          {item.read ? (
-                            <BsCheck2All className="size-3" />
-                          ) : (
-                            <span className="size-1.5 bg-red-500 rounded-full" />
-                          )}
-                          {item.timestamp}
-                        </span>
+                      <div className="flex items-start gap-2.5">
+                        {item.avatarUrl && (
+                          <img
+                            src={item.avatarUrl}
+                            alt=""
+                            className="size-8 rounded-full object-cover shrink-0 border border-white/15 mt-0.5"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="text-xs font-semibold text-neutral-200 leading-tight">
+                              {item.title}
+                            </span>
+                            <span className="text-[10px] text-neutral-400 font-mono shrink-0 flex items-center gap-1">
+                              {item.read ? (
+                                <BsCheck2All className="size-3" />
+                              ) : (
+                                <span className="size-1.5 bg-red-500 rounded-full" />
+                              )}
+                              {item.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-300/80 font-light leading-relaxed">
+                            {item.body}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-neutral-300/80 font-light leading-relaxed">
-                        {item.body}
-                      </p>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -571,9 +597,17 @@ const promptDelayMs = 20000;
             }}
             className="fixed top-5 left-4 right-4 max-w-sm mx-auto z-100 bg-neutral-950/95 border border-red-500/30 rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl flex items-start gap-3 cursor-pointer text-left pointer-events-auto"
           >
-            <div className="size-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-red-500 mt-0.5">
-              <FaBell className="size-4" />
-            </div>
+            {activeToast.avatarUrl ? (
+              <img
+                src={activeToast.avatarUrl}
+                alt=""
+                className="size-9 rounded-full object-cover shrink-0 border border-red-500/30 mt-0.5"
+              />
+            ) : (
+              <div className="size-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-red-500 mt-0.5">
+                <FaBell className="size-4" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <h5 className="text-xs font-bold text-white truncate">

@@ -23,6 +23,7 @@ export interface SendNotificationOptions {
   body: string;
   link?: string;
   dedupeKey?: string;
+  avatarUrl?: string | null;
   /** When true, also send a Pusher Beams push to every device the user registered. */
   push?: boolean;
 }
@@ -49,6 +50,7 @@ export async function sendNotification({
   body,
   link,
   dedupeKey,
+  avatarUrl,
   push = false,
 }: SendNotificationOptions): Promise<SendNotificationResult> {
   try {
@@ -76,8 +78,8 @@ export async function sendNotification({
       }
     }
 
-    // Insert into notification_events (with optional dedupe key)
-    const insertPayload: Record<string, unknown> = {
+    // Insert into notification_events (with optional dedupe key and avatar_url)
+    const baseInsertPayload: Record<string, unknown> = {
       user_id: userId,
       type,
       title,
@@ -86,27 +88,56 @@ export async function sendNotification({
     };
 
     if (dedupeKey) {
-      insertPayload.dedupe_key = dedupeKey;
+      baseInsertPayload.dedupe_key = dedupeKey;
     }
 
-    const { data: inserted, error: insertError } = await supabase
+    const cleanAvatarUrl = avatarUrl?.trim() || null;
+    const insertPayload: Record<string, unknown> = cleanAvatarUrl
+      ? { ...baseInsertPayload, avatar_url: cleanAvatarUrl }
+      : baseInsertPayload;
+
+    let { data: inserted, error: insertError } = await supabase
       .from("notification_events")
       .insert(insertPayload)
-      .select("id, type, title, body, link, read, created_at")
+      .select("*")
       .single();
 
-    if (insertError) {
+    // Graceful fallback if avatar_url column hasn't been migrated yet
+    if (
+      insertError &&
+      cleanAvatarUrl &&
+      (insertError.code === "42703" ||
+        insertError.code === "PGRST204" ||
+        insertError.message?.includes("avatar_url"))
+    ) {
+      const retry = await supabase
+        .from("notification_events")
+        .insert(baseInsertPayload)
+        .select("*")
+        .single();
+      inserted = retry.data;
+      insertError = retry.error;
+    }
+
+    if (insertError || !inserted) {
       // 23505 is PostgreSQL unique constraint violation (duplicate dedupe_key)
-      if (insertError.code === "23505") {
+      if (insertError?.code === "23505") {
         return { ok: true, skipped: true };
       }
-      return { ok: false, error: insertError.message || "Failed to create notification" };
+      return { ok: false, error: insertError?.message || "Failed to create notification" };
     }
+
+    const notificationWithAvatar: Record<string, unknown> = {
+      ...inserted,
+      avatar_url: (inserted as any).avatar_url || cleanAvatarUrl,
+    };
 
     // Live in-app delivery and device push run in parallel; neither failing should fail the call.
     const [, pushResult] = await Promise.all([
-      emitInAppNotification(userId, inserted),
-      push ? publishPushToUser(userId, title, body, link, type) : Promise.resolve(null),
+      emitInAppNotification(userId, notificationWithAvatar),
+      push
+        ? publishPushToUser(userId, title, body, link, type, cleanAvatarUrl)
+        : Promise.resolve(null),
     ]);
 
     return {
@@ -139,12 +170,16 @@ export async function publishPushToUser(
   body: string,
   link?: string,
   type?: string,
+  avatarUrl?: string | null,
 ): Promise<{ ok: boolean; publishId?: string; error?: string }> {
   const beams = getPusherBeams();
   if (!beams) return { ok: false, error: "Pusher Beams is not configured" };
 
   try {
-    const res = await beams.publishToUsers([userId], buildWebPush(title, body, link, type));
+    const res = await beams.publishToUsers(
+      [userId],
+      buildWebPush(title, body, link, type, true, avatarUrl),
+    );
     return { ok: true, publishId: res.publishId };
   } catch (err: any) {
     console.error(`Pusher Beams publish failed for user ${userId}:`, err);
@@ -159,8 +194,9 @@ export async function sendPushToUser(
   body: string,
   link?: string,
   type?: string,
+  avatarUrl?: string | null,
 ): Promise<number> {
-  const res = await publishPushToUser(userId, title, body, link, type);
+  const res = await publishPushToUser(userId, title, body, link, type, avatarUrl);
   return res.ok ? 1 : 0;
 }
 

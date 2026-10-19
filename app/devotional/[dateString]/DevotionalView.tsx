@@ -603,7 +603,10 @@ export default function DevotionalView() {
           body: JSON.stringify({
             name,
             text: formattedReplyText,
-            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            avatarUrl:
+              user?.user_metadata?.avatar_url ||
+              user?.user_metadata?.picture ||
+              undefined,
             authorUserId: user?.id || undefined,
           }),
         });
@@ -615,7 +618,10 @@ export default function DevotionalView() {
             name: data.reply.author_name,
             text: data.reply.body,
             timestamp: "Just now",
-            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            avatarUrl:
+              user?.user_metadata?.avatar_url ||
+              user?.user_metadata?.picture ||
+              undefined,
             authorUserId: user?.id || undefined,
           };
 
@@ -646,7 +652,10 @@ export default function DevotionalView() {
           body: JSON.stringify({
             name,
             text: commentText,
-            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            avatarUrl:
+              user?.user_metadata?.avatar_url ||
+              user?.user_metadata?.picture ||
+              undefined,
             authorUserId: user?.id || undefined,
           }),
         });
@@ -661,7 +670,10 @@ export default function DevotionalView() {
             likes: 0,
             liked: false,
             replies: [],
-            avatarUrl: user?.user_metadata?.avatar_url || undefined,
+            avatarUrl:
+              user?.user_metadata?.avatar_url ||
+              user?.user_metadata?.picture ||
+              undefined,
             authorUserId: user?.id || undefined,
           };
           setComments([newComment, ...comments]);
@@ -717,6 +729,10 @@ export default function DevotionalView() {
           sessionId,
           actorUserId: user?.id || undefined,
           actorName: user?.user_metadata?.full_name || userName || undefined,
+          actorAvatar:
+            user?.user_metadata?.avatar_url ||
+            user?.user_metadata?.picture ||
+            undefined,
         }),
       });
 

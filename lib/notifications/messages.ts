@@ -4,6 +4,7 @@ export interface DevotionalNotificationPayload {
   body: string;
   link: string;
   dedupeKey?: string;
+  avatarUrl?: string;
 }
 
 export function formatCommentLikeMessage(
@@ -12,6 +13,7 @@ export function formatCommentLikeMessage(
   devotionalDateString: string,
   commentId: string,
   actorUserId?: string,
+  actorAvatar?: string | null,
 ): DevotionalNotificationPayload {
   const name = actorName.trim() || "Someone";
   const dateText = devotionalDateDisplay || devotionalDateString;
@@ -21,6 +23,7 @@ export function formatCommentLikeMessage(
     body: `${name} liked your comment on ${dateText}`,
     link: `/devotional/${devotionalDateString}?comment=${commentId}`,
     dedupeKey: actorUserId ? `like:${commentId}:${actorUserId}` : undefined,
+    avatarUrl: actorAvatar?.trim() || undefined,
   };
 }
 
@@ -30,6 +33,7 @@ export function formatCommentReplyMessage(
   devotionalDateString: string,
   commentId: string,
   replyId: string,
+  actorAvatar?: string | null,
 ): DevotionalNotificationPayload {
   const name = actorName.trim() || "Someone";
   const snippet = replyText.length > 60 ? `${replyText.slice(0, 57)}...` : replyText;
@@ -39,6 +43,7 @@ export function formatCommentReplyMessage(
     body: `${name} replied to your comment: "${snippet}"`,
     link: `/devotional/${devotionalDateString}?comment=${commentId}&reply=${replyId}`,
     dedupeKey: `reply:${replyId}`,
+    avatarUrl: actorAvatar?.trim() || undefined,
   };
 }
 
@@ -47,6 +52,7 @@ export function formatDevotionalCommentMessage(
   topic: string,
   devotionalDateString: string,
   commentId: string,
+  actorAvatar?: string | null,
 ): DevotionalNotificationPayload {
   const name = actorName.trim() || "Someone";
   const topicSnippet = topic.length > 50 ? `${topic.slice(0, 47)}...` : topic;
@@ -56,6 +62,7 @@ export function formatDevotionalCommentMessage(
     body: `${name} commented on the devotional: "${topicSnippet}"`,
     link: `/devotional/${devotionalDateString}?comment=${commentId}`,
     dedupeKey: `comment:${commentId}`,
+    avatarUrl: actorAvatar?.trim() || undefined,
   };
 }
 

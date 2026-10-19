@@ -81,18 +81,27 @@ export function buildWebPush(
   type?: string,
   // Only hide when a Channels event also shows an in-app toast; broadcasts have no such fallback
   hideIfSiteHasFocus = true,
+  avatarUrl?: string | null,
 ) {
   const deepLink = absoluteUrl(link || "/devotional");
+  const iconUrl =
+    avatarUrl && avatarUrl.trim()
+      ? absoluteUrl(avatarUrl.trim())
+      : absoluteUrl("/devotional.png");
   return {
     web: {
       notification: {
         title,
         body,
-        icon: absoluteUrl("/devotional.png"),
+        icon: iconUrl,
         deep_link: deepLink,
         hide_notification_if_site_has_focus: hideIfSiteHasFocus,
       },
-      data: { link: deepLink, type: type || "admin" },
+      data: {
+        link: deepLink,
+        type: type || "admin",
+        avatar_url: avatarUrl && avatarUrl.trim() ? iconUrl : undefined,
+      },
     },
   };
 }

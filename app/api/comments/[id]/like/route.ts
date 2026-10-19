@@ -19,7 +19,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid comment ID" }, { status: 400 });
   }
 
-  let body: { sessionId?: string; actorUserId?: string; actorName?: string };
+  let body: {
+    sessionId?: string;
+    actorUserId?: string;
+    actorName?: string;
+    actorAvatar?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -41,6 +46,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const supabase = createSupabaseAdmin();
     let actorId = body.actorUserId?.trim();
     let actorName = body.actorName?.trim() || "Someone";
+    let actorAvatar = body.actorAvatar?.trim() || null;
 
     if (accessToken) {
       const { data: authUser } = await supabase.auth.getUser(accessToken);
@@ -50,6 +56,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
           authUser.user.user_metadata?.full_name ||
           authUser.user.user_metadata?.name ||
           actorName;
+        actorAvatar =
+          authUser.user.user_metadata?.avatar_url ||
+          authUser.user.user_metadata?.picture ||
+          actorAvatar;
       }
     }
 
@@ -77,6 +87,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
       const dateString = (commentRow?.devotional_date as string) || "";
 
       if (authorUserId && (!actorId || actorId !== authorUserId)) {
+        // Fallback to user_streaks avatar if actorAvatar wasn't in token/body
+        if (!actorAvatar && actorId) {
+          const { data: streakRow } = await supabase
+            .from("user_streaks")
+            .select("avatar_url")
+            .eq("user_id", actorId)
+            .maybeSingle();
+          if (streakRow?.avatar_url) {
+            actorAvatar = streakRow.avatar_url;
+          }
+        }
+
         // Fetch display date for nice formatting (e.g. "Fri, 3 Oct")
         let displayDate = dateString;
         if (dateString) {
@@ -96,6 +118,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           dateString,
           id,
           actorId,
+          actorAvatar,
         );
 
         await sendNotification({
@@ -105,6 +128,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           body: notifPayload.body,
           link: notifPayload.link,
           dedupeKey: notifPayload.dedupeKey,
+          avatarUrl: notifPayload.avatarUrl,
           push: true,
         });
       }

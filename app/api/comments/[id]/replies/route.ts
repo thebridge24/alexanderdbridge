@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   let name = body.name?.trim();
   const text = body.text?.trim();
-  const avatarUrl = (body.avatarUrl || body.avatar)?.trim() || null;
+  let avatarUrl = (body.avatarUrl || body.avatar)?.trim() || null;
   let authorUserId = body.authorUserId?.trim() || null;
 
   // Extract optional authenticated actor from bearer token
@@ -53,6 +53,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
         authUser.user.user_metadata?.full_name ||
         authUser.user.user_metadata?.name ||
         name;
+      avatarUrl =
+        authUser.user.user_metadata?.avatar_url ||
+        authUser.user.user_metadata?.picture ||
+        avatarUrl;
     }
   }
 
@@ -124,7 +128,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Send notifications to recipients
     for (const recipientId of recipientsToNotify) {
-      const notif = formatCommentReplyMessage(name, text, dateString, id, data.id);
+      const notif = formatCommentReplyMessage(name, text, dateString, id, data.id, avatarUrl);
       await sendNotification({
         userId: recipientId,
         type: "reply",
@@ -132,6 +136,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         body: notif.body,
         link: notif.link,
         dedupeKey: `reply:${data.id}:${recipientId}`,
+        avatarUrl: notif.avatarUrl,
         push: true,
       });
     }

@@ -161,7 +161,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   let name = body.name?.trim();
   const text = body.text?.trim();
-  const avatarUrl = (body.avatarUrl || "").trim() || "";
+  let avatarUrl = (body.avatarUrl || "").trim() || "";
   let authorUserId = body.authorUserId?.trim() || null;
 
   // Extract authenticated user if available
@@ -180,6 +180,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
         authUser.user.user_metadata?.full_name ||
         authUser.user.user_metadata?.name ||
         name;
+      avatarUrl =
+        authUser.user.user_metadata?.avatar_url ||
+        authUser.user.user_metadata?.picture ||
+        avatarUrl;
     }
   }
 
@@ -236,7 +240,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   for (const adminId of adminIds) {
     if (adminId && adminId !== authorUserId) {
-      const notif = formatDevotionalCommentMessage(name, topic, date, data.id);
+      const notif = formatDevotionalCommentMessage(name, topic, date, data.id, avatarUrl);
       await sendNotification({
         userId: adminId,
         type: "comment",
@@ -244,6 +248,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         body: notif.body,
         link: notif.link,
         dedupeKey: `admin-comment:${data.id}:${adminId}`,
+        avatarUrl: notif.avatarUrl,
         push: true,
       });
     }
