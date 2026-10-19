@@ -88,7 +88,7 @@ icons: {
       "Founder of Stackgate International. Building software, mentoring developers, and writing daily devotionals.",
 
     images: ["/open_graph.png"],
-    creator: "@yalexdbridge", // Replace if you have X/Twitter
+    creator: "@alexdbridge", // Replace if you have X/Twitter
   },
 
   robots: {
