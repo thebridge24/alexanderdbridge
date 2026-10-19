@@ -41,6 +41,7 @@ import DevotionalArticle from "@/app/components/DevotionalArticle";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
+import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -103,7 +104,7 @@ export default function DevotionalView() {
     streakData,
     newlyUnlockedMedal,
     clearNewMedalAlert,
-dwellSeconds,
+    dwellSeconds,
     minDwellSeconds,
     todayCompleted,
     markTodayComplete,
@@ -183,7 +184,9 @@ dwellSeconds,
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
-  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<
+    string | null
+  >(null);
   const [isSubmittingComment, setIsSubmittingComment] =
     useState<boolean>(false);
   const [isReminderPickerOpen, setIsReminderPickerOpen] =
@@ -243,7 +246,9 @@ dwellSeconds,
     if (introStage !== "done" || !user) return;
     if (typeof window === "undefined") return;
 
-    const configured = localStorage.getItem("bridge_devotional_reminder_configured");
+    const configured = localStorage.getItem(
+      "bridge_devotional_reminder_configured",
+    );
     if (!configured) {
       const timer = setTimeout(() => {
         setIsReminderPickerOpen(true);
@@ -573,7 +578,9 @@ dwellSeconds,
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
@@ -582,7 +589,10 @@ dwellSeconds,
         // Format reply text with recipient handle if not already prefixed
         const formattedReplyText =
           replyingToName &&
-          !commentText.trim().toLowerCase().startsWith(`@${replyingToName.toLowerCase()}`)
+          !commentText
+            .trim()
+            .toLowerCase()
+            .startsWith(`@${replyingToName.toLowerCase()}`)
             ? `@${replyingToName} ${commentText.trim()}`
             : commentText.trim();
 
@@ -693,7 +703,9 @@ dwellSeconds,
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
@@ -775,22 +787,21 @@ dwellSeconds,
     return Boolean(record && record.completed);
   })();
 
-
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const requiresAuthPrompt = !isAuthLoading && !user;
 
   if (!currentDevotional) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
-      <div className="flex flex-col items-center justify-center space-y-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-        <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
-          Loading Devotional...
-        </p>
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
+            Loading Devotional...
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <motion.div
@@ -874,19 +885,9 @@ dwellSeconds,
 
         <BackgroundMusic />
 
-        {showInstallBtn && (
-          <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl z-40 relative">
-            <button
-              onClick={handleInstallClick}
-              className="w-11 h-11 flex items-center justify-center rounded-full text-neutral-300 hover:text-white bg-transparent hover:bg-neutral-800/80 active:scale-90 transition-all"
-            >
-              <FaDownload />
-            </button>
-          </div>
-        )}
+        <PwaInstallButton />
 
-<div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
-
+        <div className="absolute top-0 bottom-0 right-0 w-16 bg-linear-to-l from-black/90 via-black/80 to-transparent pointer-events-none z-0" />
       </motion.div>
 
       {/* Intro Preloader Overlay */}
@@ -953,12 +954,15 @@ dwellSeconds,
       </AnimatePresence>
 
       {/* Sign-in prompt for protected actions */}
-      <AuthModal isOpen={requiresAuthPrompt} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal
+        isOpen={requiresAuthPrompt}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
 
       <div className="fixed top-0 left-0 right-0 h-20 bg-linear-to-b from-black via-black/80 to-transparent pointer-events-none z-40" />
 
       <Header />
-<div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-20" />
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-20" />
 
       <div className="w-full max-w-xl mx-auto px-6 pt-24 pb-28 relative z-10">
         <div className="w-full mx-auto relative z-10">
@@ -1074,21 +1078,21 @@ dwellSeconds,
       />
 
       <StreakFooterBanner
-  currentStreak={streakData?.currentStreak || 0}
-  dwellSeconds={dwellSeconds}
-  minDwellSeconds={minDwellSeconds}
-  isAlreadyCompleted={todayCompleted}
-  onMarkAsRead={markTodayComplete}
-/>
-<AuthorMessageModal
-  messageId="v1.2_october_invite"
-  delayMs={2000}
-  title="Keep Growing With Us ❤️"
-  paragraphs={[
-    "Hey, I'm glad you're part of Bridge Daily. ❤️ Keep showing up, keep studying God's Word, and keep growing in your walk with Him. Every day counts, even the small ones.",
-    "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!"
-  ]}
-/>
+        currentStreak={streakData?.currentStreak || 0}
+        dwellSeconds={dwellSeconds}
+        minDwellSeconds={minDwellSeconds}
+        isAlreadyCompleted={todayCompleted}
+        onMarkAsRead={markTodayComplete}
+      />
+      <AuthorMessageModal
+        messageId="v1.2_october_invite"
+        delayMs={2000}
+        title="Keep Growing With Us ❤️"
+        paragraphs={[
+          "Hey, I'm glad you're part of Bridge Daily. ❤️ Keep showing up, keep studying God's Word, and keep growing in your walk with Him. Every day counts, even the small ones.",
+          "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!",
+        ]}
+      />
       <Survey />
     </motion.div>
   );
