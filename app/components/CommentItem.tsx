@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaHeart, FaRegHeart, FaFire } from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaFire, FaRegComment } from "react-icons/fa6";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
 export interface Reply {
@@ -39,7 +39,6 @@ interface CommentItemProps {
   activeReplyName?: string | null;
   isHighlighted?: boolean;
 }
-
 
 // Helper Avatar Component with image error fallback to first letter
 // Small fire badge showing the author's current streak (counted from their completed days)
@@ -120,7 +119,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   return (
     <div
       id={`comment-${comment.id}`}
-      className={`flex flex-col gap-3 py-3 border-b border-neutral-900/60 last:border-b-0 relative rounded-2xl transition-all duration-300 ${
+      className={`flex flex-col mb-6 pb-3 border-b border-white/15 last:border-b-0 relative transition-all duration-300 ${
         isHighlighted ? "bg-red-500/10 ring-1 ring-red-500/30 px-3 py-3" : ""
       }`}
     >
@@ -128,7 +127,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       {hasReplies && (
         <div
           aria-hidden="true"
-          className="absolute left-4 top-5 bottom-9 w-6 border-l-2 border-neutral-900 pointer-events-none rounded-xs z-0"
+          className="absolute left-4 top-5 bottom-12 w-6 border-l-2 border-white/15 pointer-events-none rounded-xs z-0"
         />
       )}
 
@@ -144,94 +143,79 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               <h4 className="text-xs font-semibold text-neutral-400 truncate">
                 {comment.name}
               </h4>
-              <VerifiedBadge tier={comment.authorVerificationTier} name={comment.name} />
+              <VerifiedBadge
+                tier={comment.authorVerificationTier}
+                name={comment.name}
+              />
               <StreakBadge count={comment.streakCount} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
               {renderCommentBody(comment.text)}
             </p>
-            <div className="flex items-center gap-3 mt-1.5 text-[11px] text-neutral-500 font-medium flex-wrap">
-              <span>{comment.timestamp}</span>
-              <span>•</span>
+            <div
+              className={`flex items-center gap-3 mt-3 pb-3 ${hasReplies ? "border-b border-white/15" : ""} text-[11px] text-neutral-500 font-medium flex-wrap`}
+            >
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => onReplySelect(comment.id, comment.name)}
-                className={`font-bold uppercase tracking-wider text-[10px] disabled:opacity-50 transition-colors cursor-pointer ${
+                className={`font-bold flex gap-1 items-center uppercase tracking-wider text-[10px] disabled:opacity-50 transition-colors cursor-pointer ${
                   isParentReplying
                     ? "text-red-400 font-extrabold"
                     : "hover:text-neutral-300"
                 }`}
               >
-                REPLY
+                <FaRegComment className="size-4" /> {comment.replies!.length}
               </button>
-              {isParentReplying && (
-                <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-medium bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  Replying
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => onLike(comment.id)}
+                className={`flex gap-1 items-center rounded-full transition-transform active:scale-95 cursor-pointer ${
+                  comment.liked
+                    ? "text-red-500"
+                    : "text-neutral-500 hover:text-neutral-300"
+                }`}
+                aria-label="Like comment"
+              >
+                {comment.liked ? (
+                  <FaHeart className="size-4" />
+                ) : (
+                  <FaRegHeart className="size-4" />
+                )}
+                <span className="text-[10px] font-semibold text-neutral-400">
+                  {comment.likes > 0 ? comment.likes : ""}
                 </span>
-              )}
-              {hasReplies && (
-                <>
-                  <span>•</span>
-                  <span className="text-[10px] text-neutral-400 font-semibold">
-                    {comment.replies!.length} {comment.replies!.length === 1 ? "reply" : "replies"}
-                  </span>
-                </>
-              )}
+              </button>
+              <span>•</span>
+              <span>{comment.timestamp}</span>
             </div>
           </div>
-        </div>
-
-        {/* Like Button & Counter */}
-        <div className="flex flex-col items-center shrink-0 pl-2">
-          <button
-            type="button"
-            onClick={() => onLike(comment.id)}
-            className={`p-1.5 rounded-full transition-transform active:scale-75 cursor-pointer ${
-              comment.liked
-                ? "text-red-500"
-                : "text-neutral-500 hover:text-neutral-300"
-            }`}
-            aria-label="Like comment"
-          >
-            {comment.liked ? (
-              <FaHeart className="w-4 h-4" />
-            ) : (
-              <FaRegHeart className="w-4 h-4" />
-            )}
-          </button>
-          <span className="text-[10px] font-semibold text-neutral-400">
-            {comment.likes > 0 ? comment.likes : ""}
-          </span>
         </div>
       </div>
 
       {/* Nested Replies Container */}
       {hasReplies && (
-        <div className="ml-10 space-y-3 mt-1 z-10">
+        <div className=" space-y-3 mt-3 z-10">
           {comment.replies!.map((reply) => {
             const isReplyReplying =
               activeReplyId === comment.id && activeReplyName === reply.name;
 
             return (
-              <div key={reply.id} className="flex items-start gap-3 relative">
-                {/* Horizontal curve connecting to the vertical thread line */}
-                <div
-                  aria-hidden="true"
-                  className="absolute -left-6 top-2.5 w-6 h-2 border-l-2 border-b-2 rounded-bl-xl border-neutral-900 pointer-events-none"
-                />
-
+              <div key={reply.id} className="flex items-start gap-3 relative ">
                 {/* Reply Avatar */}
                 <CommentAvatar avatarUrl={reply.avatarUrl} name={reply.name} />
 
                 {/* Reply Details */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pb-2 ">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-semibold text-neutral-400 truncate">
                       {reply.name}
                     </span>
-                    <VerifiedBadge tier={reply.authorVerificationTier} name={reply.name} />
+                    <VerifiedBadge
+                      tier={reply.authorVerificationTier}
+                      name={reply.name}
+                    />
                     <StreakBadge count={reply.streakCount} />
                     <span className="text-[10px] text-neutral-500">
                       • {reply.timestamp}
@@ -253,12 +237,6 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     >
                       REPLY
                     </button>
-                    {isReplyReplying && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-medium bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                        Replying
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>

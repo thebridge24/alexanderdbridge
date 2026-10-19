@@ -167,7 +167,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             </div>
 
             {/* Scrollable Comments List */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar space-y-2">
+            <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar space-y-2 pb-30">
               {comments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <p className="text-sm font-medium text-neutral-500">
@@ -191,7 +191,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             </div>
 
             {/* Input Section */}
-            <div className="p-4 border-t border-neutral-900 bg-neutral-950/90 backdrop-blur-md shrink-0">
+            <div className="p-4 shrink-0 absolute bottom-0 z-10 left-0 w-full bg-linear-to-t from-black to-transparent">
               <form
                 onSubmit={onSubmitComment}
                 className="flex items-end gap-3"
@@ -204,7 +204,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                 />
 
                 {/* Input Container */}
-                <div className="relative flex-1 bg-neutral-900 border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
+                <div className="relative flex-1 bg-black border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
                   {/* Floating Tag (Pinned Top-Left) */}
                   {replyingToName && (
                     <div className="float-left mr-2 mb-1">

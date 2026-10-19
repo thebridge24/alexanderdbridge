@@ -54,13 +54,14 @@ export const VERIFICATION_TIERS: Record<VerificationTier, VerificationTierInfo> 
 const PATRON_EMAILS = [
   "alexanderdbridge@gmail.com",
   "alexanderchrist203@gmail.com",
+  "imatessy49@gmail.com"
 ];
 
 const PATRON_NAMES = [
   "alexander d bridge",
   "alexander d. bridge",
   "alexander christ",
-  "christ",
+  "tessy ima",
 ];
 
 // 2. Supporter Tier Lists (All other verified members)
