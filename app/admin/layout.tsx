@@ -147,7 +147,7 @@ export default function DashboardLayout({
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="h-15.75 xl:hidden"></div>
-          <div className="max-w-7xl mx-auto space-y-8">{children}</div>
+          <div className="space-y-8">{children}</div>
         </main>
       </div>
 

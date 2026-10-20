@@ -156,16 +156,16 @@ export default function AnalyticsSection({
       {/* Top Header Controls: Timeframe Granularity Selector */}
       <div className="p-4 border-b border-neutral-900 bg-[#000000] flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 text-neutral-400 text-xs font-semibold uppercase tracking-wider">
-          <FaCalendarAlt className="text-red-500 size-3.5" /> Analytics
+          <FaCalendarAlt className="text-red-600 size-3.5" /> Analytics
         </div>
 
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-neutral-950 border border-neutral-900">
+        <div className="flex items-center gap-1 p-1 rounded-full bg-neutral-950 border border-neutral-900">
           {(["daily", "weekly", "monthly"] as Granularity[]).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setTimeframe(mode)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition-all cursor-pointer ${
                 timeframe === mode
                   ? "bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]"
                   : "text-neutral-500 hover:text-neutral-300"
@@ -266,9 +266,9 @@ export default function AnalyticsSection({
                 <defs>
                   {/* Glowing Red Linear Gradient */}
                   <linearGradient id="redAccentGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.45} />
-                    <stop offset="60%" stopColor="#ef4444" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity={0.0} />
+                    <stop offset="0%" stopColor="#ff0000" stopOpacity={0.45} />
+                    <stop offset="60%" stopColor="#ff0000" stopOpacity={0.08} />
+                    <stop offset="100%" stopColor="#ff0000" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -302,7 +302,7 @@ export default function AnalyticsSection({
                 <Area
                   type="monotone"
                   dataKey={analyticsMetric}
-                  stroke="#ef4444"
+                  stroke="#ff0000"
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#redAccentGradient)"

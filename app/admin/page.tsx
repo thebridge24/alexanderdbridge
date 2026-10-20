@@ -709,7 +709,7 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-850 space-y-4">
+                  <div className="p-5 rounded-2xl bg-neutral-950 border border-white/15 space-y-4">
                     <h3 className="text-sm font-bold tracking-wider text-neutral-400 uppercase">
                       Memory Verse
                     </h3>

@@ -387,9 +387,7 @@ export default function UserAnalyticsSection() {
                     <FaFire className="size-4 animate-pulse" />
                     <span>{user.currentStreak || 0}</span>
                   </div>
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">
-                    Current Streak
-                  </span>
+                 
                 </div>
 
                 <div className="h-8 w-px bg-neutral-850 hidden sm:block" />
@@ -398,7 +396,7 @@ export default function UserAnalyticsSection() {
                   <span className="text-xs font-bold text-neutral-300">
                     {user.highestStreak || user.currentStreak || 0} days
                   </span>
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">
+                  <span className="text-[8px] text-neutral-400 uppercase tracking-wider font-semibold">
                     Best Streak
                   </span>
                 </div>
