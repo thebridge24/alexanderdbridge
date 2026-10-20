@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/app/components/support/SupportPlanCard";
@@ -11,7 +11,6 @@ import Link from "next/link";
 
 function VerifyForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const initialRef = searchParams.get("reference") || searchParams.get("trxref") || "";
   const initialPlan = (searchParams.get("plan") as PlanType) || "supporter";
