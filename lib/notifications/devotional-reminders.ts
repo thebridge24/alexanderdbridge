@@ -50,7 +50,7 @@ const MESSAGES: Record<
       body: "The day may have been demanding, but you can still pause, reflect and pray.",
     },
     {
-      title: "Have You Read Today?",
+      title: "Have You Read Today?",  
       body: "Just checking in. Have you had your time in the Word today? Your devotional is waiting.",
     },
     {
