@@ -112,13 +112,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       href={item.href}
                       onClick={onClose}
                       className={clsx(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all",
+                        "flex items-center gap-3 px-3 py-3 rounded-full text-xs font-medium transition-all",
                         isActive
-                          ? "bg-neutral-900 text-white border-l-2 border-red-600 shadow-sm"
+                          ? "bg-red-600 text-white"
                           : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
                       )}
                     >
-                      <Icon size={16} className={isActive ? "text-red-500" : "text-neutral-400"} />
+                      <Icon size={16} className={isActive ? "text-white" : "text-neutral-400"} />
                       <span>{item.name}</span>
                     </Link>
                   );

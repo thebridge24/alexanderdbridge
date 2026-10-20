@@ -193,7 +193,7 @@ export default function AnalyticsSection({
             Total Views
           </span>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl md:text-3xl font-black text-white tracking-tight">
+            <span className="text-3xl md:text-4xl font-black text-white tracking-tight">
               {formatStatNumber(analyticsTotals.views)}
             </span>
             <FaCheckCircle className="text-red-500 size-4" />
@@ -215,7 +215,7 @@ export default function AnalyticsSection({
             Total Likes
           </span>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl md:text-3xl font-black text-white tracking-tight">
+            <span className="text-2xl md:text-4xl font-black text-white tracking-tight">
               {formatStatNumber(analyticsTotals.likes)}
             </span>
             <FaArrowCircleUp className="text-red-500 size-4" />
@@ -237,7 +237,7 @@ export default function AnalyticsSection({
             Comments
           </span>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+            <span className="text-2xl md:text-4xl font-bold text-white tracking-tight">
               {formatStatNumber(analyticsTotals.comments)}
             </span>
             <FaArrowCircleDown className="text-neutral-600 size-4" />

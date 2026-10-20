@@ -13,7 +13,10 @@ import {
   FaPaperPlane,
 } from "react-icons/fa";
 
-import SurveyBroadcasterModal, { BroadcastRecipientCategory } from "@/app/admin/surveys/SurveyBroadcasterModal";
+import SurveyBroadcasterModal, {
+  BroadcastRecipientCategory,
+} from "@/app/admin/surveys/SurveyBroadcasterModal";
+import { Plus } from "lucide-react";
 
 export interface UserAnalyticsItem {
   id: string;
@@ -65,7 +68,7 @@ export default function UserAnalyticsSection() {
           const sorted = (data.users || []).sort(
             (a: UserAnalyticsItem, b: UserAnalyticsItem) =>
               (b.currentStreak || 0) - (a.currentStreak || 0) ||
-              (b.highestStreak || 0) - (a.highestStreak || 0)
+              (b.highestStreak || 0) - (a.highestStreak || 0),
           );
           setUsers(sorted);
         }
@@ -83,11 +86,14 @@ export default function UserAnalyticsSection() {
   const streakGroups = useMemo<StreakGroup[]>(() => {
     if (!users.length) return [];
 
-    const countsMap = users.reduce((acc, user) => {
-      const streak = user.currentStreak || 0;
-      acc[streak] = (acc[streak] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    const countsMap = users.reduce(
+      (acc, user) => {
+        const streak = user.currentStreak || 0;
+        acc[streak] = (acc[streak] || 0) + 1;
+        return acc;
+      },
+      {} as Record<number, number>,
+    );
 
     // Sort descending by streak duration
     const sortedStreaks = Object.keys(countsMap)
@@ -132,7 +138,7 @@ export default function UserAnalyticsSection() {
       const largeArcFlag = angle > 180 ? 1 : 0;
 
       const pathData = `M 50 50 L ${x1.toFixed(2)} ${y1.toFixed(
-        2
+        2,
       )} A 40 40 0 ${largeArcFlag} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
 
       return {
@@ -190,13 +196,16 @@ export default function UserAnalyticsSection() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-950 border border-neutral-900">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <FaTrophy className="text-amber-500 size-5" /> User Leaderboard & Streaks
+            <FaTrophy className="text-amber-500 size-5" /> User Leaderboard &
+            Streaks
           </h2>
           <p className="text-xs text-neutral-400 mt-0.5">
-            Total Users: <span className="text-white font-bold">{users.length}</span>
+            Total Users:{" "}
+            <span className="text-white font-bold">{users.length}</span>
             {hoveredStreak !== null && (
               <span className="text-red-400 font-semibold ml-2">
-                (Filtered: {hoveredStreak}d Streak – {filteredUsers.length} Users)
+                (Filtered: {hoveredStreak}d Streak – {filteredUsers.length}{" "}
+                Users)
               </span>
             )}
           </p>
@@ -209,21 +218,9 @@ export default function UserAnalyticsSection() {
             onClick={() => setIsBroadcasterOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
           >
-            <FaPaperPlane className="size-3" />
-            <span>Broadcast Message</span>
+            <Plus className="size-4" />
+            <span>Broadcast</span>
           </button>
-
-          {/* Search Box */}
-          <div className="relative">
-            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 size-3.5" />
-            <input
-              type="text"
-              placeholder="Search user or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-56 pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
-            />
-          </div>
         </div>
       </div>
 
@@ -247,7 +244,10 @@ export default function UserAnalyticsSection() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-2">
             {/* SVG Donut / Pie Chart */}
             <div className="relative w-48 h-48 shrink-0 flex items-center justify-center">
-              <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+              <svg
+                viewBox="0 0 100 100"
+                className="w-full h-full transform -rotate-90"
+              >
                 {pieSlices.map((slice) => {
                   const isSelected = hoveredStreak === slice.streak;
                   const isDimmed = hoveredStreak !== null && !isSelected;
@@ -276,11 +276,14 @@ export default function UserAnalyticsSection() {
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
                 <span className="text-lg font-black text-white">
                   {hoveredStreak !== null
-                    ? streakGroups.find((g) => g.streak === hoveredStreak)?.count
+                    ? streakGroups.find((g) => g.streak === hoveredStreak)
+                        ?.count
                     : users.length}
                 </span>
                 <span className="text-[9px] uppercase tracking-wider font-bold text-neutral-400">
-                  {hoveredStreak !== null ? `${hoveredStreak}d Streak` : "Total Users"}
+                  {hoveredStreak !== null
+                    ? `${hoveredStreak}d Streak`
+                    : "Total Users"}
                 </span>
               </div>
             </div>
@@ -325,7 +328,17 @@ export default function UserAnalyticsSection() {
           </div>
         </div>
       )}
-
+      {/* Search Box */}
+      <div className="relative md:w-1/2 ml-auto">
+        <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 size-3.5" />
+        <input
+          type="text"
+          placeholder="Search user or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full  pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+        />
+      </div>
       {/* Users List */}
       {loading ? (
         <div className="p-12 text-center text-xs text-neutral-500 bg-neutral-950/50 rounded-2xl border border-neutral-900">
@@ -366,7 +379,9 @@ export default function UserAnalyticsSection() {
                   </h3>
                   <p className="text-[11px] text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
                     <FaEnvelope className="size-3 text-neutral-500 shrink-0" />
-                    <span className="truncate">{user.email || "No email available"}</span>
+                    <span className="truncate">
+                      {user.email || "No email available"}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -387,7 +402,6 @@ export default function UserAnalyticsSection() {
                     <FaFire className="size-4 animate-pulse" />
                     <span>{user.currentStreak || 0}</span>
                   </div>
-                 
                 </div>
 
                 <div className="h-8 w-px bg-neutral-850 hidden sm:block" />
