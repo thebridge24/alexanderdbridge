@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { initializePaystackTransaction, getPaystackSecretKey } from "@/lib/payments/paystack";
 import { getServerBaseUrl } from "@/lib/utils/auth";
-import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/app/components/support/SupportPlanCard";
+import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
 
 export async function POST(request: NextRequest) {
   try {

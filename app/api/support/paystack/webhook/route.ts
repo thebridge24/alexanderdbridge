@@ -3,7 +3,7 @@ import { verifyPaystackWebhookSignature } from "@/lib/payments/paystack";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
-import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/app/components/support/SupportPlanCard";
+import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
 
 export async function POST(request: NextRequest) {
   try {

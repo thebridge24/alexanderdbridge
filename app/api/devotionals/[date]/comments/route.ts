@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { getCurrentStreaks } from "@/lib/utils/streak";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
@@ -6,6 +6,19 @@ import { isValidDevotionalDate } from "@/lib/utils/date";
 import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
 import { sendNotification } from "@/lib/notifications/sender";
 import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
+
+/** Every registered user id (paginated). */
+async function getAllUserIds(supabase: ReturnType<typeof createSupabaseAdmin>): Promise<Set<string>> {
+  const ids = new Set<string>();
+  const perPage = 1000;
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error || !data?.users?.length) break;
+    data.users.forEach((u) => ids.add(u.id));
+    if (data.users.length < perPage) break;
+  }
+  return ids;
+}
 
 type RouteContext = {
   params: Promise<{ date: string }>;
@@ -231,28 +244,42 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (dbDevo?.topic) topic = dbDevo.topic;
   }
 
-  // Notify Admin(s) if configured
-  const adminIdsStr = process.env.ADMIN_USER_IDS || "";
-  const adminIds = adminIdsStr
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // Notify everyone that someone commented. Runs after the response is sent so posting stays fast.
+  const notif = formatDevotionalCommentMessage(name, topic, date, data.id, avatarUrl);
+  const commentId = data.id as string;
+  after(async () => {
+    try {
+      const recipientIds = await getAllUserIds(supabase);
+      // Make sure configured admins are included even if they have no auth listing
+      (process.env.ADMIN_USER_IDS || "")
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+        .forEach((id) => recipientIds.add(id));
+      if (authorUserId) recipientIds.delete(authorUserId);
 
-  for (const adminId of adminIds) {
-    if (adminId && adminId !== authorUserId) {
-      const notif = formatDevotionalCommentMessage(name, topic, date, data.id, avatarUrl);
-      await sendNotification({
-        userId: adminId,
-        type: "comment",
-        title: notif.title,
-        body: notif.body,
-        link: notif.link,
-        dedupeKey: `admin-comment:${data.id}:${adminId}`,
-        avatarUrl: notif.avatarUrl,
-        push: true,
-      });
+      const ids = Array.from(recipientIds);
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        await Promise.all(
+          ids.slice(i, i + BATCH_SIZE).map((userId) =>
+            sendNotification({
+              userId,
+              type: "comment",
+              title: notif.title,
+              body: notif.body,
+              link: notif.link,
+              dedupeKey: `comment-all:${commentId}:${userId}`,
+              avatarUrl: notif.avatarUrl,
+              push: true,
+            }),
+          ),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to notify users about new comment:", err);
     }
-  }
+  });
 
   return NextResponse.json({ comment: data }, { status: 201 });
 }

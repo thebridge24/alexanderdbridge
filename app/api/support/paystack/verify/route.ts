@@ -4,7 +4,7 @@ import { verifyPaystackTransaction } from "@/lib/payments/paystack";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { getServerBaseUrl } from "@/lib/utils/auth";
-import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/app/components/support/SupportPlanCard";
+import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
 
 async function processPaymentActivation(reference: string) {
   const result = await verifyPaystackTransaction(reference);

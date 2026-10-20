@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
-import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/app/components/support/SupportPlanCard";
+import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
 
 export async function POST(request: NextRequest) {
   try {
