@@ -65,7 +65,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen font-bricolage bg-black text-neutral-100 flex relative overflow-hidden">
+    <div className="min-h-screen font-bricolage bg-black text-neutral-100 flex relative">
       {/* PASSCODE LOCKSCREEN OVERLAY (Covers everything until authenticated) */}
       <AnimatePresence mode="wait">
         {!isAuthenticated && (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FiBookOpen, FiArrowUpRight, FiEye, FiHeart, FiMessageCircle } from "react-icons/fi";
 
-interface DevotionalItem {
+export interface DevotionalItem {
   dateString: string;
   dayNumber: number;
   topic: string;
