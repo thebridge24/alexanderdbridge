@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { FiMenu, FiSearch } from "react-icons/fi";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -12,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
-  const [adminName, setAdminName] = useState("Alexander D. Bridge");
+  const [adminName, setAdminName] = useState("Alexander D Bridge");
   const [adminAvatar, setAdminAvatar] = useState("/avatar.png");
 
   // Fetch real session details if available to ensure accurate profile display
@@ -70,12 +69,12 @@ export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
         {/* Profile Avatar & Name */}
         <div className="shrink-0 flex items-center gap-3 pl-3 border-l border-neutral-800">
           {/* Avatar Container with Rotating Gradient Border */}
-          <div className="relative h-10 w-10 rounded-full p-[2px] overflow-hidden bg-neutral-900 group">
+          <div className="relative h-10 w-10 rounded-full p-0.5 overflow-hidden bg-neutral-900 group">
             {/* Rotating Gradient Background Layer */}
             <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff0000,#ff6363,#ff0000)] animate-spin-slow opacity-80" />
 
             {/* Inner Container to Mask the Gradient into a Border */}
-            <div className="relative h-full w-full rounded-full overflow-hidden bg-neutral-940 p-[1px]">
+            <div className="relative h-full w-full rounded-full overflow-hidden bg-neutral-940 p-px">
               <img
                 src={adminAvatar}
                 alt={adminName}
@@ -87,7 +86,7 @@ export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-white">{adminName}</span>
             <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest">
-              Lead Admin
+            {adminName === "Alexander Christ" || "Alexander D Bridge" ? "Lead Admin" : "Team Member"}
             </span>
           </div>
         </div>
