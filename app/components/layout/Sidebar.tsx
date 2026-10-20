@@ -22,7 +22,7 @@ export const NAVIGATION_GROUPS = [
   {
     title: "Devotional Core",
     items: [
-      { name: "Overview", href: "/admin/dashboard", icon: FiGrid },
+      { name: "Overview", href: "/admin/overview", icon: FiGrid },
       { name: "Devotionals", href: "/admin/devotionals", icon: FiBookOpen },
       { name: "Community Feedback", href: "/admin/feedback", icon: FiMessageSquare },
     ],
