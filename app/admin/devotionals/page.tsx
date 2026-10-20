@@ -30,28 +30,50 @@ export default function DevotionalsAdminPage() {
     text: string;
   } | null>(null);
 
-  // Fetch all devotionals on mount
+// Fetch all devotionals and analytics on mount
   useEffect(() => {
-    async function fetchDevotionals() {
+    async function fetchDevotionalsAndAnalytics() {
       try {
         setLoading(true);
-        const res = await fetch("/api/devotionals");
-        if (res.ok) {
-          const data = await res.json();
-          const list = (data.devotionals || []).sort((a: any, b: any) =>
-            b.dateString.localeCompare(a.dateString),
-          );
-          setDevotionals(list);
-        }
+        const [devosRes, analyticsRes] = await Promise.all([
+          fetch("/api/devotionals").catch(() => null),
+          fetch("/api/admin/analytics").catch(() => null),
+        ]);
+
+        const devosData = devosRes && devosRes.ok ? await devosRes.json() : { devotionals: [] };
+        const analyticsDataJson = analyticsRes && analyticsRes.ok ? await analyticsRes.json() : { analytics: [] };
+
+        const devosList = devosData.devotionals || [];
+        const fetchedAnalytics = analyticsDataJson.analytics || [];
+
+        // Map analytics by dateString for efficient lookup
+        const analyticsMap = new Map(
+          fetchedAnalytics.map((a: any) => [a.dateString, a])
+        );
+
+        // Merge analytics stats (views, likes, comments) into each devotional item
+        const enrichedDevotionals = devosList.map((d: any) => {
+          const stats: any = analyticsMap.get(d.dateString) || {};
+          return {
+            ...d,
+            views: stats.views || d.views || 0,
+            likes: stats.likes || d.likes || 0,
+            comments: stats.comments || d.comments || 0,
+          };
+        });
+
+        const sorted = enrichedDevotionals.sort((a: any, b: any) =>
+          b.dateString.localeCompare(a.dateString)
+        );
+        setDevotionals(sorted);
       } catch (err) {
-        console.error("Failed to load devotionals:", err);
+        console.error("Failed to load devotionals or analytics:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchDevotionals();
+    fetchDevotionalsAndAnalytics();
   }, []);
-
   // Compute stats
   const totalCount = devotionals.length;
   const currentMonthStr = new Date().toISOString().slice(0, 7); // "YYYY-MM"
