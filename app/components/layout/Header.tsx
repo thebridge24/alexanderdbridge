@@ -44,6 +44,17 @@ export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
         >
           <FiMenu size={22} />
         </button>
+        <div className="flex h-10 w-10 items-center justify-center xl:hidden">
+          <img
+            src="/brand-logo/bridge_daily_logo_black.png"
+            alt="Bridge Daily Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <h2 className="text-xl font-bold hidden xs:block xl:hidden">
+          Bridge Daily{" "}
+          <span className="hidden sm:inline-block">Devotional</span>
+        </h2>
       </div>
 
       <div className="flex items-center gap-4">
@@ -58,13 +69,21 @@ export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
 
         {/* Profile Avatar & Name */}
         <div className="shrink-0 flex items-center gap-3 pl-3 border-l border-neutral-800">
-          <div className="relative h-9 w-9 rounded-full overflow-hidden ring-2 ring-neutral-800 bg-neutral-900">
-            <img
-              src={adminAvatar}
-              alt={adminName}
-              className="w-full h-full object-cover"
-            />
+          {/* Avatar Container with Rotating Gradient Border */}
+          <div className="relative h-10 w-10 rounded-full p-[2px] overflow-hidden bg-neutral-900 group">
+            {/* Rotating Gradient Background Layer */}
+            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff0000,#ff6363,#ff0000)] animate-spin-slow opacity-80" />
+
+            {/* Inner Container to Mask the Gradient into a Border */}
+            <div className="relative h-full w-full rounded-full overflow-hidden bg-neutral-940 p-[1px]">
+              <img
+                src={adminAvatar}
+                alt={adminName}
+                className="w-full h-full object-cover rounded-full"
+              />
+            </div>
           </div>
+
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-white">{adminName}</span>
             <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest">

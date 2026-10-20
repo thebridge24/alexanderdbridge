@@ -73,8 +73,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Header Branding */}
           <div className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-neutral-800">
             <Link href="/admin/dashboard" className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center">
-                <img src="/alexander_logo.png" alt="Bridge Daily Logo" className="w-full h-full object-contain" />
+              <div className="flex h-10 w-10 items-center justify-center">
+                <img src="/brand-logo/bridge_daily_logo_black.png" alt="Bridge Daily Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-black tracking-tight text-sm text-white leading-none">

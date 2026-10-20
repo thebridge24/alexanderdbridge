@@ -188,13 +188,13 @@ export default function StreakDrawer({
                   <h2 className="text-2xl font-bold text-white tracking-tight pt-1">
                     Day Streak
                   </h2>
-                  <p className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
+                  <div className="text-xs text-white font-semibold uppercase tracking-wider flex flex-col items-center">
                    <div className="flex gap-1 items-center">
                     {userName}
                     <VerifiedBadge name={userName} size="xs" />
                     </div> 
                     <span className="text-[#ff0000]">{currentRankTitle}</span>
-                  </p>
+                  </div>
                 </div>
 
                 {/* 2. Mini Calendar Integration */}
