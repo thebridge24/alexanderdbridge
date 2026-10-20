@@ -93,7 +93,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     monthlyPrice: "₦2,500 / month",
     yearlyPrice: "₦27,500 / year",
     monthlyAmount: 2500,
-    yearlyAmount: 25000,
+    yearlyAmount: 27500,
     heading: "Take Us Further",
     description: "Help us build the future of Bridge Daily.",
     buttonText: "Become a Patron",

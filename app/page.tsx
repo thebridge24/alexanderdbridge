@@ -67,7 +67,7 @@ const itemVariants: Variants = {
 
 export default function ProfilePage() {
   const [devotionalUrl, setDevotionalUrl] = useState("/devotional");
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
 
   // Helper function to format today's date into YYYY-MM-DD
   const getTodayString = () => {
