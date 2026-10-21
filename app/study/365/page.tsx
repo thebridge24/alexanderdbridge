@@ -2,17 +2,17 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getReadingForDate, getDayOfYear } from "../../services/biblePlan";
 import { isDayCompleted, markDayCompleted } from "../../services/studyStorage";
 import { Check } from "lucide-react";
 import { IoArrowBack } from "react-icons/io5";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { UserAvatar } from "@/alexanderdbridge/app/auth/AuthButton";
+import { createSupabaseBrowserClient } from "../../../lib/supabase/client";
+import { UserAvatar } from "../../../alexanderdbridge/app/auth/AuthButton";
 
-export default function StudyPage() {
+function StudyPageContent() {
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
 
@@ -244,5 +244,19 @@ export default function StudyPage() {
         <div className="fixed bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none z-20" />
       </div>
     </main>
+  );
+}
+
+export default function StudyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-400 text-sm">
+          Loading Study Plan...
+        </div>
+      }
+    >
+      <StudyPageContent />
+    </Suspense>
   );
 }

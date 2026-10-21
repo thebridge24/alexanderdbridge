@@ -20,6 +20,10 @@ const DEFAULT_STATE: StudyPlanState = {
   completedDates: {},
 };
 
+export function getStudyStorageData(): StudyPlanState {
+  return getStoredState();
+}
+
 export function getStoredState(): StudyPlanState {
   if (typeof window === 'undefined') return DEFAULT_STATE;
   try {
