@@ -67,7 +67,8 @@ export default function Header() {
                 animate={{ opacity: 1, y: 4, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.9 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                className="absolute top-full left-4 mt-1 px-3 py-1.5 rounded-full bg-white border border-neutral-800 text-[10px] font-medium text-black shadow-2xl backdrop-blur-md whitespace-nowrap z-50 pointer-events-none"
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-3 py-1.5 rounded-full bg-white border border-neutral-800 text-[10px] font-medium text-black shadow-2xl backdrop-blur-md whitespace-nowrap z-50 pointer-events-none"
+
               >
                 {SUPPORT_MESSAGES[currentMessageIndex]}
               </motion.div>
