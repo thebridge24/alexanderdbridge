@@ -1,16 +1,27 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { PLAN_CONFIGS } from "@/lib/payments/plans";
-import type { PlanType, BillingCycle, SupportPlanConfig } from "@/lib/payments/plans";
+import type {
+  PlanType,
+  BillingCycle,
+  SupportPlanConfig,
+} from "@/lib/payments/plans";
 
 // Re-exported for existing client imports
 export { PLAN_CONFIGS };
 export type { PlanType, BillingCycle, SupportPlanConfig };
 
-const PLANS_ARRAY: PlanType[] = ["reader", "supporter", "sponsor", "patron"];
+const PLANS_ARRAY: PlanType[] = [
+  "reader",
+  "supporter",
+  "sponsor",
+  "partner",
+  "patron",
+];
 
 // X (Twitter) Scalloped Verified Badge Component
 const XVerifiedIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -46,7 +57,8 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   const activePlan = PLAN_CONFIGS[activePlanKey];
 
   const handleNext = () => {
-    if (activeIndex < PLANS_ARRAY.length - 1) setActiveIndex((prev) => prev + 1);
+    if (activeIndex < PLANS_ARRAY.length - 1)
+      setActiveIndex((prev) => prev + 1);
   };
 
   const handlePrev = () => {
@@ -54,8 +66,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   };
 
   return (
-    <div className="relative h-full min-h-[100dvh] bg-white dark:bg-black p-3 sm:p-4 text-neutral-900 dark:text-white flex flex-col justify-between overflow-x-hidden transition-colors duration-300">
-
+    <div className="relative h-full min-h-dvh bg-white dark:bg-black p-3 sm:p-4 text-neutral-900 dark:text-white flex flex-col justify-between overflow-x-hidden transition-colors duration-300">
       {/* Clean Glassmorphic Billing Toggle at the Top */}
       <div className="w-full flex justify-center pt-2 pb-1 relative z-30">
         <div className="inline-flex items-center p-1 bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full shadow-sm">
@@ -124,7 +135,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                 onClick={() => setActiveIndex(index)}
               >
                 {/* Subtle Overlay Pattern */}
-                <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-[length:250px_250px] pointer-events-none" />
+                <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.12)_50%,transparent_75%)] bg-size-[250px_250px] pointer-events-none" />
 
                 {/* Card Content */}
                 <div className="relative z-10 p-6 sm:p-7 flex flex-col justify-between gap-4">
@@ -154,7 +165,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                       </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm font-medium text-white/85 pt-1 max-w-[280px]">
+                    <p className="text-xs sm:text-sm font-medium text-white/85 pt-1 max-w-70">
                       {plan.heading}
                     </p>
                   </div>
@@ -178,7 +189,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Dynamic Bottom Controls (Centered Content) */}
-      <div className="relative z-30 bg-white dark:bg-black rounded-[24px] sm:rounded-[28px] w-full flex flex-col items-center text-center shrink-0 space-y-4 pt-2 pb-4 p-2 transition-colors duration-300">
+      <div className="relative z-30 bg-white dark:bg-black rounded-3xl sm:rounded-[28px] w-full flex flex-col items-center text-center shrink-0 space-y-4 pt-2 pb-4 p-2 transition-colors duration-300">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activePlan.id}-${billingCycle}`}
@@ -191,12 +202,12 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
             {/* User Tag & Description with Conditional Verified Icon (No icon for Readers) */}
             <div className="space-y-1.5 flex flex-col items-center">
               <div className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-300">
+                <span className="text-base md:text-lg font-medium text-neutral-700 dark:text-neutral-300">
                   {userName}
                 </span>
                 {activePlan.showVerifiedIcon && (
                   <XVerifiedIcon
-                    className={`w-3.5 h-3.5 ${activePlan.verifiedIconColor}`}
+                    className={`w-4 h-4 ${activePlan.verifiedIconColor}`}
                   />
                 )}
               </div>
@@ -218,7 +229,6 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
           </motion.div>
         </AnimatePresence>
       </div>
-
     </div>
   );
 };

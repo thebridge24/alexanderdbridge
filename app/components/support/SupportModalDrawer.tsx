@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -202,27 +203,27 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
 
         {/* Modal Drawer Container */}
         <motion.div
-          initial={{ y: "100%" }}
+          initial={{ y: 0 }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md h-[100dvh] bg-black overflow-hidden flex flex-col justify-between shadow-2xl"
+          className="relative w-full max-w-3xl h-dvh bg-black flex flex-col justify-between shadow-2xl"
         >
           {/* Top Control Overlay Navigation */}
           <div className="absolute top-4 inset-x-4 z-40 flex items-center justify-between pointer-events-none">
             <div />
 
-            <button
+            {/* <button
               onClick={handleResetAndClose}
               aria-label="Close drawer"
               className="p-2 text-neutral-400 hover:text-white transition-colors pointer-events-auto ml-auto text-xs font-semibold uppercase tracking-wider"
             >
               {isSuccess ? "Close" : "Skip"}
-            </button>
+            </button> */}
           </div>
 
           {/* Screen Renderer */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto hide-scrollbar">
             <AnimatePresence mode="wait">
               {isSuccess ? (
                 /* Success & Verification Confirmation Screen */

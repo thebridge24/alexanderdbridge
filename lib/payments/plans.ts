@@ -2,7 +2,12 @@
 // "use client" component gives server code an empty reference and breaks with
 // "Cannot read properties of undefined (reading 'monthlyAmount')".
 
-export type PlanType = "reader" | "supporter" | "sponsor" | "patron";
+export type PlanType =
+  | "reader"
+  | "supporter"
+  | "sponsor"
+  | "patron"
+  | "partner";
 export type BillingCycle = "monthly" | "yearly";
 
 export interface SupportPlanConfig {
@@ -61,7 +66,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeTextClass: "text-blue-600",
     verifiedIconColor: "text-blue-500",
     imagePlaceholderPath:
-    "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524486/Photoroom-20261009_063840_ibrlnw.png",
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524486/Photoroom-20261009_063840_ibrlnw.png",
 
     showVerifiedIcon: true,
   },
@@ -82,18 +87,36 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     badgeTextClass: "text-purple-600",
     verifiedIconColor: "text-purple-500",
     imagePlaceholderPath:
-       "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063427_okept4.png",
+      "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524487/Photoroom-20261009_063427_okept4.png",
     showVerifiedIcon: true,
   },
-
-  patron: {
-    id: "patron",
-    badge: "PATRON",
-    badgeColor: "#d4a017",
+  partner: {
+    id: "partner",
+    badge: "Partner",
+    badgeColor: "#dc2626",
     monthlyPrice: "₦2,500 / month",
     yearlyPrice: "₦27,500 / year",
     monthlyAmount: 2500,
     yearlyAmount: 27500,
+    heading: "Build This Together",
+    description: "Help us reach more lives through God's Word.",
+    buttonText: "Become a Partner",
+    heroBgClass: "bg-red-600",
+    badgeBgClass: "bg-red-100 text-red-700 border-red-200",
+    badgeTextClass: "text-red-700",
+    verifiedIconColor: "text-red-600",
+    showVerifiedIcon: true,
+    imagePlaceholderPath:
+      "/partnership.png"
+  },
+  patron: {
+    id: "patron",
+    badge: "PATRON",
+    badgeColor: "#d4a017",
+    monthlyPrice: "₦5,000 / month",
+    yearlyPrice: "₦55,000 / year",
+    monthlyAmount: 5000,
+    yearlyAmount: 55000,
     heading: "Take Us Further",
     description: "Help us build the future of Bridge Daily.",
     buttonText: "Become a Patron",

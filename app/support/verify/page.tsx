@@ -1,25 +1,44 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
-import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/app/components/support/SupportPlanCard";
+import {
+  PLAN_CONFIGS,
+  PlanType,
+  BillingCycle,
+} from "@/app/components/support/SupportPlanCard";
 import { VERIFICATION_TIERS } from "@/lib/utils/verification";
-import { CheckCircle2, Loader2, ArrowLeft, ShieldCheck, Mail, User, CreditCard, FileText } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+  ShieldCheck,
+  Mail,
+  User,
+  CreditCard,
+  FileText,
+} from "lucide-react";
 import Link from "next/link";
 
 function VerifyForm() {
   const searchParams = useSearchParams();
 
-  const initialRef = searchParams.get("reference") || searchParams.get("trxref") || "";
+  const initialRef =
+    searchParams.get("reference") || searchParams.get("trxref") || "";
   const initialPlan = (searchParams.get("plan") as PlanType) || "supporter";
   const initialCycle = (searchParams.get("cycle") as BillingCycle) || "monthly";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [plan, setPlan] = useState<PlanType>(initialPlan in PLAN_CONFIGS ? initialPlan : "supporter");
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>(initialCycle === "yearly" ? "yearly" : "monthly");
+  const [plan, setPlan] = useState<PlanType>(
+    initialPlan in PLAN_CONFIGS ? initialPlan : "supporter",
+  );
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(
+    initialCycle === "yearly" ? "yearly" : "monthly",
+  );
   const [reference, setReference] = useState(initialRef);
   const [notes, setNotes] = useState("");
 
@@ -36,7 +55,11 @@ function VerifyForm() {
         supabase.auth.getUser().then(({ data }) => {
           if (data?.user) {
             setEmail(data.user.email || "");
-            setFullName(data.user.user_metadata?.full_name || data.user.user_metadata?.name || "");
+            setFullName(
+              data.user.user_metadata?.full_name ||
+                data.user.user_metadata?.name ||
+                "",
+            );
           }
         });
       }
@@ -91,7 +114,8 @@ function VerifyForm() {
 
       setIsSuccess(true);
       setServerMessage(
-        data?.message || "Your verified badge is on the way! Our review team is on it.",
+        data?.message ||
+          "Your verified badge is on the way! Our review team is on it.",
       );
 
       if (supabase && accessToken) {
@@ -99,7 +123,10 @@ function VerifyForm() {
       }
     } catch (err: any) {
       console.error("Verification submit error:", err);
-      setErrorMessage(err?.message || "Something went wrong. Please check your connection and try again.");
+      setErrorMessage(
+        err?.message ||
+          "Something went wrong. Please check your connection and try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +147,9 @@ function VerifyForm() {
             Your Verified Badge is on the Way! 🎉
           </h2>
           <p className="text-neutral-300 text-sm leading-relaxed max-w-md mx-auto">
-            Our review team is currently reviewing your payment details. Once confirmed, your verified badge will be activated across your profile, daily devotional comments, and community interactions.
+            Our review team is currently reviewing your payment details. Once
+            confirmed, your verified badge will be activated across your
+            profile, daily devotional comments, and community interactions.
           </p>
         </div>
 
@@ -137,7 +166,10 @@ function VerifyForm() {
               <VerifiedBadge tier={tier} size="md" />
             </div>
             <p className="text-[11px] text-neutral-400">
-              {VERIFICATION_TIERS[tier as "supporter" | "sponsor" | "patron"].description}
+              {
+                VERIFICATION_TIERS[tier as "supporter" | "sponsor" | "patron"]
+                  .description
+              }
             </p>
           </div>
         )}
@@ -173,7 +205,8 @@ function VerifyForm() {
           Verify Your Payment Details
         </h1>
         <p className="text-xs text-neutral-400 leading-relaxed">
-          Fill in the details you used when making payment. Once submitted, our review team will confirm your support and activate your badge.
+          Fill in the details you used when making payment. Once submitted, our
+          review team will confirm your support and activate your badge.
         </p>
       </div>
 
@@ -234,7 +267,8 @@ function VerifyForm() {
               <option value="reader">Reader (₦500/mo)</option>
               <option value="supporter">Supporter (₦1,000/mo)</option>
               <option value="sponsor">Sponsor (₦1,500/mo)</option>
-              <option value="patron">Patron (₦2,500/mo)</option>
+              <option value="partner">Partner (₦2,500/mo)</option>
+              <option value="patron">Patron (₦5000/mo)</option>
             </select>
           </div>
 
@@ -298,7 +332,8 @@ function VerifyForm() {
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Submitting for Review...
+              <Loader2 className="size-4 animate-spin" /> Submitting for
+              Review...
             </>
           ) : (
             "Submit for Verification"
@@ -316,7 +351,9 @@ export default function VerifyPaymentPage() {
         fallback={
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="size-8 text-red-500 animate-spin" />
-            <span className="text-xs text-neutral-400">Loading verification details...</span>
+            <span className="text-xs text-neutral-400">
+              Loading verification details...
+            </span>
           </div>
         }
       >

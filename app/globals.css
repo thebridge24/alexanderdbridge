@@ -64,6 +64,22 @@ body {
   animation: shake 0.4s ease-in-out;
 }
 
+.animate-shake-btn {
+  animation: shake-btn 5s ease-in-out infinite;
+}
+
+@keyframes shake-btn {
+  0%, 92%, 100% {
+    transform: translateX(0);
+  }
+  93%, 95%, 97%, 99% {
+    transform: translateX(-3px);
+  }
+  94%, 96%, 98% {
+    transform: translateX(3px);
+  }
+}
+
 @keyframes marquee-left {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
@@ -75,11 +91,11 @@ body {
 }
 
 .animate-marquee-left {
-  animation: marquee-left 105s linear infinite;
+  animation: marquee-left 200s linear infinite;
 }
 
 .animate-marquee-right {
-  animation: marquee-right 105s linear infinite;
+  animation: marquee-right 200s linear infinite;
 }
 
 .animate-marquee-left:hover,

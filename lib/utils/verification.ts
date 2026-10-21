@@ -7,7 +7,7 @@
  * - Patron: Metallic Gold (#f59e0b / text-amber-400)
  */
 
-export type VerificationTier = "supporter" | "sponsor" | "patron";
+export type VerificationTier = "supporter" | "sponsor" | "partner" | "patron";
 
 export interface VerificationTierInfo {
   tier: VerificationTier;
@@ -41,6 +41,15 @@ export const VERIFICATION_TIERS: Record<
     iconColorClass: "text-purple-400",
     badgeBgClass: "bg-purple-500/10 text-purple-400 border-purple-500/30",
     description: "Keeps Bridge Daily accessible to the world.",
+  },
+  partner: {
+ tier: "partner",
+    label: "Partner",
+    hexColor: "#dc2626",
+    textColorClass: "text-red-600",
+    iconColorClass: "text-red-500",
+    badgeBgClass: "bg-red-600/10 text-red-400 border-red-600/30",
+    description: "Help us reach more lives through God's Word.",
   },
   patron: {
     tier: "patron",

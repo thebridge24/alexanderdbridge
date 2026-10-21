@@ -46,9 +46,9 @@ const StreakBadge: React.FC<{ count?: number }> = ({ count }) =>
   count && count > 0 ? (
     <span
       title={`${count}-day streak`}
-      className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-orange-400 shrink-0"
+      className="inline-flex items-start  gap-0.5 text-[10px] font-semibold text-white/60 shrink-0"
     >
-      <FaFire className="size-2.5" />
+      <FaFire className="size-2.5 mt-px" />
       {count}
     </span>
   ) : null;
@@ -146,7 +146,9 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               <VerifiedBadge
                 tier={comment.authorVerificationTier}
                 name={comment.name}
+                showLabel
               />
+                <span></span>
               <StreakBadge count={comment.streakCount} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
@@ -215,6 +217,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     <VerifiedBadge
                       tier={reply.authorVerificationTier}
                       name={reply.name}
+                       showLabel
                     />
                     <StreakBadge count={reply.streakCount} />
                     <span className="text-[10px] text-neutral-500">
