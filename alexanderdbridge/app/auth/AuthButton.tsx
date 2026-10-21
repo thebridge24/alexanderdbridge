@@ -14,7 +14,7 @@ import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { getUserVerificationTier } from "@/lib/utils/verification";
 
 // Component to handle loading states, error fallbacks, and URL caching
-function UserAvatar({
+export function UserAvatar({
   avatarUrl,
   userId,
   className = "size-full",

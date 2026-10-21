@@ -42,6 +42,7 @@ import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
 import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
+import BibleStudyCard from "./BibleStudyCard";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -85,7 +86,7 @@ const cinematicVariants: Variants = {
   },
 };
 
-export default function DevotionalView() {
+export default function DevotionalView({ devotional }: { devotional: any }) {
   const params = useParams();
   const router = useRouter();
 
@@ -256,57 +257,6 @@ export default function DevotionalView() {
       return () => clearTimeout(timer);
     }
   }, [introStage, user]);
-
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBtn, setShowInstallBtn] = useState<boolean>(true);
-
-  useEffect(() => {
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
-
-    if (isStandalone) {
-      setShowInstallBtn(false);
-      return;
-    }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBtn(true);
-    };
-
-    const handleAppInstalled = () => {
-      setShowInstallBtn(false);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt,
-      );
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setShowInstallBtn(false);
-      }
-      setDeferredPrompt(null);
-    } else {
-      alert(
-        "To install: Tap the Share button in your browser and select 'Add to Home Screen'.",
-      );
-    }
-  };
 
   // Preloader Stage Controls
   useEffect(() => {
@@ -1044,6 +994,8 @@ export default function DevotionalView() {
           viewsCount={viewsCount}
           contentVariants={contentVariants}
         />
+        {/* 365 Bible Study Movement Integration */}
+        <BibleStudyCard dateString={devotional?.dateString} />
       </div>
 
       {/* Streak Side-Drawer */}

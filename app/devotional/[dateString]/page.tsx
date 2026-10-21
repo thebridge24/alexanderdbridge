@@ -15,13 +15,11 @@ interface Devotional {
 
 async function getDevotionalData(dateString: string): Promise<Devotional | null> {
   try {
-    // Determine host for server-side relative fetch, or hit your external backend endpoint directly
     const baseUrl =
       process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
         ? process.env.NEXT_PUBLIC_SITE_URL
         : "https://alexanderdbridge.com";
     const res = await fetch(`${baseUrl}/api/devotionals`, {
-      // Revalidate or cache according to your needs
       next: { revalidate: 3600 }, 
     });
 
@@ -44,10 +42,7 @@ async function getDevotionalData(dateString: string): Promise<Devotional | null>
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { dateString } = await params;
 
-  // 1. Try fetching live data from the API
   const fetchedDevotional = await getDevotionalData(dateString);
-
-  // 2. Fall back to local data if the API fetch fails or returns empty
   const devotional =
     fetchedDevotional ??
     DEVOTIONALS_DATA.find((d) => d.dateString === dateString) ??
@@ -80,6 +75,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function Page() {
-  return <DevotionalView />;
+export default async function Page({ params }: Props) {
+  const { dateString } = await params;
+
+  const fetchedDevotional = await getDevotionalData(dateString);
+  const devotional =
+    fetchedDevotional ??
+    DEVOTIONALS_DATA.find((d) => d.dateString === dateString) ??
+    DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
+
+  return <DevotionalView devotional={devotional} />;
 }
