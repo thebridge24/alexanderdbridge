@@ -30,6 +30,8 @@ function VerifyForm() {
     searchParams.get("reference") || searchParams.get("trxref") || "";
   const initialPlan = (searchParams.get("plan") as PlanType) || "supporter";
   const initialCycle = (searchParams.get("cycle") as BillingCycle) || "monthly";
+  const paymentWasVerified = searchParams.get("verified") === "true";
+  const paymentError = searchParams.get("payment") === "failed";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,9 +45,17 @@ function VerifyForm() {
   const [notes, setNotes] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(paymentWasVerified);
   const [serverMessage, setServerMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (paymentError) {
+      setErrorMessage(
+        "This payment was not completed. No active subscription was created. You can try again from the support plans.",
+      );
+    }
+  }, [paymentError]);
 
   // Retrieve user session if logged in
   useEffect(() => {

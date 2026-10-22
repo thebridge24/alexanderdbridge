@@ -68,7 +68,9 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = getServerBaseUrl(request);
-    const defaultCallback = `${baseUrl}/support/verify`;
+    // Paystack must return to the server verification endpoint first. Sending
+    // users directly to the form leaves successful payments unprocessed.
+    const defaultCallback = `${baseUrl}/api/support/paystack/verify`;
     const callbackUrl = returnUrl || defaultCallback;
 
     const result = await initializePaystackTransaction({

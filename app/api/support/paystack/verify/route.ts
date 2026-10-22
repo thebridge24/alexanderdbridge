@@ -171,20 +171,27 @@ export async function GET(request: NextRequest) {
   const baseUrl = getServerBaseUrl(request);
 
   if (!reference) {
-    return NextResponse.redirect(new URL("/devotional?error=missing_reference", baseUrl));
+    return NextResponse.redirect(new URL("/support/verify?payment=failed", baseUrl));
   }
 
   const result = await processPaymentActivation(reference);
 
   if (!result.success) {
     return NextResponse.redirect(
-      new URL(`/devotional?error=${encodeURIComponent(result.error || "payment_failed")}`, baseUrl),
+      new URL(
+        `/support/verify?payment=failed&error=${encodeURIComponent(result.error || "payment_failed")}`,
+        baseUrl,
+      ),
     );
   }
 
-  // Redirect back to Devotional with verified celebration query
+  // Show the verified result on the payment verification page. The previous
+  // redirect went to /devotional, which did not consume these query params.
   return NextResponse.redirect(
-    new URL(`/devotional?supported=true&tier=${result.tier || "reader"}`, baseUrl),
+    new URL(
+      `/support/verify?verified=true&plan=${encodeURIComponent(result.plan)}&cycle=${encodeURIComponent(result.billingCycle)}&reference=${encodeURIComponent(reference)}`,
+      baseUrl,
+    ),
   );
 }
 

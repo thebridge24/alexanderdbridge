@@ -76,6 +76,11 @@ export async function POST(request: NextRequest) {
           if (paystackResult.amountInNgn) {
             verifiedAmount = paystackResult.amountInNgn;
           }
+        } else if (["failed", "abandoned"].includes(paystackResult.status || "")) {
+          return NextResponse.json(
+            { error: `This Paystack payment is ${paystackResult.status}. No subscription was created.` },
+            { status: 400 },
+          );
         }
       } catch (err) {
         console.warn("Could not auto-verify Paystack reference:", err);
