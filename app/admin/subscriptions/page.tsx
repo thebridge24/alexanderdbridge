@@ -43,7 +43,7 @@ export default function SubscriptionsAdminPage() {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/subscriptions");
+      const res = await fetch("/api/support/subscribe");
       if (res.ok) {
         const data = await res.json();
         setSubscriptions(data.subscriptions || []);

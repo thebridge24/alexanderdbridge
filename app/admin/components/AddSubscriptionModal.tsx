@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiSearch, FiAward, FiCheck } from "react-icons/fi";
+import { FiX, FiSearch, FiAward } from "react-icons/fi";
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -74,7 +74,7 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
         durationMonths: paymentType === "complimentary" ? durationMonths : undefined,
       };
 
-      const res = await fetch("/api/admin/subscriptions", {
+      const res = await fetch("/api/support/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
