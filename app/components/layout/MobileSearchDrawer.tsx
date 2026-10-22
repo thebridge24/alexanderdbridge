@@ -4,10 +4,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { FiSearch, FiX, FiBookOpen, FiUsers, FiMessageSquare, FiLoader } from "react-icons/fi";
+import { FiSearch, FiX, FiBookOpen, FiUsers, FiMessageSquare } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Flame } from "lucide-react";
+import Preloader from "../ui/Preloader";
 
 interface MobileSearchDrawerProps {
   isOpen: boolean;
@@ -164,7 +165,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
             <div className="p-4 space-y-6 overflow-y-auto flex-1 no-scrollbar">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 space-y-3">
-                  <FiLoader className="w-6 h-6 text-red-600 animate-spin" />
+                  <Preloader />
                   <span className="text-xs font-mono text-neutral-500 uppercase tracking-widest">
                     Searching...
                   </span>

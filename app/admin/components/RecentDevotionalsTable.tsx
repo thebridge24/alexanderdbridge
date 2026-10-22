@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "@/lib/format-date";
 import Link from "next/link";
 import { FiBookOpen, FiArrowUpRight, FiHeart, FiMessageCircle, FiBarChart2 } from "react-icons/fi";
 
@@ -24,7 +25,7 @@ export function RecentDevotionalsTable({ items }: { items: DevotionalItem[] }) {
           <p className="text-xs text-neutral-400">Latest entries released to your app readers</p>
         </div>
         <Link
-          href="/admin/dashboard"
+          href="/admin/devotionals"
           className="flex items-center shrink-0 gap-1 text-xs font-mono text-red-600 hover:text-red-400 transition-colors"
         >
           <span>View All</span>
@@ -44,10 +45,10 @@ export function RecentDevotionalsTable({ items }: { items: DevotionalItem[] }) {
           </thead>
           <tbody className="divide-y divide-neutral-900">
             {items.slice(0, 5).map((item) => (
-              <tr key={item.dateString} className="hover:bg-neutral-900/40 transition-colors">
+              <tr key={formatDate(item.dateString)} className="hover:bg-neutral-900/40 transition-colors">
                 <td className="py-3.5 px-3 font-mono">
                   <span className="text-white font-bold block whitespace-nowrap">Day {item.dayNumber}</span>
-                  <span className="text-neutral-500 text-[10px] whitespace-nowrap">{item.dateString}</span>
+                  <span className="text-neutral-500 text-[10px] whitespace-nowrap">{formatDate(item.dateString)}</span>
                 </td>
                 <td className="py-3.5 px-3 font-semibold text-neutral-200 whitespace-nowrap">
                   {item.topic}

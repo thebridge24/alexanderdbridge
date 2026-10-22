@@ -24,7 +24,11 @@ export const NAVIGATION_GROUPS = [
     items: [
       { name: "Overview", href: "/admin/overview", icon: FiGrid },
       { name: "Devotionals", href: "/admin/devotionals", icon: FiBookOpen },
-      { name: "Community Feedback", href: "/admin/feedback", icon: FiMessageSquare },
+      {
+        name: "Community Feedback",
+        href: "/admin/feedback",
+        icon: FiMessageSquare,
+      },
     ],
   },
   {
@@ -32,6 +36,7 @@ export const NAVIGATION_GROUPS = [
     items: [
       { name: "Users Analytics", href: "/admin/users", icon: FiUsers },
       { name: "Streaks & Leaderboard", href: "/admin/streaks", icon: Flame },
+      { name: "Subscriptions", href: "/admin/subscriptions", icon: FiUsers },
       { name: "Verified Badges", href: "/admin/badges", icon: FiAward },
       { name: "Analytics", href: "/admin/analytics", icon: FiBarChart2 },
     ],
@@ -66,7 +71,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={clsx(
           "fixed inset-y-0 left-0 z-50 w-64 bg-black border-r border-neutral-800 transform transition-transform duration-200 ease-in-out xl:translate-x-0 flex flex-col justify-between",
-          isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"
+          isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0",
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
@@ -74,7 +79,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-neutral-800">
             <Link href="/admin/dashboard" className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center">
-                <img src="/brand-logo/bridge_daily_logo_black.png" alt="Bridge Daily Logo" className="w-full h-full object-contain" />
+                <img
+                  src="/brand-logo/bridge_daily_logo_black.png"
+                  alt="Bridge Daily Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-black tracking-tight text-sm text-white leading-none">
@@ -103,7 +112,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {group.items.map((item) => {
                   const isActive =
                     pathname === item.href ||
-                    (item.href !== "/admin/dashboard" && pathname.startsWith(`${item.href}/`));
+                    (item.href !== "/admin/dashboard" &&
+                      pathname.startsWith(`${item.href}/`));
 
                   const Icon = item.icon;
                   return (
@@ -115,10 +125,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         "flex items-center gap-3 px-3 py-3 rounded-full text-xs font-medium transition-all",
                         isActive
                           ? "bg-red-600 text-white"
-                          : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
+                          : "text-neutral-400 hover:text-white hover:bg-neutral-900/50",
                       )}
                     >
-                      <Icon size={16} className={isActive ? "text-white" : "text-neutral-400"} />
+                      <Icon
+                        size={16}
+                        className={isActive ? "text-white" : "text-neutral-400"}
+                      />
                       <span>{item.name}</span>
                     </Link>
                   );

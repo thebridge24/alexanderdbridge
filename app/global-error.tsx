@@ -50,7 +50,7 @@ export default function GlobalError({
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
           <p className="text-sm text-neutral-400">Something went wrong loading this page.</p>
           {error?.message && (
-            <p className="text-xs text-red-400 max-w-md font-mono bg-red-950/40 p-2.5 rounded-lg border border-red-900/60 break-words">
+            <p className="text-xs text-red-400 max-w-md font-mono bg-red-950/40 p-2.5 rounded-lg border border-red-900/60 wrap-break-word">
               {error.message}
             </p>
           )}

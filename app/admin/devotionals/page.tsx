@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Preloader from "@/app/components/ui/Preloader";
 
 export default function DevotionalsAdminPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function DevotionalsAdminPage() {
     text: string;
   } | null>(null);
 
-// Fetch all devotionals and analytics on mount
+  // Fetch all devotionals and analytics on mount
   useEffect(() => {
     async function fetchDevotionalsAndAnalytics() {
       try {
@@ -40,15 +41,19 @@ export default function DevotionalsAdminPage() {
           fetch("/api/admin/analytics").catch(() => null),
         ]);
 
-        const devosData = devosRes && devosRes.ok ? await devosRes.json() : { devotionals: [] };
-        const analyticsDataJson = analyticsRes && analyticsRes.ok ? await analyticsRes.json() : { analytics: [] };
+        const devosData =
+          devosRes && devosRes.ok ? await devosRes.json() : { devotionals: [] };
+        const analyticsDataJson =
+          analyticsRes && analyticsRes.ok
+            ? await analyticsRes.json()
+            : { analytics: [] };
 
         const devosList = devosData.devotionals || [];
         const fetchedAnalytics = analyticsDataJson.analytics || [];
 
         // Map analytics by dateString for efficient lookup
         const analyticsMap = new Map(
-          fetchedAnalytics.map((a: any) => [a.dateString, a])
+          fetchedAnalytics.map((a: any) => [a.dateString, a]),
         );
 
         // Merge analytics stats (views, likes, comments) into each devotional item
@@ -63,7 +68,7 @@ export default function DevotionalsAdminPage() {
         });
 
         const sorted = enrichedDevotionals.sort((a: any, b: any) =>
-          b.dateString.localeCompare(a.dateString)
+          b.dateString.localeCompare(a.dateString),
         );
         setDevotionals(sorted);
       } catch (err) {
@@ -265,8 +270,8 @@ export default function DevotionalsAdminPage() {
       {/* Devotionals Table */}
       <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 space-y-4">
         {loading ? (
-          <div className="py-20 text-center text-xs font-mono text-neutral-500">
-            Loading database records...
+          <div className=" h-24 w-full flex items-center justify-center">
+            <Preloader />
           </div>
         ) : filteredDevotionals.length === 0 ? (
           <div className="py-20 text-center text-xs text-neutral-500 space-y-2">
