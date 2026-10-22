@@ -12,7 +12,8 @@ async function processPaymentActivation(reference: string) {
   if (!result.success || result.status !== "success") {
     return {
       success: false,
-      error: result.error || `Payment status is ${result.status || "unsuccessful"}`,
+      error:
+        result.error || `Payment status is ${result.status || "unsuccessful"}`,
     };
   }
 
@@ -20,7 +21,9 @@ async function processPaymentActivation(reference: string) {
   const plan = (metadata.plan as PlanType) || "supporter";
   const billingCycle = (metadata.billingCycle as BillingCycle) || "monthly";
   let userId = metadata.userId as string | null;
-  const userEmail = (result.customerEmail || metadata.userEmail || "").trim().toLowerCase();
+  const userEmail = (result.customerEmail || metadata.userEmail || "")
+    .trim()
+    .toLowerCase();
   const userName = metadata.userName || "Believer";
 
   const supabase = createSupabaseAdmin();
@@ -39,7 +42,9 @@ async function processPaymentActivation(reference: string) {
   // Determine tier & badge attributes
   const planConfig = PLAN_CONFIGS[plan];
   const isVerifiedPlan = planConfig?.showVerifiedIcon && plan !== "reader";
-  const tier: VerificationTier | null = isVerifiedPlan ? (plan as VerificationTier) : null;
+  const tier: VerificationTier | null = isVerifiedPlan
+    ? (plan as VerificationTier)
+    : null;
   const badgeColor = tier ? VERIFICATION_TIERS[tier].hexColor : null;
   const amountInNgn = result.amountInNgn || planConfig?.monthlyAmount || 0;
 
@@ -69,7 +74,10 @@ async function processPaymentActivation(reference: string) {
       .single();
 
     if (subError) {
-      console.warn("Could not upsert user_subscriptions row:", subError.message);
+      console.warn(
+        "Could not upsert user_subscriptions row:",
+        subError.message,
+      );
     } else {
       subscriptionRecord = subData;
     }
@@ -150,7 +158,9 @@ async function processPaymentActivation(reference: string) {
       subject: `Your Bridge Daily ${planTitle} Membership is Confirmed! ❤️`,
       html: emailHtml,
       text: `Thank you ${userName} for supporting Bridge Daily! Reference: ${reference}`,
-    }).catch((e) => console.error("Error sending Paystack confirmation email:", e));
+    }).catch((e) =>
+      console.error("Error sending Paystack confirmation email:", e),
+    );
   }
 
   return {
@@ -171,7 +181,9 @@ export async function GET(request: NextRequest) {
   const baseUrl = getServerBaseUrl(request);
 
   if (!reference) {
-    return NextResponse.redirect(new URL("/support/verify?payment=failed", baseUrl));
+    return NextResponse.redirect(
+      new URL("/support/verify?payment=failed", baseUrl),
+    );
   }
 
   const result = await processPaymentActivation(reference);
@@ -187,11 +199,12 @@ export async function GET(request: NextRequest) {
 
   // Show the verified result on the payment verification page. The previous
   // redirect went to /devotional, which did not consume these query params.
+  // Fix: ensure values passed to encodeURIComponent are safely converted to strings and never undefined
+  const planParam = encodeURIComponent(result.plan || "supporter");
+  const cycleParam = encodeURIComponent(result.billingCycle || "monthly");
+
   return NextResponse.redirect(
-    new URL(
-      `/support/verify?verified=true&plan=${encodeURIComponent(result.plan)}&cycle=${encodeURIComponent(result.billingCycle)}&reference=${encodeURIComponent(reference)}`,
-      baseUrl,
-    ),
+    `${baseUrl}/support/verify?verified=true&plan=${planParam}&cycle=${cycleParam}`,
   );
 }
 
@@ -201,7 +214,10 @@ export async function POST(request: NextRequest) {
     const { reference } = body || {};
 
     if (!reference) {
-      return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Transaction reference is required" },
+        { status: 400 },
+      );
     }
 
     const result = await processPaymentActivation(reference);
