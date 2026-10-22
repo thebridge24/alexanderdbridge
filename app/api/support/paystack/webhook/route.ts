@@ -4,6 +4,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
+import { recordPaymentTransaction } from "@/lib/payments/transactions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +18,22 @@ export async function POST(request: NextRequest) {
 
     const payload = JSON.parse(rawBody);
     const { event, data } = payload || {};
+
+    if (data?.reference && ["success", "failed", "abandoned"].includes(data.status)) {
+      const transactionMetadata = data.metadata || {};
+      await recordPaymentTransaction({
+        reference: data.reference,
+        userId: (transactionMetadata.userId as string | null) || null,
+        email: data.customer?.email || (transactionMetadata.userEmail as string | null) || null,
+        plan: transactionMetadata.plan as PlanType,
+        billingCycle: transactionMetadata.billingCycle as BillingCycle,
+        amount: (data.amount || 0) / 100,
+        channel: data.channel,
+        status: data.status === "success" ? "success" : data.status === "abandoned" ? "cancelled" : "failed",
+        paidAt: data.paid_at,
+        metadata: transactionMetadata,
+      });
+    }
 
     if (event === "charge.success" && data?.status === "success") {
       const reference = data.reference;

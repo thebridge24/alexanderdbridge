@@ -14,6 +14,7 @@ import {
   FiShield,
   FiX,
   FiAward,
+  FiCreditCard,
 } from "react-icons/fi";
 import { clsx } from "clsx";
 import { Flame } from "lucide-react";
@@ -33,6 +34,7 @@ export const NAVIGATION_GROUPS = [
       { name: "Users Analytics", href: "/admin/users", icon: FiUsers },
       { name: "Streaks & Leaderboard", href: "/admin/streaks", icon: Flame },
       { name: "Verified Badges", href: "/admin/badges", icon: FiAward },
+      { name: "Subscriptions", href: "/admin/subscriptions", icon: FiCreditCard },
       { name: "Analytics", href: "/admin/analytics", icon: FiBarChart2 },
     ],
   },

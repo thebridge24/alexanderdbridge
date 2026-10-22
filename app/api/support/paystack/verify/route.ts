@@ -5,9 +5,35 @@ import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { getServerBaseUrl } from "@/lib/utils/auth";
 import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
+import { recordPaymentTransaction } from "@/lib/payments/transactions";
 
 async function processPaymentActivation(reference: string) {
   const result = await verifyPaystackTransaction(reference);
+
+  const metadata = result.metadata || {};
+  const transactionStatus =
+    result.status === "success"
+      ? "success"
+      : result.status === "abandoned"
+        ? "cancelled"
+        : result.status === "failed"
+          ? "failed"
+          : "pending";
+
+  if (result.status) {
+    await recordPaymentTransaction({
+      reference,
+      userId: (metadata.userId as string | null) || null,
+      email: result.customerEmail || (metadata.userEmail as string | null) || null,
+      plan: metadata.plan as PlanType,
+      billingCycle: metadata.billingCycle as BillingCycle,
+      amount: result.amountInNgn,
+      channel: result.channel,
+      status: transactionStatus,
+      paidAt: result.paidAt,
+      metadata,
+    });
+  }
 
   if (!result.success || result.status !== "success") {
     return {
@@ -16,7 +42,6 @@ async function processPaymentActivation(reference: string) {
     };
   }
 
-  const metadata = result.metadata || {};
   const plan = (metadata.plan as PlanType) || "supporter";
   const billingCycle = (metadata.billingCycle as BillingCycle) || "monthly";
   let userId = metadata.userId as string | null;
@@ -189,7 +214,7 @@ export async function GET(request: NextRequest) {
   // redirect went to /devotional, which did not consume these query params.
   return NextResponse.redirect(
     new URL(
-      `/support/verify?verified=true&plan=${encodeURIComponent(result.plan)}&cycle=${encodeURIComponent(result.billingCycle)}&reference=${encodeURIComponent(reference)}`,
+      `/support/verify?verified=true&plan=${encodeURIComponent(result.plan || "supporter")}&cycle=${encodeURIComponent(result.billingCycle || "monthly")}&reference=${encodeURIComponent(reference)}`,
       baseUrl,
     ),
   );

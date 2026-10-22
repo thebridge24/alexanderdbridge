@@ -4,6 +4,7 @@ import { verifyPaystackTransaction } from "@/lib/payments/paystack";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
+import { recordPaymentTransaction } from "@/lib/payments/transactions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,6 +71,27 @@ export async function POST(request: NextRequest) {
     if (reference && typeof reference === "string" && reference.trim().length > 0) {
       try {
         const paystackResult = await verifyPaystackTransaction(reference.trim());
+        if (paystackResult.status) {
+          await recordPaymentTransaction({
+            reference: reference.trim(),
+            userId,
+            email: paystackResult.customerEmail || cleanEmail,
+            plan: (paystackResult.metadata?.plan as PlanType) || selectedPlan,
+            billingCycle: (paystackResult.metadata?.billingCycle as BillingCycle) || selectedCycle,
+            amount: paystackResult.amountInNgn || expectedAmount,
+            channel: paystackResult.channel,
+            status:
+              paystackResult.status === "success"
+                ? "success"
+                : paystackResult.status === "abandoned"
+                  ? "cancelled"
+                  : paystackResult.status === "failed"
+                    ? "failed"
+                    : "pending",
+            paidAt: paystackResult.paidAt,
+            metadata: paystackResult.metadata,
+          });
+        }
         if (paystackResult.success && paystackResult.status === "success") {
           subscriptionStatus = "active";
           channel = paystackResult.channel || "paystack";

@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { initializePaystackTransaction, getPaystackSecretKey } from "@/lib/payments/paystack";
 import { getServerBaseUrl } from "@/lib/utils/auth";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
+import { recordPaymentTransaction } from "@/lib/payments/transactions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -93,6 +94,17 @@ export async function POST(request: NextRequest) {
         { status: 502 },
       );
     }
+
+    await recordPaymentTransaction({
+      reference: result.reference || "",
+      userId,
+      email: userEmail,
+      plan,
+      billingCycle,
+      amount: amountInNgn,
+      status: "pending",
+      metadata: { userId, userEmail, userName: userName || "Believer", plan, billingCycle },
+    });
 
     return NextResponse.json({
       success: true,
