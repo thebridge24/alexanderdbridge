@@ -124,7 +124,7 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
           <div className="flex flex-col items-center justify-center space-y-3 py-12">
             <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
             <span className="text-xs font-mono text-neutral-500 uppercase tracking-widest">
-              Loading Community Voice...
+              Loading Community...
             </span>
           </div>
         ) : cards.length > 0 ? (

@@ -9,8 +9,6 @@ import { IoCheckmark } from "react-icons/io5";
 import {
   FaHeart,
   FaRegHeart,
-  FaCheck,
-  FaDownload,
   FaRegCommentDots,
 } from "react-icons/fa6";
 import {
@@ -43,6 +41,7 @@ import Survey from "@/app/components/Survey";
 import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
 import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
 import BibleStudyCard from "./BibleStudyCard";
+import Preloader from "@/app/components/ui/Preloader";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -179,7 +178,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>("");
-  const [showNamePrompt, setShowNamePrompt] = useState<boolean>(false);
 
   // Modal & Reply states
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
@@ -507,11 +505,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       return;
     }
 
-    if (!userName.trim()) {
-      setShowNamePrompt(true);
-      return;
-    }
-
     executePostComment(userName.trim());
   };
 
@@ -706,15 +699,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     }
   };
 
-  const handleSaveName = (): void => {
-    const trimmedName = userName.trim();
-    if (trimmedName) {
-      storeUserName(trimmedName);
-      setShowNamePrompt(false);
-      executePostComment(trimmedName);
-    }
-  };
-
   const isFutureDate = (dateStr: string) => {
     if (!todayDateString) return false;
     return dateStr > todayDateString;
@@ -753,14 +737,14 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     return Boolean(record && record.completed);
   })();
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [, setIsAuthModalOpen] = useState(false);
   const requiresAuthPrompt = !isAuthLoading && !user;
 
   if (!currentDevotional) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-neutral-300">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+          <Preloader />{" "}
           <p className="text-xs font-bold uppercase tracking-[0.35em] text-neutral-500">
             Loading Devotional...
           </p>

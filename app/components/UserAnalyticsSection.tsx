@@ -17,6 +17,7 @@ import SurveyBroadcasterModal, {
   BroadcastRecipientCategory,
 } from "@/app/admin/surveys/SurveyBroadcasterModal";
 import { Plus } from "lucide-react";
+import Preloader from "./ui/Preloader";
 
 export interface UserAnalyticsItem {
   id: string;
@@ -342,7 +343,7 @@ export default function UserAnalyticsSection() {
       {/* Users List */}
       {loading ? (
         <div className="p-12 text-center text-xs text-neutral-500 bg-neutral-950/50 rounded-2xl border border-neutral-900">
-          Loading user streaks...
+           <Preloader />
         </div>
       ) : filteredUsers.length === 0 ? (
         <div className="p-12 text-center text-xs text-neutral-500 bg-neutral-950/50 rounded-2xl border border-neutral-900">

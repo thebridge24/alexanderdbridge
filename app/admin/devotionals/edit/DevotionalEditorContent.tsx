@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import DevotionalArticle from "../../../components/DevotionalArticle"; 
 import { formatDate } from "@/lib/format-date";
+import Preloader from "@/app/components/ui/Preloader";
 
 export default function DevotionalEditorPage() {
   const searchParams = useSearchParams();
@@ -161,7 +162,7 @@ export default function DevotionalEditorPage() {
   };
 
   return (
-    <div className="w-full py-8 space-y-8">
+    <div className="w-full pb-8 space-y-8">
       {/* Top Header & Switcher */}
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between pb-6 border-b border-neutral-900">
         <div className="flex items-center gap-3">
@@ -225,7 +226,7 @@ export default function DevotionalEditorPage() {
 
       {fetching ? (
         <div className="py-24 text-center text-xs font-mono text-neutral-500">
-          Loading devotional data...
+          <Preloader />
         </div>
       ) : activeTab === "preview" ? (
         /* READER PREVIEW SUBPAGE VIEW */

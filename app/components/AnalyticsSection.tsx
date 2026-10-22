@@ -18,6 +18,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import Preloader from "./ui/Preloader";
 
 export type DevotionalAnalyticsItem = {
   dateString: string; // Expected format: YYYY-MM-DD
@@ -250,7 +251,7 @@ export default function AnalyticsSection({
       <div className="p-6 bg-[#09090b] ">
         {analyticsLoading ? (
           <div className="h-64 flex items-center justify-center text-xs text-neutral-600">
-            Loading analytics data...
+             <Preloader />
           </div>
         ) : chartData.length === 0 ? (
           <div className="h-64 flex items-center justify-center text-xs text-neutral-600">

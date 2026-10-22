@@ -11,6 +11,7 @@ import { Check } from "lucide-react";
 import { IoArrowBack } from "react-icons/io5";
 import { createSupabaseBrowserClient } from "../../../lib/supabase/client";
 import { UserAvatar } from "../../../alexanderdbridge/app/auth/AuthButton";
+import Preloader from "@/app/components/ui/Preloader";
 
 function StudyPageContent() {
   const searchParams = useSearchParams();
@@ -252,7 +253,7 @@ export default function StudyPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-400 text-sm">
-          Loading Study Plan...
+          <Preloader />
         </div>
       }
     >
