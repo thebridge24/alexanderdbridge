@@ -19,7 +19,7 @@ import {
 import AdminPinGuard from "../AdminPinGuard";
 import SurveyBroadcasterModal, {
   BroadcastRecipientCategory,
-} from "../surveys/SurveyBroadcasterModal";
+} from "../../components/SurveyBroadcasterModal";
 
 export interface SurveySubmission {
   id: string;
@@ -633,7 +633,7 @@ export default function SurveySubmissionsPage() {
                               }`}
                             >
                               {isRead && (
-                                <Check className="w-3 h-3 stroke-[3]" />
+                                <Check className="w-3 h-3 stroke-3" />
                               )}
                             </div>
                           </td>

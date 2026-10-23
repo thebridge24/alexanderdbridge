@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiSearch, FiAward } from "react-icons/fi";
+import { FiX, FiSearch, FiAward, FiChevronDown, FiCheck } from "react-icons/fi";
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -11,18 +12,58 @@ interface AddSubscriptionModalProps {
   onSuccess: () => void;
 }
 
-export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: AddSubscriptionModalProps) {
+// Base monthly prices mapping
+const PLAN_MONTHLY_PRICES: Record<string, number> = {
+  Reader: 500,
+  Supporter: 1000,
+  Sponsor: 1500,
+  Partner: 2500,
+  Patron: 5000,
+};
+
+const PLANS = [
+  { name: "Reader", description: "Standard reader access" },
+  {
+    name: "Supporter",
+    description: "Helps us improve and reach more believers",
+  },
+  {
+    name: "Sponsor",
+    description: "Keeps Bridge Daily accessible to the world",
+  },
+  {
+    name: "Partner",
+    description: "Help us reach more lives through God's Word",
+  },
+  { name: "Patron", description: "Builds the future of Bridge Daily" },
+];
+
+export default function AddSubscriptionModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: AddSubscriptionModalProps) {
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Custom Plan Dropdown State
+  const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
+  const planDropdownRef = useRef<HTMLDivElement>(null);
+
   // Form State
   const [planName, setPlanName] = useState("Supporter");
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-  const [amount, setAmount] = useState<number>(3500);
-  const [paymentType, setPaymentType] = useState<"paid" | "complimentary">("paid");
-  const [paymentMethod, setPaymentMethod] = useState<"Paystack" | "Cash" | "Bank Transfer" | "Other">("Paystack");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
+  const [amount, setAmount] = useState<number>(1000);
+  const [paymentType, setPaymentType] = useState<"paid" | "complimentary">(
+    "paid",
+  );
+  const [paymentMethod, setPaymentMethod] = useState<
+    "Paystack" | "Cash" | "Bank Transfer" | "Other"
+  >("Paystack");
   const [paystackRef, setPaystackRef] = useState("");
   const [durationMonths, setDurationMonths] = useState<number>(12); // For complimentary
   const [submitting, setSubmitting] = useState(false);
@@ -44,12 +85,38 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
     if (isOpen) fetchUsers();
   }, [isOpen]);
 
+  // Close custom dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        planDropdownRef.current &&
+        !planDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsPlanDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Recalculate amount whenever plan or billing cycle changes
+  useEffect(() => {
+    const monthlyPrice = PLAN_MONTHLY_PRICES[planName] || 1000;
+    if (billingCycle === "yearly") {
+      // monthly * 12 - 10%
+      const calculatedYearly = Math.round(monthlyPrice * 11);
+      setAmount(calculatedYearly);
+    } else {
+      setAmount(monthlyPrice);
+    }
+  }, [planName, billingCycle]);
+
   if (!isOpen) return null;
 
   const filteredUsers = users.filter(
     (u) =>
       (u.name || "").toLowerCase().includes(userSearch.toLowerCase()) ||
-      (u.email || "").toLowerCase().includes(userSearch.toLowerCase())
+      (u.email || "").toLowerCase().includes(userSearch.toLowerCase()),
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,10 +135,12 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
         planName,
         billingCycle,
         amount: paymentType === "complimentary" ? 0 : amount,
-        paymentMethod: paymentType === "complimentary" ? "Complimentary" : paymentMethod,
+        paymentMethod:
+          paymentType === "complimentary" ? "Complimentary" : paymentMethod,
         paystackRef: paymentMethod === "Paystack" ? paystackRef : undefined,
         isComplimentary: paymentType === "complimentary",
-        durationMonths: paymentType === "complimentary" ? durationMonths : undefined,
+        durationMonths:
+          paymentType === "complimentary" ? durationMonths : undefined,
       };
 
       const res = await fetch("/api/support/subscribe", {
@@ -81,7 +150,8 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create subscription");
+      if (!res.ok)
+        throw new Error(data.error || "Failed to create subscription");
 
       onSuccess();
       onClose();
@@ -110,7 +180,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
         >
           <div className="flex items-center justify-between border-b border-neutral-900 pb-4">
             <div>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Membership Admin</span>
+              <span className="text-[10px] font-mono text-neutral-500 uppercase">
+                Membership Admin
+              </span>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
                 <FiAward className="text-red-500" /> Add Subscription Record
               </h3>
@@ -132,7 +204,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
             {/* Step A: Select User */}
             <div className="space-y-1.5 relative">
-              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Select User</label>
+              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                Select User
+              </label>
               {selectedUser ? (
                 <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -140,8 +214,12 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
                       {(selectedUser.name || "U").charAt(0)}
                     </div>
                     <div>
-                      <div className="font-bold text-white">{selectedUser.name}</div>
-                      <div className="text-[10px] text-neutral-400 font-mono">{selectedUser.email}</div>
+                      <div className="font-bold text-white">
+                        {selectedUser.name}
+                      </div>
+                      <div className="text-[10px] text-neutral-400 font-mono">
+                        {selectedUser.email}
+                      </div>
                     </div>
                   </div>
                   <button
@@ -156,23 +234,25 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
                 <div className="relative">
                   <div
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white cursor-pointer flex items-center justify-between"
+                    className="mt-2"
                   >
-                    <span className="text-neutral-400">Search & select user...</span>
-                    <FiSearch size={14} className="text-neutral-500" />
+                    <input
+                      type="text"
+                      placeholder="Type name or email..."
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      className="w-full px-3 py-2 rounded-full bg-neutral-850 border border-neutral-800 text-white outline-none text-xs"
+                    />
                   </div>
+                  {/* <div className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white cursor-pointer flex items-center justify-between">
+                    <span className="text-neutral-400">
+                      Search & select user...
+                    </span>
+                    <FiSearch size={14} className="text-neutral-500" />
+                  </div> */}
 
                   {isDropdownOpen && (
                     <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-30 overflow-hidden max-h-60 overflow-y-auto">
-                      <div className="p-2 border-b border-neutral-800">
-                        <input
-                          type="text"
-                          placeholder="Type name or email..."
-                          value={userSearch}
-                          onChange={(e) => setUserSearch(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-white outline-none text-xs"
-                        />
-                      </div>
                       <div className="divide-y divide-neutral-800">
                         {filteredUsers.map((u) => (
                           <div
@@ -184,8 +264,12 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
                             className="p-3 hover:bg-neutral-800/60 cursor-pointer flex items-center justify-between"
                           >
                             <div>
-                              <div className="font-bold text-white">{u.name}</div>
-                              <div className="text-[10px] text-neutral-400 font-mono">{u.email}</div>
+                              <div className="font-bold text-white">
+                                {u.name}
+                              </div>
+                              <div className="text-[10px] text-neutral-400 font-mono">
+                                {u.email}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -196,42 +280,95 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
               )}
             </div>
 
-            {/* Step B: Subscription Plan */}
-            <div className="space-y-1.5">
-              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Subscription Plan</label>
-              <select
-                value={planName}
-                onChange={(e) => setPlanName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-red-500"
+            {/* Step B: Custom Subscription Plan Dropdown */}
+            <div className="space-y-1.5 relative" ref={planDropdownRef}>
+              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                Subscription Plan
+              </label>
+
+              <div
+                onClick={() => setIsPlanDropdownOpen(!isPlanDropdownOpen)}
+                className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white cursor-pointer flex items-center justify-between hover:border-neutral-700 transition-colors"
               >
-                <option value="Reader">Reader Plan</option>
-                <option value="Supporter">Supporter Plan</option>
-                <option value="Sponsor">Sponsor Plan</option>
-                <option value="Patron">Patron Plan</option>
-                <option value="Partner">Partner Plan</option>
-              </select>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-white">{planName} Plan</span>
+                  <span className="text-[10px] font-mono text-red-400">
+                    (₦{PLAN_MONTHLY_PRICES[planName]?.toLocaleString()}/mo)
+                  </span>
+                </div>
+                <FiChevronDown
+                  size={14}
+                  className={`text-neutral-400 transition-transform ${isPlanDropdownOpen ? "rotate-180" : ""}`}
+                />
+              </div>
+
+              {isPlanDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-30 overflow-hidden divide-y divide-neutral-800">
+                  {PLANS.map((p) => {
+                    const isSelected = planName === p.name;
+                    const monthlyVal = PLAN_MONTHLY_PRICES[p.name];
+                    return (
+                      <div
+                        key={p.name}
+                        onClick={() => {
+                          setPlanName(p.name);
+                          setIsPlanDropdownOpen(false);
+                        }}
+                        className={`p-3.5 cursor-pointer flex items-center justify-between transition-colors ${
+                          isSelected
+                            ? "bg-red-950/30 text-white"
+                            : "hover:bg-neutral-800/60 text-neutral-300"
+                        }`}
+                      >
+                        <div>
+                          <div className="font-bold flex items-center gap-2">
+                            {p.name} Plan
+                            {isSelected && (
+                              <FiCheck size={12} className="text-red-500" />
+                            )}
+                          </div>
+                          <div className="text-[10px] text-neutral-500">
+                            {p.description}
+                          </div>
+                        </div>
+                        <div className="font-mono text-xs font-bold text-red-400">
+                          ₦{monthlyVal.toLocaleString()}/mo
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Step C: Billing Cycle & Amount */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Billing Cycle</label>
+                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                  Billing Cycle
+                </label>
                 <select
                   value={billingCycle}
                   onChange={(e) => {
                     const cycle = e.target.value as "monthly" | "yearly";
                     setBillingCycle(cycle);
-                    setAmount(cycle === "yearly" ? 35000 : 3500);
                   }}
                   className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-red-500"
                 >
                   <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
+                  <option value="yearly">Yearly (10% Off)</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Amount (₦)</label>
+                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                  Amount (₦){" "}
+                  {billingCycle === "yearly" && (
+                    <span className="text-red-400 font-normal lowercase">
+                      (Get 1 month free)
+                    </span>
+                  )}
+                </label>
                 <input
                   type="number"
                   value={amount}
@@ -244,7 +381,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
 
             {/* Step D: Access Type */}
             <div className="space-y-2">
-              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Subscription Access Type</label>
+              <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                Subscription Access Type
+              </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -266,7 +405,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
             {paymentType === "paid" ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Payment Method</label>
+                  <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                    Payment Method
+                  </label>
                   <select
                     value={paymentMethod}
                     onChange={(e: any) => setPaymentMethod(e.target.value)}
@@ -280,7 +421,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
                 </div>
                 {paymentMethod === "Paystack" && (
                   <div className="space-y-1.5">
-                    <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Paystack Reference</label>
+                    <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                      Paystack Reference
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g. T123456789"
@@ -293,7 +436,9 @@ export default function AddSubscriptionModal({ isOpen, onClose, onSuccess }: Add
               </div>
             ) : (
               <div className="space-y-1.5">
-                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">Access Duration</label>
+                <label className="text-neutral-400 font-semibold uppercase tracking-wider text-[10px]">
+                  Access Duration
+                </label>
                 <select
                   value={durationMonths}
                   onChange={(e) => setDurationMonths(Number(e.target.value))}

@@ -15,7 +15,7 @@ import {
 
 import SurveyBroadcasterModal, {
   BroadcastRecipientCategory,
-} from "@/app/admin/surveys/SurveyBroadcasterModal";
+} from "@/app/components/SurveyBroadcasterModal";
 import { Plus } from "lucide-react";
 import Preloader from "./ui/Preloader";
 

@@ -221,7 +221,7 @@ export default function SubscriptionDetailsModal({
                   className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-950/40 hover:bg-red-950 text-red-400 font-bold text-xs transition-colors border border-red-800/40"
                 >
                   <FiTrash2 size={14} />
-                  <span>Delete Subscription</span>
+                  <span>Delete</span>
                 </button>
               )}
               <button

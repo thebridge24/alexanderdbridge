@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { getBroadcastEmailHtml } from "@/lib/email/templates/broadcast";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import Preloader from "./ui/Preloader";
 
 export interface BroadcastRecipientCategory {
   id: string;
@@ -159,7 +161,7 @@ export default function SurveyBroadcasterModal({
     if (isOpen && activeTab === "editor" && editorRef.current) {
       editorRef.current.innerText = rawText;
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, rawText]);
 
   const paragraphs = rawText
     .split(/\n\s*\n|\n/)
@@ -305,7 +307,7 @@ export default function SurveyBroadcasterModal({
           className="w-full sm:max-w-3xl bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]"
         >
           {/* Header */}
-          <div className="px-4 py-4 sm:px-6 sm:py-5 bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 flex items-center justify-between shrink-0 gap-3">
+          <div className="px-4 py-4 sm:px-6 sm:py-5 bg-linear-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 flex items-center justify-between shrink-0 gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="size-9 sm:size-11 rounded-xl sm:rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center text-red-500 shadow-inner shrink-0">
                 <Send className="size-4 sm:size-5" />
@@ -418,14 +420,14 @@ export default function SurveyBroadcasterModal({
                     contentEditable={true}
                     onInput={handleTextChange}
                     suppressContentEditableWarning={true}
-                    className="min-h-[140px] sm:min-h-[160px] max-h-[240px] sm:max-h-[300px] overflow-y-auto text-sm text-neutral-200 leading-relaxed focus:outline-none whitespace-pre-wrap font-sans"
+                    className="min-h-35 sm:min-h-40 max-h-60 sm:max-h-75 overflow-y-auto text-sm text-neutral-200 leading-relaxed focus:outline-none whitespace-pre-wrap font-sans"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   {/* Dynamic Target Select */}
                   <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-4 space-y-3">
-                    <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className=" text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                       <Users className="size-3.5 text-red-500 shrink-0" />
                       Target Recipients
                     </label>
@@ -488,7 +490,7 @@ export default function SurveyBroadcasterModal({
                                 key={u.email}
                                 className="inline-flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-white text-[11px] px-2.5 py-1 rounded-full font-medium"
                               >
-                                <span className="truncate max-w-[120px]">{u.name || u.email}</span>
+                                <span className="truncate max-w-30">{u.name || u.email}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveUser(u.email)}
@@ -541,14 +543,14 @@ export default function SurveyBroadcasterModal({
             {activeTab === "email_preview" && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-neutral-400 gap-2">
-                  <span>Live Rendered Premium Email Template:</span>
-                  <span className="font-mono text-emerald-400 text-[11px] shrink-0">SendByte HTML</span>
+                  <span>Email Template:</span>
+                 
                 </div>
                 <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-2 overflow-hidden">
                   <iframe
                     title="Email Preview"
                     srcDoc={emailHtmlPreview}
-                    className="w-full min-h-[340px] sm:min-h-[420px] rounded-xl bg-black border-none"
+                    className="w-full min-h-85 sm:min-h-105 rounded-xl bg-black border-none"
                   />
                 </div>
               </div>
@@ -633,9 +635,6 @@ export default function SurveyBroadcasterModal({
                       <span className="font-mono text-neutral-200 font-medium truncate max-w-xs sm:max-w-sm">
                         {item.email}
                       </span>
-                      <span className="text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-800/50 text-[10px] sm:text-[11px] shrink-0 font-medium">
-                        {item.error}
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -661,7 +660,7 @@ export default function SurveyBroadcasterModal({
               className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-red-500 active:scale-95 disabled:opacity-50 shadow-xl shadow-red-900/40 transition-all cursor-pointer"
             >
               <Send className="size-3.5 shrink-0" />
-              {isSending ? "Broadcasting..." : "Broadcast Message"}
+              {isSending ? <Preloader />: "Broadcast Message"}
             </button>
           </div>
         </motion.div>
