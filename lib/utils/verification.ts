@@ -72,21 +72,27 @@ export const PATRON_EMAILS = [
 
 export const PATRON_NAMES = [
   "alexander d bridge",
-  "alexander d. bridge",
   "alexander christ",
   "tessy ima",
 ];
 
 // 2. Partner Tier Lists
-export const PARTNER_EMAILS = ["gideongabriel557@gmail.com", "alexanderchrist203@gmail.com"];
+export const PARTNER_EMAILS = [
+  "gideongabriel557@gmail.com",
+  "alexanderchrist203@gmail.com",
+];
 
-export const PARTNER_NAMES = ["gideon gabriel", " alexander Christ"];
+export const PARTNER_NAMES = [
+  "gideon gabriel", 
+  "alexander Christ"
+];
 
 // 3. Supporter Tier Lists (All other verified members)
 export const SUPPORTER_EMAILS = [
   "binahcharlesagidigbi@gmail.com",
   "johnedheke@gmail.com",
   "osamwonyigodswill@gmail.com",
+  "imuetinyanemanuella@gmail.com",
 ];
 
 export const SUPPORTER_NAMES = [
@@ -100,7 +106,6 @@ export const SUPPORTER_NAMES = [
 export const SPONSOR_EMAILS = [
   "giftangelwite@gmail.com",
   "madukuedith@gmail.com",
-  "imuetinyanemanuella@gmail.com",
 ];
 
 export const SPONSOR_NAMES = ["gift angelwite", "edith maduku"];
@@ -154,6 +159,7 @@ export function getUserVerificationTier(params?: {
 export function isUserVerified(params?: {
   metadata?: Record<string, any> | null;
   email?: string | null;
-  name?: string | null;}): boolean {
+  name?: string | null;
+}): boolean {
   return getUserVerificationTier(params) !== null;
 }
