@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Star, Calendar, User, Mail, DollarSign, HeartHandshake } from "lucide-react";
+import { Star, Calendar, User, Mail, ChevronLeft } from "lucide-react";
 import { devotionalSurveyConfig } from "../../../config/devotionalSurvey";
 import AdminPinGuard from "../../AdminPinGuard";
+import Preloader from "@/app/components/ui/Preloader";
+import { formatDate } from "@/lib/format-date";
 
 export default function SubmissionDetailPage() {
   const params = useParams();
@@ -19,7 +22,9 @@ export default function SubmissionDetailPage() {
     fetch("/api/admin/surveys")
       .then((res) => res.json())
       .then((json) => {
-        const found = (json.submissions ?? []).find((s: any) => s.id === submissionId);
+        const found = (json.submissions ?? []).find(
+          (s: any) => s.id === submissionId,
+        );
         if (!cancelled) setSubmission(found ?? null);
       })
       .catch(() => {})
@@ -31,8 +36,14 @@ export default function SubmissionDetailPage() {
 
   // Format array/object answers into readable text
   const formatAnswerValue = (q: any, answerValue: any) => {
-    if (answerValue === undefined || answerValue === null || answerValue === "") {
-      return <span className="text-neutral-600 italic">No response provided</span>;
+    if (
+      answerValue === undefined ||
+      answerValue === null ||
+      answerValue === ""
+    ) {
+      return (
+        <span className="text-neutral-600 italic">No response provided</span>
+      );
     }
 
     if (q.type === "rating") {
@@ -69,41 +80,41 @@ export default function SubmissionDetailPage() {
       if (typeof answerValue === "object") {
         return `Other: ${answerValue.text}`;
       }
-      return q.options?.find((o: any) => o.value === answerValue)?.label || answerValue;
+      return (
+        q.options?.find((o: any) => o.value === answerValue)?.label ||
+        answerValue
+      );
     }
 
-    return <p className="text-neutral-200 leading-relaxed text-xs sm:text-sm">{String(answerValue)}</p>;
+    return (
+      <p className="text-neutral-200 leading-relaxed text-xs sm:text-sm">
+        {String(answerValue)}
+      </p>
+    );
   };
 
   if (loading || !submission) {
     return (
-      <AdminPinGuard>
-        <div className="min-h-screen bg-black text-white p-8">
-          <Link href="/admin/surveys" className="text-sm text-neutral-400 hover:text-white">
-            ← Back to responses
-          </Link>
-          <p className="mt-6 text-sm text-neutral-500">
-            {loading ? "Loading response..." : "Response not found."}
-          </p>
+      <div>
+        <div className="min-h-screen bg-black text-white p-8 flex items-center justify-center">
+          <Preloader />
         </div>
-      </AdminPinGuard>
+      </div>
     );
   }
 
   return (
-    <AdminPinGuard>
-      <div className="min-h-screen bg-black text-white p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        
+    <div className="min-h-screen bg-black text-white">
+      <div className="space-y-6">
         {/* Navigation Top Bar */}
         <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
           <Link
-            href="/admin/surveys"
-            className="inline-flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors"
+            href="/admin/feedback"
+            className="text-sm text-neutral-400 hover:text-white flex items-center"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to All Responses
+            <ChevronLeft className="size-5" /> Back to responses
           </Link>
-          <span className="text-xs font-mono text-neutral-500">
+          <span className="text-xs font-mono text-neutral-500 max-w-24 truncate">
             ID: {submission.id}
           </span>
         </div>
@@ -111,30 +122,35 @@ export default function SubmissionDetailPage() {
         {/* User Summary Header Card */}
         <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-red-500 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-red-500">
               Respondent Overview
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 mt-1">
-              <User className="w-5 h-5 text-neutral-400" />
+            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3 mt-1">
+              <div className="w-10 h-10 rounded-full bg-neutral-700 border-2 border-red-600 text-neutral-200 flex items-center justify-center text-xl font-semibold shrink-0 uppercase">
+                {(submission.userName || "A")[0]}
+              </div>
               {submission.userName || "Anonymous Respondent"}
             </h1>
             <div className="flex items-center gap-4 text-xs text-neutral-400 pt-1">
               <span className="flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5" /> {submission.userEmail || "No Email Provided"}
+                <Mail className="w-3.5 h-3.5" />{" "}
+                {submission.userEmail || "No Email Provided"}
               </span>
               <span className="flex items-center gap-1 font-mono">
                 <Calendar className="w-3.5 h-3.5" />
-                {new Date(submission.submittedAt).toLocaleDateString()}
+                {formatDate(
+                  new Date(submission.submittedAt).toLocaleDateString(),
+                )}
               </span>
             </div>
           </div>
 
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 px-4 flex items-center gap-3">
+          <div className=" flex items-center gap-3">
+            <span className="text-[10px] font-mono text-neutral-500 block uppercase">
+              Rating
+            </span>
             <div className="text-right">
-              <span className="text-[10px] font-mono text-neutral-500 block uppercase">
-                Overall Rating
-              </span>
-              <span className="text-base font-bold text-white">
+              <span className="text-2xl font-bold text-white">
                 {submission.answers.rating_overall || "N/A"} / 5
               </span>
             </div>
@@ -145,10 +161,11 @@ export default function SubmissionDetailPage() {
         {/* Question-by-Question Answers Display */}
         <div className="space-y-4">
           <h2 className="text-xs font-mono uppercase tracking-widest text-neutral-500 pt-2">
-            Detailed Answers ({devotionalSurveyConfig.questions.length} Questions)
+            Detailed Answers ({devotionalSurveyConfig.questions.length}{" "}
+            Questions)
           </h2>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {devotionalSurveyConfig.questions.map((question, index) => {
               const answerVal = submission.answers[question.id];
 
@@ -162,15 +179,17 @@ export default function SubmissionDetailPage() {
                       Q{String(index + 1).padStart(2, "0")}
                     </span>
                     {question.required && (
-                      <span className="text-[10px] font-mono text-red-500/80">Required</span>
+                      <span className="text-[10px] font-mono text-red-500/80">
+                        Required
+                      </span>
                     )}
                   </div>
 
-                  <h3 className="text-xs sm:text-sm font-semibold text-neutral-300">
+                  <h3 className="text-xs sm:text-sm font-semibold text-neutral-500">
                     {question.title}
                   </h3>
 
-                  <div className="pt-2 border-t border-neutral-900 text-xs sm:text-sm">
+                  <div className="pt-2 border-t border-neutral-900 ">
                     {formatAnswerValue(question, answerVal)}
                   </div>
                 </div>
@@ -178,9 +197,7 @@ export default function SubmissionDetailPage() {
             })}
           </div>
         </div>
-
       </div>
     </div>
-    </AdminPinGuard>
   );
 }

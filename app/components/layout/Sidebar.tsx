@@ -37,7 +37,6 @@ export const NAVIGATION_GROUPS = [
     items: [
       { name: "Users Analytics", href: "/admin/users", icon: FiUsers },
       { name: "Streaks & Leaderboard", href: "/admin/streaks", icon: Flame },
-      { name: "Subscriptions", href: "/admin/subscriptions", icon: FiUsers },
       { name: "Verified Badges", href: "/admin/badges", icon: FiAward },
       { name: "Subscriptions", href: "/admin/subscriptions", icon: FiCreditCard },
       { name: "Analytics", href: "/admin/analytics", icon: FiBarChart2 },
