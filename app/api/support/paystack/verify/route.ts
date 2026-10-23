@@ -6,6 +6,7 @@ import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { getServerBaseUrl } from "@/lib/utils/auth";
 import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
 import { recordPaymentTransaction } from "@/lib/payments/transactions";
+import { buildPeriodFields } from "@/lib/subscriptions/period";
 
 async function processPaymentActivation(reference: string) {
   const result = await verifyPaystackTransaction(reference);
@@ -72,10 +73,15 @@ async function processPaymentActivation(reference: string) {
   let subscriptionRecord = null;
   if (userId) {
     const nowIso = new Date().toISOString();
+    const period = await buildPeriodFields(supabase, userId, { cycle: billingCycle, reference });
     const { data: subData, error: subError } = await supabase
       .from("user_subscriptions")
       .upsert(
         {
+          ...period,
+          user_name: userName,
+          is_complimentary: false,
+          payment_method: "Paystack",
           user_id: userId,
           user_email: userEmail,
           plan_type: plan,

@@ -5,6 +5,7 @@ import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PlanType, BillingCycle, PLAN_CONFIGS } from "@/lib/payments/plans";
 import { recordPaymentTransaction } from "@/lib/payments/transactions";
+import { buildPeriodFields } from "@/lib/subscriptions/period";
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,8 +65,13 @@ export async function POST(request: NextRequest) {
 
       if (userId) {
         const nowIso = new Date().toISOString();
+        const period = await buildPeriodFields(supabase, userId, { cycle: billingCycle, reference });
         await supabase.from("user_subscriptions").upsert(
           {
+            ...period,
+            user_name: userName,
+            is_complimentary: false,
+            payment_method: "Paystack",
             user_id: userId,
             user_email: userEmail,
             plan_type: plan,

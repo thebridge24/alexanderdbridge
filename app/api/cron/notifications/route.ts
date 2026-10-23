@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendNotification } from "@/lib/notifications/sender";
 import { computeStreaks } from "@/lib/utils/streak";
+import { processSubscriptionLifecycle } from "@/lib/subscriptions/lifecycle";
 import {
   formatMorningReminderMessage,
   formatStreakSaverMessage,
@@ -246,8 +247,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Subscription reminders / grace / downgrade (idempotent, so running every 5 minutes is fine)
+    const subscriptions = await processSubscriptionLifecycle(supabase).catch((err) => {
+      console.error("Subscription lifecycle failed:", err);
+      return null;
+    });
+
     return NextResponse.json({
       success: true,
+      subscriptions,
       processedUsers: usersPrefs.length,
       remindersSent,
       streakAlertsSent,

@@ -5,6 +5,7 @@ import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
 import { recordPaymentTransaction } from "@/lib/payments/transactions";
+import { buildPeriodFields } from "@/lib/subscriptions/period";
 
 export async function POST(request: NextRequest) {
   try {
@@ -112,8 +113,17 @@ export async function POST(request: NextRequest) {
     // 3. Persist in database
     const nowIso = new Date().toISOString();
     if (userId) {
+      // Only an active (paid/verified) subscription starts a billing period
+      const period =
+        subscriptionStatus === "active"
+          ? await buildPeriodFields(supabase, userId, { cycle: selectedCycle, reference: reference ? String(reference).trim() : null })
+          : {};
       await supabase.from("user_subscriptions").upsert(
         {
+          ...period,
+          user_name: cleanName,
+          is_complimentary: false,
+          payment_method: reference ? "Paystack" : "Bank Transfer",
           user_id: userId,
           user_email: cleanEmail,
           plan_type: selectedPlan,
