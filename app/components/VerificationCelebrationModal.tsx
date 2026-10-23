@@ -121,7 +121,7 @@ if (!isOpen || !isVerified || hasDismissed) return null;
       const supportUrl = `${window.location.origin}/support`;
 
       const shareText =
-        `✨ I just got verified on Bridge Daily!\n\n` +
+        `🥳 I just got verified on Bridge Daily!\n\n` +
         `Join our community of supporters and help keep God's Word accessible to believers everywhere.\n\n` +
         `Support the movement here:\n${supportUrl}`;
 
