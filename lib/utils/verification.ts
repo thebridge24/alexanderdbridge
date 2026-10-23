@@ -93,6 +93,7 @@ export const SUPPORTER_EMAILS = [
   "johnedheke@gmail.com",
   "osamwonyigodswill@gmail.com",
   "imuetinyanemanuella@gmail.com",
+  "tonyfaith247@gmail.com"
 ];
 
 export const SUPPORTER_NAMES = [
@@ -100,6 +101,7 @@ export const SUPPORTER_NAMES = [
   "john edheke",
   "binah charles-agidigbi",
   "godswill osamwonyi",
+  "tony faith"
 ];
 
 // 4. Sponsor Tier Lists
