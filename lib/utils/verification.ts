@@ -4,6 +4,7 @@
  * Three verification tiers with distinct badge colors:
  * - Supporter: Blue (#3b82f6 / text-blue-500)
  * - Sponsor: Purple (#8b5cf6 / text-purple-500)
+ * - Partner: Red (#dc2626 / text-red-600)
  * - Patron: Metallic Gold (#f59e0b / text-amber-400)
  */
 
@@ -66,7 +67,6 @@ export const VERIFICATION_TIERS: Record<
 // 1. Dedicated Patron Tier Lists (Alexander D Bridge & Christ)
 export const PATRON_EMAILS = [
   "alexanderdbridge@gmail.com",
-  "alexanderchrist203@gmail.com",
   "imatessy49@gmail.com",
 ];
 
@@ -77,7 +77,12 @@ export const PATRON_NAMES = [
   "tessy ima",
 ];
 
-// 2. Supporter Tier Lists (All other verified members)
+// 2. Partner Tier Lists
+export const PARTNER_EMAILS = ["gideongabriel557@gmail.com", "alexanderchrist203@gmail.com"];
+
+export const PARTNER_NAMES = ["gideon gabriel", " alexander Christ"];
+
+// 3. Supporter Tier Lists (All other verified members)
 export const SUPPORTER_EMAILS = [
   "binahcharlesagidigbi@gmail.com",
   "johnedheke@gmail.com",
@@ -85,14 +90,18 @@ export const SUPPORTER_EMAILS = [
 ];
 
 export const SUPPORTER_NAMES = [
-  "edith maduku",
+  "emanuella imuetinyan",
   "john edheke",
   "binah charles-agidigbi",
-  "godswill osamwonyi"
+  "godswill osamwonyi",
 ];
 
-// Sponsor Tier Lists
-export const SPONSOR_EMAILS = ["giftangelwite@gmail.com", "madukuedith@gmail.com"];
+// 4. Sponsor Tier Lists
+export const SPONSOR_EMAILS = [
+  "giftangelwite@gmail.com",
+  "madukuedith@gmail.com",
+  "imuetinyanemanuella@gmail.com",
+];
 
 export const SPONSOR_NAMES = ["gift angelwite", "edith maduku"];
 
@@ -126,6 +135,7 @@ export function getUserVerificationTier(params?: {
   // 2. Email verification takes absolute precedence (prevents duplicate name spoofing)
   if (cleanEmail) {
     if (PATRON_EMAILS.includes(cleanEmail)) return "patron";
+    if (PARTNER_EMAILS.includes(cleanEmail)) return "partner";
     if (SPONSOR_EMAILS.includes(cleanEmail)) return "sponsor";
     if (SUPPORTER_EMAILS.includes(cleanEmail)) return "supporter";
     return null;
@@ -134,6 +144,7 @@ export function getUserVerificationTier(params?: {
   // 3. Fallback name verification (only when email is not available)
   if (cleanName) {
     if (PATRON_NAMES.includes(cleanName)) return "patron";
+    if (PARTNER_NAMES.includes(cleanName)) return "partner";
     if (SPONSOR_NAMES.includes(cleanName)) return "sponsor";
     if (SUPPORTER_NAMES.includes(cleanName)) return "supporter";
   }
@@ -143,7 +154,6 @@ export function getUserVerificationTier(params?: {
 export function isUserVerified(params?: {
   metadata?: Record<string, any> | null;
   email?: string | null;
-  name?: string | null;
-}): boolean {
+  name?: string | null;}): boolean {
   return getUserVerificationTier(params) !== null;
 }
