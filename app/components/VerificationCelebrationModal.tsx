@@ -201,7 +201,7 @@ if (!isOpen || !isVerified || hasDismissed) return null;
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.5, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="relative w-full max-w-sm rounded-3xl bg-neutral-950 border border-neutral-800 p-6 text-center shadow-2xl overflow-hidden"
+          className="relative w-full max-w-sm rounded-3xl bg-neutral-950 border border-neutral-800 p-2 text-center shadow-2xl overflow-hidden"
         >
           {/* Close Button */}
           <button
