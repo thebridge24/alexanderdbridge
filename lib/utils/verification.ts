@@ -82,10 +82,7 @@ export const PARTNER_EMAILS = [
   "alexanderchrist203@gmail.com",
 ];
 
-export const PARTNER_NAMES = [
-  "gideon gabriel", 
-  "alexander Christ"
-];
+export const PARTNER_NAMES = ["gideon gabriel", "alexander Christ"];
 
 // 3. Supporter Tier Lists (All other verified members)
 export const SUPPORTER_EMAILS = [
@@ -93,7 +90,8 @@ export const SUPPORTER_EMAILS = [
   "johnedheke@gmail.com",
   "osamwonyigodswill@gmail.com",
   "imuetinyanemanuella@gmail.com",
-  "tonyfaith247@gmail.com"
+  "tonyfaith247@gmail.com",
+  "darasimidaniel2009@gmail.com",
 ];
 
 export const SUPPORTER_NAMES = [
@@ -101,7 +99,8 @@ export const SUPPORTER_NAMES = [
   "john edheke",
   "binah charles-agidigbi",
   "godswill osamwonyi",
-  "tony faith"
+  "tony faith",
+  "darasimi",
 ];
 
 // 4. Sponsor Tier Lists
