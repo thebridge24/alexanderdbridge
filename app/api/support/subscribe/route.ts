@@ -22,8 +22,15 @@ export async function GET() {
       .order("created_at", { ascending: false });
     if (error) throw error;
 
-    const { data: authData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const authMap = new Map((authData?.users ?? []).map((u) => [u.id, u]));
+    // Every registered user (paginated): used for lookups and as the base for the subscriber ratio
+    const allUsers: any[] = [];
+    for (let page = 1; page <= 20; page++) {
+      const { data: authData, error: listError } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      if (listError || !authData?.users?.length) break;
+      allUsers.push(...authData.users);
+      if (authData.users.length < 1000) break;
+    }
+    const authMap = new Map(allUsers.map((u) => [u.id, u]));
 
     const subscriptions = (rows ?? []).map((r) => {
       const meta = authMap.get(r.user_id)?.user_metadata ?? {};
@@ -58,7 +65,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ subscriptions });
+    return NextResponse.json({ subscriptions, totalUsers: allUsers.length });
   } catch (error: any) {
     console.error("Failed to list subscriptions:", error);
     return NextResponse.json({ error: error?.message || "Failed to load subscriptions" }, { status: 500 });

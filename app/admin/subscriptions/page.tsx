@@ -33,6 +33,7 @@ export interface SubscriptionRecord {
 export default function SubscriptionsAdminPage() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Modals state
@@ -47,6 +48,7 @@ export default function SubscriptionsAdminPage() {
       if (res.ok) {
         const data = await res.json();
         setSubscriptions(data.subscriptions || []);
+        setTotalUsers(data.totalUsers || 0);
       }
     } catch (err) {
       console.error("Failed to load subscriptions:", err);
@@ -66,7 +68,9 @@ export default function SubscriptionsAdminPage() {
   
   // Unique subscribed users vs total registered users percentage estimate
   const uniqueSubscribedUsers = new Set(subscriptions.filter(s => s.status === "Active" || s.status === "Complimentary").map(s => s.userId)).size;
-  const subscriptionPercentage = uniqueSubscribedUsers > 0 ? ((uniqueSubscribedUsers / 100) * 100).toFixed(1) : "0.0"; // Adjust denominator if total user count is fetched
+  // Share of ALL registered users who currently have an active or complimentary subscription
+  const subscriptionPercentage =
+    totalUsers > 0 ? ((uniqueSubscribedUsers / totalUsers) * 100).toFixed(1) : "0.0";
 
   // Filtered Subscriptions
   const filteredSubscriptions = subscriptions.filter(

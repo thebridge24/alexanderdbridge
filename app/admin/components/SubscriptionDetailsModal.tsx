@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiMail, FiTrash2, FiAward, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiX, FiMail, FiTrash2, FiAward, FiCheckCircle, FiAlertCircle, FiEdit2 } from "react-icons/fi";
 import { SubscriptionRecord } from "../subscriptions/page";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
@@ -26,6 +26,78 @@ export default function SubscriptionDetailsModal({
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({
+    userName: subscription.userName,
+    email: subscription.email,
+    plan: subscription.planName.toLowerCase(),
+    billingCycle: subscription.billingCycle as string,
+    amount: String(subscription.amount ?? 0),
+    status: "active",
+    paymentMethod: subscription.paymentMethod as string,
+    startDate: subscription.startDate || "",
+    expiryDate: subscription.expiryDate || "",
+    notes: "",
+  });
+
+  const statusToApi = (s: string) =>
+    s === "Expired" ? "expired" : s === "Cancelled" ? "canceled" : s === "Pending" ? "pending_review" : "active";
+
+  const startEditing = () => {
+    setForm({
+      userName: subscription.userName,
+      email: subscription.email,
+      plan: subscription.planName.toLowerCase(),
+      billingCycle: subscription.billingCycle,
+      amount: String(subscription.amount ?? 0),
+      status: statusToApi(subscription.status),
+      paymentMethod: subscription.paymentMethod,
+      startDate: subscription.startDate || "",
+      expiryDate: subscription.expiryDate || "",
+      notes: "",
+    });
+    setEmailStatus(null);
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setEmailStatus(null);
+      const res = await fetch(`/api/admin/subscriptions/${subscription.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userName: form.userName,
+          email: form.email,
+          plan: form.plan,
+          billingCycle: form.billingCycle,
+          amount: Number(form.amount),
+          status: form.status,
+          paymentMethod: form.paymentMethod,
+          isComplimentary: form.paymentMethod === "Complimentary",
+          startDate: form.startDate,
+          expiryDate: form.expiryDate,
+          ...(form.notes ? { notes: form.notes } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save changes");
+      onRefresh();
+      onClose();
+    } catch (err: any) {
+      setEmailStatus({ type: "error", text: err.message || "Failed to save changes." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const fieldClass =
+    "w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-red-500 font-mono";
+  const labelClass = "text-neutral-500 text-[10px] font-mono block mb-1";
 
   if (!isOpen) return null;
 
@@ -109,6 +181,89 @@ export default function SubscriptionDetailsModal({
             </div>
           )}
 
+          {isEditing && (
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider font-mono">Edit Details</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>Name</label>
+                  <input className={fieldClass} value={form.userName} onChange={(e) => setForm({ ...form, userName: e.target.value })} />
+                </div>
+                <div>
+                  <label className={labelClass}>Email</label>
+                  <input type="email" className={fieldClass} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div>
+                  <label className={labelClass}>Plan</label>
+                  <select className={fieldClass} value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}>
+                    <option value="reader">Reader</option>
+                    <option value="supporter">Supporter</option>
+                    <option value="sponsor">Sponsor</option>
+                    <option value="partner">Partner</option>
+                    <option value="patron">Patron</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Billing Cycle</label>
+                  <select className={fieldClass} value={form.billingCycle} onChange={(e) => setForm({ ...form, billingCycle: e.target.value })}>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Amount (₦)</label>
+                  <input type="number" min={0} className={fieldClass} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+                </div>
+                <div>
+                  <label className={labelClass}>Status</label>
+                  <select className={fieldClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="canceled">Cancelled</option>
+                    <option value="paused">Paused</option>
+                    <option value="pending_review">Pending</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Payment Method</label>
+                  <select className={fieldClass} value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
+                    <option value="Paystack">Paystack</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Complimentary">Complimentary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Start Date</label>
+                  <input type="date" className={fieldClass} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <label className={labelClass}>Expiry Date (reminders and the 3-day grace period count from this date)</label>
+                  <input type="date" className={fieldClass} value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <label className={labelClass}>Note (optional)</label>
+                  <input className={fieldClass} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal note" />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-neutral-200 disabled:opacity-50"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!isEditing && (<>
           {/* User Information */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider font-mono">User Information</h4>
@@ -170,6 +325,8 @@ export default function SubscriptionDetailsModal({
             )}
           </div>
 
+          </>)}
+
           {/* Delete confirmation section */}
           {showDeletePrompt && (
             <div className="p-4 rounded-2xl bg-red-950/20 border border-red-800/50 space-y-3">
@@ -215,6 +372,15 @@ export default function SubscriptionDetailsModal({
             </button>
 
             <div className="flex items-center gap-2">
+              {!isEditing && (
+                <button
+                  onClick={startEditing}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 font-bold text-xs transition-colors border border-neutral-800"
+                >
+                  <FiEdit2 size={14} />
+                  <span>Edit Details</span>
+                </button>
+              )}
               {!showDeletePrompt && (
                 <button
                   onClick={() => setShowDeletePrompt(true)}
