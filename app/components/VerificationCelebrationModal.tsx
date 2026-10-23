@@ -244,7 +244,7 @@ if (!isOpen || !isVerified || hasDismissed) return null;
               Community Recognition
             </span>
 
-            <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-1">
+            <h3 className="text-lg font-black text-white tracking-tight flex items-center gap-1">
               {userName}{" "}
               <VerifiedBadge
                 tier={userTier}
