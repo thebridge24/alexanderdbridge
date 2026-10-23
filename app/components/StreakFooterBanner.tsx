@@ -187,7 +187,7 @@ export default function StreakFooterBanner({
             </div>
           )}
 
-          <div className="inline-flex items-center gap-2 pt-1">
+          <div className="inline-flex items-center flex-col gap-2 pt-1">
             <a
               href="https://stackgate.online"
               target="_blank"
