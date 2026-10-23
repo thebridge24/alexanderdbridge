@@ -6,11 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { IoCheckmark } from "react-icons/io5";
-import {
-  FaHeart,
-  FaRegHeart,
-  FaRegCommentDots,
-} from "react-icons/fa6";
+import { FaHeart, FaRegHeart, FaRegCommentDots } from "react-icons/fa6";
 import {
   DEVOTIONALS_DATA,
   MONTH_THEME,
@@ -42,6 +38,7 @@ import { AuthorMessageModal } from "@/app/components/AuthorMessageModal";
 import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
 import BibleStudyCard from "./BibleStudyCard";
 import Preloader from "@/app/components/ui/Preloader";
+import VerificationCelebrationModal from "@/app/components/VerificationCelebrationModal";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -195,6 +192,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [introStage, setIntroStage] = useState<IntroStage>("logo");
   const [copied, setCopied] = useState<boolean>(false);
 
+  const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Deep Link handler for ?comment=... and ?reply=...
@@ -473,6 +471,11 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
     }
   };
+  useEffect(() => {
+    if (introStage === "done") {
+      setIsCelebrationOpen(true);
+    }
+  }, [introStage]);
 
   const handleShare = async () => {
     if (!currentDevotional) return;
@@ -752,7 +755,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       </div>
     );
   }
-
   return (
     <motion.div
       variants={screenVariants}
@@ -1045,7 +1047,19 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!",
         ]}
       />
-      <Survey />
+      {(() => {
+        const history = streakData?.attendanceHistory || {};
+        const completedCount = Object.values(history).filter(
+          (record: any) => record?.completed === true,
+        ).length;
+
+        return completedCount >= 5 ? <Survey /> : null;
+      })()}
+
+      <VerificationCelebrationModal
+        isOpen={introStage === "done" && isCelebrationOpen}
+        onClose={() => setIsCelebrationOpen(false)}
+      />
     </motion.div>
   );
 }

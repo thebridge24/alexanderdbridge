@@ -43,7 +43,7 @@ export const VERIFICATION_TIERS: Record<
     description: "Keeps Bridge Daily accessible to the world.",
   },
   partner: {
- tier: "partner",
+    tier: "partner",
     label: "Partner",
     hexColor: "#dc2626",
     textColorClass: "text-red-600",
@@ -64,13 +64,13 @@ export const VERIFICATION_TIERS: Record<
 };
 
 // 1. Dedicated Patron Tier Lists (Alexander D Bridge & Christ)
-const PATRON_EMAILS = [
+export const PATRON_EMAILS = [
   "alexanderdbridge@gmail.com",
   "alexanderchrist203@gmail.com",
   "imatessy49@gmail.com",
 ];
 
-const PATRON_NAMES = [
+export const PATRON_NAMES = [
   "alexander d bridge",
   "alexander d. bridge",
   "alexander christ",
@@ -78,22 +78,23 @@ const PATRON_NAMES = [
 ];
 
 // 2. Supporter Tier Lists (All other verified members)
-const SUPPORTER_EMAILS = [
+export const SUPPORTER_EMAILS = [
   "binahcharlesagidigbi@gmail.com",
   "johnedheke@gmail.com",
-  "madukuedith@gmail.com",
+  "osamwonyigodswill@gmail.com",
 ];
 
-const SUPPORTER_NAMES = [
+export const SUPPORTER_NAMES = [
   "edith maduku",
   "john edheke",
   "binah charles-agidigbi",
+  "godswill osamwonyi"
 ];
 
 // Sponsor Tier Lists
-const SPONSOR_EMAILS = ["giftangelwite@gmail.com"];
+export const SPONSOR_EMAILS = ["giftangelwite@gmail.com", "madukuedith@gmail.com"];
 
-const SPONSOR_NAMES = ["gift angelwite"];
+export const SPONSOR_NAMES = ["gift angelwite", "edith maduku"];
 
 /**
  * Determines whether a user is verified and returns their tier.

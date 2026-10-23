@@ -80,7 +80,7 @@ export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
 
   return (
     <span
-      className={`relative inline-flex items-center gap-1.5 shrink-0 overflow-hidden rounded-md px-0.5 py-0.5 ${info.textColorClass} ${className}`}
+      className={`relative inline-flex items-center gap-1 shrink-0 overflow-hidden rounded-full px-0.5 py-0.5 ${info.textColorClass} ${className}`}
       title={`Verified ${info.label}`}
     >
       {/* Icon */}
