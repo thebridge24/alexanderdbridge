@@ -18,6 +18,7 @@ export interface UserAnalyticsItem {
   email: string;
   avatar_url?: string;
   currentStreak: number;
+  verification_tier?: string | null;
   highestStreak: number;
   lastActiveDate?: string;
   createdAt?: string;
@@ -101,16 +102,22 @@ export default function LeaderboardPage() {
   const sortedUsers = useMemo(() => {
     const copy = [...users];
     return copy.sort((a, b) => {
-      const streakA = activeTab === "monthly" ? a.currentStreak || 0 : a.highestStreak || 0;
-      const streakB = activeTab === "monthly" ? b.currentStreak || 0 : b.highestStreak || 0;
+      const streakA =
+        activeTab === "monthly" ? a.currentStreak || 0 : a.highestStreak || 0;
+      const streakB =
+        activeTab === "monthly" ? b.currentStreak || 0 : b.highestStreak || 0;
 
       if (streakB !== streakA) {
         return streakB - streakA; // Higher streak wins
       }
 
       // Tie-breaker: Who recorded/updated their streak earliest?
-      const timeA = a.lastActiveDate ? new Date(a.lastActiveDate).getTime() : Infinity;
-      const timeB = b.lastActiveDate ? new Date(b.lastActiveDate).getTime() : Infinity;
+      const timeA = a.lastActiveDate
+        ? new Date(a.lastActiveDate).getTime()
+        : Infinity;
+      const timeB = b.lastActiveDate
+        ? new Date(b.lastActiveDate).getTime()
+        : Infinity;
 
       if (timeA !== timeB) {
         return timeA - timeB; // Earlier time comes first
@@ -145,11 +152,10 @@ export default function LeaderboardPage() {
       />
 
       {/* Background Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-red-600/10 blur-[120px] pointer-events-none rounded-full" />
 
       {/* TOP SECTION: Dark Theme Podium & Header */}
-      <div className="w-full max-w-xl mx-auto pt-6 pb-6 px-4 sm:px-6 shrink-0 relative z-10">
-        
+      <div className="w-full max-w-xl mx-auto pt-6 -mb-2 px-4 sm:px-6 shrink-0 relative z-10">
         {/* Glassmorphism Back Button & Header Badge */}
         <div className="relative flex items-center justify-center mb-3">
           <button
@@ -176,7 +182,9 @@ export default function LeaderboardPage() {
           </h1>
           <p className="text-xs text-neutral-400">
             Top devotion champions for{" "}
-            <span className="text-red-400 font-semibold">{currentMonthName}</span>
+            <span className="text-red-400 font-semibold">
+              {currentMonthName}
+            </span>
           </p>
         </div>
 
@@ -232,7 +240,12 @@ export default function LeaderboardPage() {
                       <span className="text-xs font-bold text-neutral-200 truncate">
                         {top2.name}
                       </span>
-                      <VerifiedBadge name={top2.name} email={top2.email} size="xs" />
+                      <VerifiedBadge
+                        name={top2.name}
+                        email={top2.email}
+                        tier={top2.verification_tier}
+                        size="xs"
+                      />
                     </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
@@ -276,7 +289,12 @@ export default function LeaderboardPage() {
                       <span className="text-xs font-bold text-white truncate">
                         {top1.name}
                       </span>
-                      <VerifiedBadge name={top1.name} email={top1.email} size="xs" />
+                      <VerifiedBadge
+                        name={top1.name}
+                        email={top1.email}
+                        tier={top1.verification_tier}
+                        size="xs"
+                      />
                     </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs sm:text-sm mt-0.5">
                       <FaFire className="size-3.5" />
@@ -294,7 +312,7 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Rank 3 */}
-              <div className="flex flex-col items-center flex-1 max-w-[110px]">
+              <div className="flex flex-col items-center flex-1 max-w-27.5">
                 {top3 ? (
                   <>
                     <div className="relative mb-1.5">
@@ -317,7 +335,12 @@ export default function LeaderboardPage() {
                       <span className="text-xs font-bold text-neutral-200 truncate">
                         {top3.name}
                       </span>
-                      <VerifiedBadge name={top3.name} email={top3.email} size="xs" />
+                      <VerifiedBadge
+                        name={top3.name}
+                        email={top3.email}
+                        tier={top1.verification_tier}
+                        size="xs"
+                      />
                     </div>
                     <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
@@ -327,7 +350,7 @@ export default function LeaderboardPage() {
                           : top3.highestStreak || 0}
                       </span>
                     </div>
-                    <div className="w-full h-14 bg-gradient-to-t from-neutral-900 to-amber-800/20 rounded-t-2xl border-t border-x border-amber-700/30 flex items-center justify-center text-xl font-black text-amber-700/40 mt-2">
+                    <div className="w-full h-14 bg-linear-to-t from-neutral-900 to-amber-800/20 rounded-t-2xl border-t border-x border-amber-700/30 flex items-center justify-center text-xl font-black text-amber-700/40 mt-2">
                       3
                     </div>
                   </>
@@ -341,7 +364,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* BOTTOM SECTION: Slide-Up White Card containing full list */}
-      <div className="flex-1 w-full bg-white text-neutral-900 rounded-t-[32px] shadow-2xl overflow-y-auto z-20">
+      <div className="flex-1 w-full bg-white text-neutral-900 rounded-t-4xl shadow-2xl overflow-y-auto z-20">
         <div className="max-w-xl mx-auto px-4 sm:px-6 pt-6 pb-12">
           {loading ? (
             <div className="p-12 text-center text-xs text-neutral-400">
@@ -356,7 +379,9 @@ export default function LeaderboardPage() {
               {listUsers.map((user, idx) => {
                 const rank = idx + 4;
                 const streakDisplay =
-                  activeTab === "monthly" ? user.currentStreak || 0 : user.highestStreak || 0;
+                  activeTab === "monthly"
+                    ? user.currentStreak || 0
+                    : user.highestStreak || 0;
 
                 return (
                   <motion.div
@@ -387,7 +412,12 @@ export default function LeaderboardPage() {
                         <h3 className="text-xs sm:text-sm font-bold text-neutral-900 truncate">
                           {user.name || "Anonymous User"}
                         </h3>
-                        <VerifiedBadge name={user.name} email={user.email} size="xs" />
+                        <VerifiedBadge
+                          name={user.name}
+                          email={user.email}
+                          size="xs"
+                          tier={user.verification_tier}
+                        />
                       </div>
                     </div>
 

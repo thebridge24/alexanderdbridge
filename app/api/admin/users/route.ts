@@ -10,22 +10,23 @@ export async function GET() {
     const { data: streakRows, error: streakError } = await supabase
       .from("user_streaks")
       .select(
-        "user_id, current_streak, best_streak, last_visit_date, display_name, avatar_url, attendance_history, completed_devotionals, created_at"
+        "user_id, current_streak, best_streak, last_visit_date, display_name, avatar_url, attendance_history, completed_devotionals, created_at",
       );
 
     if (streakError) {
       console.error("Error loading user streaks:", streakError);
       return NextResponse.json(
         { error: streakError.message || "Failed to load streaks" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // 2. Fetch auth users (handling pagination up to 1000 users)
-    const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
 
     if (authError) {
       console.warn("Error listing auth users:", authError);
@@ -42,7 +43,10 @@ export async function GET() {
     const streaksMapped = (streakRows || []).map((streak) => {
       const authUser = authMap.get(streak.user_id);
       const meta = authUser?.user_metadata || {};
-      const computed = computeStreaks(streak.attendance_history, streak.completed_devotionals);
+      const computed = computeStreaks(
+        streak.attendance_history,
+        streak.completed_devotionals,
+      );
 
       return {
         id: streak.user_id,
@@ -53,11 +57,8 @@ export async function GET() {
           authUser?.email ||
           "Anonymous User",
         email: authUser?.email || "",
-        avatar_url:
-          streak.avatar_url ||
-          meta.avatar_url ||
-          meta.picture ||
-          "",
+        avatar_url: streak.avatar_url || meta.avatar_url || meta.picture || "",
+        verification_tier: meta.verification_tier ?? null,
         currentStreak: computed.currentStreak,
         highestStreak: computed.bestStreak,
         lastActiveDate: streak.last_visit_date || "",
@@ -67,7 +68,8 @@ export async function GET() {
     });
 
     streaksMapped.sort(
-      (a, b) => b.currentStreak - a.currentStreak || b.highestStreak - a.highestStreak,
+      (a, b) =>
+        b.currentStreak - a.currentStreak || b.highestStreak - a.highestStreak,
     );
 
     // Option: Include any auth users who don't have a user_streaks row yet
@@ -81,6 +83,7 @@ export async function GET() {
           name: meta.full_name || meta.name || u.email || "Anonymous User",
           email: u.email || "",
           avatar_url: meta.avatar_url || meta.picture || "",
+          verification_tier: meta.verification_tier ?? null,
           currentStreak: 0,
           highestStreak: 0,
           lastActiveDate: "",
@@ -96,7 +99,7 @@ export async function GET() {
     console.error("Failed to load admin users:", err);
     return NextResponse.json(
       { error: err.message || "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

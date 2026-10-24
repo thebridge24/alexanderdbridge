@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaHeart, FaRegHeart, FaFire, FaRegComment } from "react-icons/fa6";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 
@@ -117,9 +118,28 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     activeReplyId === comment.id && activeReplyName === comment.name;
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, y: 14, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.99 }}
+      transition={{
+        opacity: { duration: 0.22, ease: "easeOut" },
+        scale: { duration: 0.28, ease: "easeOut" },
+        y: {
+          type: "spring",
+          stiffness: 380,
+          damping: 32,
+          mass: 0.7,
+        },
+        layout: {
+          type: "spring",
+          stiffness: 420,
+          damping: 38,
+        },
+      }}
       id={`comment-${comment.id}`}
-      className={`flex flex-col mb-6 pb-3 border-b border-white/15 last:border-b-0 relative transition-all duration-300 ${
+      className={`flex flex-col mb-6 pb-3 border-b border-white/15 last:border-b-0 relative ${
         isHighlighted ? "bg-red-500/10 ring-1 ring-red-500/30 px-3 py-3" : ""
       }`}
     >
@@ -148,7 +168,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 name={comment.name}
                 showLabel
               />
-                <span></span>
+              <span></span>
               <StreakBadge count={comment.streakCount} />
             </div>
             <p className="text-sm font-medium text-neutral-100 mt-0.5 leading-snug wrap-break-word">
@@ -198,55 +218,80 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
       {/* Nested Replies Container */}
       {hasReplies && (
-        <div className=" space-y-3 mt-3 z-10">
-          {comment.replies!.map((reply) => {
-            const isReplyReplying =
-              activeReplyId === comment.id && activeReplyName === reply.name;
+        <div className="space-y-3 mt-3 z-10">
+          <AnimatePresence initial={false} mode="sync">
+            {comment.replies!.map((reply) => {
+              const isReplyReplying =
+                activeReplyId === comment.id && activeReplyName === reply.name;
 
-            return (
-              <div key={reply.id} className="flex items-start gap-3 relative ">
-                {/* Reply Avatar */}
-                <CommentAvatar avatarUrl={reply.avatarUrl} name={reply.name} />
+              return (
+              <motion.div
+  key={reply.id}
+  layout="position"
+  initial={{ opacity: 0, y: 10, scale: 0.99 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  exit={{ opacity: 0, y: -5 }}
+  transition={{
+    opacity: { duration: 0.2 },
+    y: {
+      type: "spring",
+      stiffness: 400,
+      damping: 32,
+    },
+    layout: {
+      type: "spring",
+      stiffness: 420,
+      damping: 38,
+    },
+  }}
+  className="flex items-start gap-3 relative"
+>
+                  {/* Reply Avatar */}
+                  <CommentAvatar
+                    avatarUrl={reply.avatarUrl}
+                    name={reply.name}
+                  />
 
-                {/* Reply Details */}
-                <div className="flex-1 min-w-0 pb-2 ">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-neutral-400 truncate">
-                      {reply.name}
-                    </span>
-                    <VerifiedBadge
-                      tier={reply.authorVerificationTier}
-                      name={reply.name}
-                       showLabel
-                    />
-                    <StreakBadge count={reply.streakCount} />
-                    <span className="text-[10px] text-neutral-500">
-                      • {reply.timestamp}
-                    </span>
+                  {/* Reply Details */}
+                  <div className="flex-1 min-w-0 pb-2 ">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-neutral-400 truncate">
+                        {reply.name}
+                      </span>
+                      <VerifiedBadge
+                        tier={reply.authorVerificationTier}
+                        name={reply.name}
+                        showLabel
+                      />
+                      <StreakBadge count={reply.streakCount} />
+                      <span className="text-[10px] text-neutral-500">
+                        • {reply.timestamp}
+                      </span>
+                    </div>
+                    <p className="text-sm text-neutral-200 mt-0.5 leading-snug wrap-break-word">
+                      {renderCommentBody(reply.text)}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-neutral-500 font-medium">
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => onReplySelect(comment.id, reply.name)}
+                        className={`font-bold uppercase tracking-wider text-[10px] disabled:opacity-50 transition-colors cursor-pointer ${
+                          isReplyReplying
+                            ? "text-red-400 font-extrabold"
+                            : "hover:text-neutral-300"
+                        }`}
+                      >
+                        REPLY
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-sm text-neutral-200 mt-0.5 leading-snug wrap-break-word">
-                    {renderCommentBody(reply.text)}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1 text-[11px] text-neutral-500 font-medium">
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => onReplySelect(comment.id, reply.name)}
-                      className={`font-bold uppercase tracking-wider text-[10px] disabled:opacity-50 transition-colors cursor-pointer ${
-                        isReplyReplying
-                          ? "text-red-400 font-extrabold"
-                          : "hover:text-neutral-300"
-                      }`}
-                    >
-                      REPLY
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

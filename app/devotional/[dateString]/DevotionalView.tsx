@@ -377,6 +377,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             liked: Boolean(c.liked),
             authorUserId: c.author_user_id || undefined,
             avatarUrl: c.author_avatar || undefined,
+            authorVerificationTier: c.author_verification_tier ?? null,
             streakCount: c.author_streak || 0,
             replies: (c.replies || []).map((r: any) => ({
               id: r.id,
@@ -385,6 +386,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               timestamp: formatRelativeTime(r.created_at),
               authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
+              authorVerificationTier: r.author_verification_tier ?? null,
               streakCount: r.author_streak || 0,
             })),
           }));
@@ -524,6 +526,23 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;
+      let verificationTier: string | null = null;
+
+      try {
+        const verificationRes = await fetch("/api/users/verification", {
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {},
+          cache: "no-store",
+        });
+
+        if (verificationRes.ok) {
+          const verificationData = await verificationRes.json();
+          verificationTier = verificationData.verification_tier ?? null;
+        }
+      } catch (error) {
+        console.error("Failed to fetch verification tier:", error);
+      }
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
@@ -569,6 +588,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               user?.user_metadata?.picture ||
               undefined,
             authorUserId: user?.id || undefined,
+            authorVerificationTier:
+              data.reply.author_verification_tier ?? verificationTier,
+            streakCount:
+              data.reply.author_streak ?? streakData?.currentStreak ?? 0,
           };
 
           setComments((prev) =>
@@ -621,7 +644,13 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               user?.user_metadata?.picture ||
               undefined,
             authorUserId: user?.id || undefined,
+            authorVerificationTier:
+              data.comment.author_verification_tier ?? verificationTier,
+            streakCount:
+              data.comment.author_streak ?? streakData?.currentStreak ?? 0,
           };
+
+          setComments((prev) => [newComment, ...prev]);
           setComments([newComment, ...comments]);
           setCommentText("");
         } else {

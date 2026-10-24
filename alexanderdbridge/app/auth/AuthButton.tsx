@@ -11,7 +11,6 @@ import { FaGoogle, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { MdAlarm } from "react-icons/md";
 import ReminderTimePicker from "@/app/components/ReminderTimePicker";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
-import { getUserVerificationTier } from "@/lib/utils/verification";
 
 // Component to handle loading states, error fallbacks, and URL caching
 export function UserAvatar({
@@ -81,8 +80,54 @@ export default function AuthButton() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
-  const [reminderTime, setReminderTime] = useState<string | undefined>(undefined);
+  const [reminderTime, setReminderTime] = useState<string | undefined>(
+    undefined,
+  );
+  const [tier, setTier] = useState<string | null>(null);
 
+useEffect(() => {
+  let cancelled = false;
+  const supabase = createSupabaseBrowserClient();
+
+  async function loadVerification() {
+    setTier(null);
+
+    if (!user || !supabase) return;
+
+    try {
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      const accessToken = sessionData.session?.access_token;
+
+      if (sessionError || !accessToken) return;
+
+      const response = await fetch("/api/users/verification", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      if (!cancelled) {
+        setTier(data.verification_tier ?? null);
+      }
+    } catch (error) {
+      console.error("Failed to load verification badge:", error);
+    }
+  }
+
+  loadVerification();
+
+  return () => {
+    cancelled = true;
+  };
+}, [user]);
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
 
@@ -118,7 +163,10 @@ export default function AuthButton() {
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -146,14 +194,16 @@ export default function AuthButton() {
     setIsOpen(false);
     try {
       const supabase = createSupabaseBrowserClient();
-      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      const token = (await supabase?.auth.getSession())?.data?.session
+        ?.access_token;
       if (token) {
         const res = await fetch("/api/notifications/preferences", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const json = await res.json();
-          if (json.preferences?.reminder_time) setReminderTime(json.preferences.reminder_time);
+          if (json.preferences?.reminder_time)
+            setReminderTime(json.preferences.reminder_time);
         }
       }
     } catch {
@@ -163,7 +213,9 @@ export default function AuthButton() {
   };
 
   if (loading) {
-    return <div className="size-11 rounded-full bg-white/5 border border-neutral-800/80 animate-pulse" />;
+    return (
+      <div className="size-11 rounded-full bg-white/5 border border-neutral-800/80 animate-pulse" />
+    );
   }
 
   if (!user) {
@@ -182,11 +234,6 @@ export default function AuthButton() {
 
   const avatarUrl = user.user_metadata?.avatar_url;
   const fullName = user.user_metadata?.full_name ?? user.email;
-  const tier = getUserVerificationTier({
-    metadata: user.user_metadata,
-    email: user.email,
-    name: user.user_metadata?.full_name,
-  });
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -196,12 +243,16 @@ export default function AuthButton() {
         onClick={() => setIsOpen((prev) => !prev)}
         className="relative flex items-center justify-center size-11 rounded-full border-2 border-red-600 bg-white/5 backdrop-blur-md hover:border-red-700 hover:bg-neutral-800/80 active:scale-95 transition-all shadow-2xl cursor-pointer"
       >
-        <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-full" />
-        
+        <UserAvatar
+          avatarUrl={avatarUrl}
+          userId={user.id}
+          className="size-full"
+        />
+
         {/* Bottom-right verified badge overlay */}
         {tier && (
           <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
-            <VerifiedBadge tier={tier} size="xs" />
+            <VerifiedBadge tier={tier} name={fullName} size="xs" />
           </div>
         )}
       </button>
@@ -217,19 +268,23 @@ export default function AuthButton() {
           >
             <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/80">
               <div className="relative shrink-0">
-                <UserAvatar avatarUrl={avatarUrl} userId={user.id} className="size-10" />
-                {tier && (
-                  <div className="absolute -bottom-0.5 -right-0.5 bg-neutral-950 rounded-full p-0.5 z-10 flex items-center justify-center">
-                    <VerifiedBadge tier={tier} size="xs" />
-                  </div>
-                )}
+                <UserAvatar
+                  avatarUrl={avatarUrl}
+                  userId={user.id}
+                  className="size-10"
+                />
+               
               </div>
               <div className="flex flex-col truncate min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs font-bold text-white truncate">{fullName}</span>
+                  <span className="text-xs font-bold text-white truncate">
+                    {fullName}
+                  </span>
                   {tier && <VerifiedBadge tier={tier} size="xs" />}
                 </div>
-                <span className="text-[11px] text-neutral-500 truncate">{user.email}</span>
+                <span className="text-[11px] text-neutral-500 truncate">
+                  {user.email}
+                </span>
               </div>
             </div>
 

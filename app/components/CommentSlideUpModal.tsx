@@ -5,6 +5,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
 import { Comment, CommentItem } from "./CommentItem";
+import Preloader from "./ui/Preloader";
 
 interface CommentSlideUpModalProps {
   isOpen: boolean;
@@ -115,7 +116,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-
   const handleReplySelect = (id: string, name: string) => {
     setReplyingTo(id, name);
     setTimeout(() => {
@@ -175,27 +175,26 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   </p>
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <CommentItem
-                    key={comment.id}
-                    comment={comment}
-                    onLike={onLikeComment}
-                    onReplySelect={handleReplySelect}
-                    isSubmitting={isSubmitting}
-                    activeReplyId={replyingToId}
-                    activeReplyName={replyingToName}
-                    isHighlighted={highlightedCommentId === comment.id}
-                  />
-                ))
+                <AnimatePresence initial={false} mode="sync">
+                  {comments.map((comment) => (
+                    <CommentItem
+                      key={comment.id}
+                      comment={comment}
+                      onLike={onLikeComment}
+                      onReplySelect={handleReplySelect}
+                      isSubmitting={isSubmitting}
+                      activeReplyId={replyingToId}
+                      activeReplyName={replyingToName}
+                      isHighlighted={highlightedCommentId === comment.id}
+                    />
+                  ))}
+                </AnimatePresence>
               )}
             </div>
 
             {/* Input Section */}
             <div className="p-4 shrink-0 absolute bottom-0 z-10 left-0 w-full bg-linear-to-t from-black to-transparent">
-              <form
-                onSubmit={onSubmitComment}
-                className="flex items-end gap-3"
-              >
+              <form onSubmit={onSubmitComment} className="flex items-end gap-3">
                 {/* User Avatar / Fallback Initial */}
                 <CurrentUserAvatar
                   avatarUrl={userAvatarUrl}
@@ -241,7 +240,11 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 disabled:bg-neutral-800 disabled:text-neutral-600 active:scale-90 transition-all mb-0.5 cursor-pointer"
                   aria-label="Send comment"
                 >
-                  <IoSend className="w-4 h-4 ml-0.5" />
+                  {!isSubmitting ? (
+                    <IoSend className="w-4 h-4 ml-0.5" />
+                  ) : (
+                    <Preloader className="w-4 h-4 ml-0.5" />
+                  )}
                 </button>
               </form>
             </div>

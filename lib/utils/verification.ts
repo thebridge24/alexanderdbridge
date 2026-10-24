@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Centralized verification tier and badge configuration.
- * Three verification tiers with distinct badge colors:
+ * Four verification tiers with distinct badge colors:
  * - Supporter: Blue (#3b82f6 / text-blue-500)
  * - Sponsor: Purple (#8b5cf6 / text-purple-500)
  * - Partner: Red (#dc2626 / text-red-600)
@@ -57,103 +57,42 @@ export const VERIFICATION_TIERS: Record<
     label: "Patron",
     hexColor: "#f59e0b", // Rich warm gold
     textColorClass: "text-amber-400 font-bold",
-    iconColorClass: "text-amber-400 fill-amber-400", // Guarantees full visibility for SVG icons
+    iconColorClass: "text-amber-400 fill-amber-400",
     badgeBgClass:
       "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.35)]",
     description: "Builds the future of Bridge Daily.",
   },
 };
 
-// 1. Dedicated Patron Tier Lists (Alexander D Bridge & Christ)
-export const PATRON_EMAILS = [
-  "alexanderdbridge@gmail.com",
-  "imatessy49@gmail.com",
-];
-
-export const PATRON_NAMES = [
-  "alexander d bridge",
-  "alexander christ",
-  "tessy ima",
-];
-
-// 2. Partner Tier Lists
-export const PARTNER_EMAILS = [
-  "gideongabriel557@gmail.com",
-  "alexanderchrist203@gmail.com",
-];
-
-export const PARTNER_NAMES = ["gideon gabriel", "alexander Christ"];
-
-// 3. Supporter Tier Lists (All other verified members)
-export const SUPPORTER_EMAILS = [
-  "binahcharlesagidigbi@gmail.com",
-  "johnedheke@gmail.com",
-  "osamwonyigodswill@gmail.com",
-  "imuetinyanemanuella@gmail.com",
-  "tonyfaith247@gmail.com",
-  "darasimidaniel2009@gmail.com",
-];
-
-export const SUPPORTER_NAMES = [
-  "emanuella imuetinyan",
-  "john edheke",
-  "binah charles-agidigbi",
-  "godswill osamwonyi",
-  "tony faith",
-  "darasimi",
-];
-
-// 4. Sponsor Tier Lists
-export const SPONSOR_EMAILS = [
-  "giftangelwite@gmail.com",
-  "madukuedith@gmail.com",
-];
-
-export const SPONSOR_NAMES = ["gift angelwite", "edith maduku"];
-
 /**
- * Determines whether a user is verified and returns their tier.
+ * Determines whether a user is verified based on database record / metadata.
  */
 export function getUserVerificationTier(params?: {
   metadata?: Record<string, any> | null;
   email?: string | null;
   name?: string | null;
 }): VerificationTier | null {
-  if (!params) return null;
+  if (!params?.metadata) return null;
 
-  // 1. Check user metadata for explicit tier
-  if (params.metadata?.verification_tier) {
+  // 1. Check user metadata for explicit tier (synced from user_subscriptions table)
+  if (params.metadata.verification_tier) {
     const tier =
       params.metadata.verification_tier.toLowerCase() as VerificationTier;
     if (tier in VERIFICATION_TIERS) return tier;
   }
 
-  // If user metadata explicitly has support_plan
-  if (params.metadata?.support_plan) {
+  // 2. Check user metadata support_plan property
+  if (params.metadata.support_plan) {
     const plan = params.metadata.support_plan.toLowerCase() as VerificationTier;
     if (plan in VERIFICATION_TIERS) return plan;
   }
 
-  // Clean email and name inputs for matching
-  const cleanEmail = params.email ? params.email.trim().toLowerCase() : "";
-  const cleanName = params.name ? params.name.trim().toLowerCase() : "";
-
-  // 2. Email verification takes absolute precedence (prevents duplicate name spoofing)
-  if (cleanEmail) {
-    if (PATRON_EMAILS.includes(cleanEmail)) return "patron";
-    if (PARTNER_EMAILS.includes(cleanEmail)) return "partner";
-    if (SPONSOR_EMAILS.includes(cleanEmail)) return "sponsor";
-    if (SUPPORTER_EMAILS.includes(cleanEmail)) return "supporter";
-    return null;
+  // 3. Check user metadata plan_type property
+  if (params.metadata.plan_type) {
+    const planType = params.metadata.plan_type.toLowerCase() as VerificationTier;
+    if (planType in VERIFICATION_TIERS) return planType;
   }
 
-  // 3. Fallback name verification (only when email is not available)
-  if (cleanName) {
-    if (PATRON_NAMES.includes(cleanName)) return "patron";
-    if (PARTNER_NAMES.includes(cleanName)) return "partner";
-    if (SPONSOR_NAMES.includes(cleanName)) return "sponsor";
-    if (SUPPORTER_NAMES.includes(cleanName)) return "supporter";
-  }
   return null;
 }
 

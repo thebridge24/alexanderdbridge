@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
-import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
+import { PLAN_CONFIGS, PlanType } from "@/lib/payments/plans";
 import { buildPeriodFields } from "@/lib/subscriptions/period";
 import { getSubscriptionEmail } from "@/lib/email/templates/subscription";
 import { sendNotification } from "@/lib/notifications/sender";

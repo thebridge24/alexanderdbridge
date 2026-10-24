@@ -39,7 +39,7 @@ export function DataTable<T extends { id: string | number }>({
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`px-4 py-3.5 font-bold uppercase tracking-wider text-[10px] text-neutral-500 ${
+                  className={`px-4 py-3.5 font-bold whitespace-nowrap uppercase tracking-wider text-[10px] text-neutral-500 ${
                     col.className || ""
                   }`}
                 >
@@ -98,7 +98,7 @@ export function DataTable<T extends { id: string | number }>({
                       delay: index * 0.02,
                       ease: [0.25, 1, 0.5, 1],
                     }}
-                    className="group hover:bg-neutral-900/50 hover:border-l-2 hover:border-red-600 transition-colors cursor-pointer"
+                    className="group hover:bg-neutral-900/50 hover:border-b-2 hover:border-red-600 transition-colors cursor-pointer"
                   >
                     {columns.map((col, colIndex) => (
                       <td
