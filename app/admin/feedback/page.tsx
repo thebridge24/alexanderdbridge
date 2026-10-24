@@ -119,7 +119,7 @@ function CustomPieChart({
         )}
       </svg>
       <div className="absolute inset-0 m-auto w-16 h-16 bg-neutral-950 rounded-full border border-neutral-800/80 flex flex-col items-center justify-center shadow-inner text-center">
-        <span className="text-xs font-bold text-white font-mono">{total}</span>
+        <span className=" font-bold text-white font-mono">{total}</span>
         <span className="text-[9px] text-neutral-500 uppercase tracking-tighter">
           {centerLabel}
         </span>
@@ -398,7 +398,7 @@ export default function SurveySubmissionsPage() {
           </div>
 
           <div className="flex gap-4 w-full">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl text-center flex-1 p-12">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl text-center flex-1 p-6 md:p-12">
               <span className=" font-mono text-neutral-500 uppercase block">
                 Total Feedback
               </span>
@@ -406,7 +406,7 @@ export default function SurveySubmissionsPage() {
                 {totalSubmissions}
               </span>
             </div>
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl text-center flex-1 p-12">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl text-center flex-1 p-6 md:p-12">
               <span className=" font-mono text-neutral-500 uppercase block">
                 Avg Rating
               </span>
