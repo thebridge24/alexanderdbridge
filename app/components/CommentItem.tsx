@@ -87,26 +87,34 @@ const CommentAvatar: React.FC<{
   );
 };
 
-// Helper to highlight mention tags (@First Last) in comment or reply body
+// Helper to highlight mention tags (@FirstName) anywhere in text cleanly
 const renderCommentBody = (text: string) => {
   if (!text) return null;
 
-  // Matches @ followed by one or more words separated by spaces, followed by message body
-  // e.g. "@Alexander Bridge Thank you so much"
-  const match = text.match(/^(@[A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)*)\s+([\s\S]*)$/);
+  // Split text into tokens by spaces to highlight any @mention word cleanly
+  const words = text.split(" ");
 
-  if (match) {
-    return (
-      <>
-        <span className="text-red-400 font-semibold inline-block mr-1">
-          {match[1]}
-        </span>
-        {match[2]}
-      </>
-    );
-  }
-  return text;
+  return (
+    <>
+      {words.map((word, idx) => {
+        const isMention = word.startsWith("@") && word.length > 1;
+        return (
+          <React.Fragment key={idx}>
+            {isMention ? (
+              <span className="text-red-500 font-bold">
+                {word}
+              </span>
+            ) : (
+              word
+            )}
+            {idx < words.length - 1 ? " " : ""}
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
 };
+
 
 export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
