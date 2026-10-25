@@ -1,11 +1,22 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
+import { FaUser } from "react-icons/fa";
 import { Comment, CommentItem } from "./CommentItem";
 import Preloader from "./ui/Preloader";
+import { VerifiedBadge } from "@/app/components/VerifiedBadge";
+import { getUserVerificationTier } from "@/lib/utils/verification";
+
+interface MentionUser {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string;
+  metadata?: Record<string, any>;
+}
 
 interface CommentSlideUpModalProps {
   isOpen: boolean;
@@ -72,6 +83,86 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   highlightedCommentId,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // User Mention List & Filter State
+  const [allUsers, setAllUsers] = useState<MentionUser[]>([]);
+  const [showMentionSlider, setShowMentionSlider] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
+
+  // Fetch registered users for @ mentions when modal is opened
+  useEffect(() => {
+    async function fetchMentionUsers() {
+      try {
+        const res = await fetch("/api/admin/users");
+        if (res.ok) {
+          const data = await res.json();
+          setAllUsers(data.users || []);
+        }
+      } catch (err) {
+        console.error("Failed to load users for mention slider:", err);
+      }
+    }
+    if (isOpen) {
+      fetchMentionUsers();
+    }
+  }, [isOpen]);
+
+  // Detect "@" symbol input and position in text area
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    const cursorIndex = e.target.selectionStart;
+    setCommentText(text);
+
+    // Look backward from cursor position to find the last @ symbol
+    const textBeforeCursor = text.slice(0, cursorIndex);
+    const lastAtPos = textBeforeCursor.lastIndexOf("@");
+
+    if (lastAtPos !== -1) {
+      const queryAfterAt = textBeforeCursor.slice(lastAtPos + 1);
+      // Ensure there are no spaces in the query string after @
+      if (!queryAfterAt.includes(" ")) {
+        setMentionQuery(queryAfterAt);
+        setMentionMatchIndex(lastAtPos);
+        setShowMentionSlider(true);
+        return;
+      }
+    }
+
+    setShowMentionSlider(false);
+  };
+
+  // Filter users based on query after @
+  const filteredMentionUsers = useMemo(() => {
+    if (!mentionQuery.trim()) return allUsers;
+    return allUsers.filter(
+      (u) =>
+        (u.name || "").toLowerCase().includes(mentionQuery.toLowerCase()) ||
+        (u.email || "").toLowerCase().includes(mentionQuery.toLowerCase())
+    );
+  }, [allUsers, mentionQuery]);
+
+  // Insert tagged user name into comment textarea
+  const handleSelectMentionUser = (user: MentionUser) => {
+    if (mentionMatchIndex === -1) return;
+
+    const nameToInsert = user.name || user.email.split("@")[0];
+    const beforeAt = commentText.slice(0, mentionMatchIndex);
+    const afterAtQuery = commentText.slice(mentionMatchIndex + 1 + mentionQuery.length);
+
+    const updatedText = `${beforeAt}@${nameToInsert} ${afterAtQuery}`;
+    setCommentText(updatedText);
+    setShowMentionSlider(false);
+
+    // Focus back to textarea and place cursor after tag
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newCursorPos = beforeAt.length + nameToInsert.length + 2;
+        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 50);
+  };
 
   // Auto-grow textarea height
   useEffect(() => {
@@ -167,7 +258,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             </div>
 
             {/* Scrollable Comments List */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar space-y-2 pb-30">
+            <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar space-y-2 pb-32">
               {comments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <p className="text-sm font-medium text-neutral-500">
@@ -192,8 +283,70 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               )}
             </div>
 
+            {/* Mentions Slider (Appears Above Input Bar) */}
+            <AnimatePresence>
+              {showMentionSlider && filteredMentionUsers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 15 }}
+                  className="absolute bottom-20 left-4 right-4 z-30 max-h-48 overflow-y-auto no-scrollbar bg-neutral-950 border border-neutral-800 rounded-2xl p-2 shadow-2xl divide-y divide-neutral-900"
+                >
+                  <div className="px-3 py-1.5 text-[10px] font-mono text-neutral-500 uppercase tracking-wider">
+                    Tag a Member
+                  </div>
+                  {filteredMentionUsers.map((user) => {
+                    const userTier = getUserVerificationTier({
+                      metadata: user.metadata,
+                      email: user.email,
+                      name: user.name,
+                    });
+
+                    return (
+                      <div
+                        key={user.id}
+                        onClick={() => handleSelectMentionUser(user)}
+                        className="flex items-center gap-3 p-2 hover:bg-neutral-900/80 rounded-xl cursor-pointer transition-colors"
+                      >
+                        {user.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt={user.name || "User Avatar"}
+                            className="w-8 h-8 rounded-full object-cover border border-neutral-800 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 shrink-0">
+                            <FaUser className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-white truncate">
+                              {user.name || "Believer"}
+                            </span>
+                            {userTier && (
+                              <VerifiedBadge
+                                tier={userTier}
+                                name={user.name}
+                                email={user.email}
+                                size="sm"
+                              />
+                            )}
+                          </div>
+                          <span className="block text-[10px] text-neutral-500 font-mono truncate">
+                            {user.email}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Input Section */}
-            <div className="p-4 shrink-0 absolute bottom-0 z-10 left-0 w-full bg-linear-to-t from-black to-transparent">
+            <div className="p-4 shrink-0 absolute bottom-0 z-10 left-0 w-full bg-linear-to-t from-black via-black/90 to-transparent">
               <form onSubmit={onSubmitComment} className="flex items-end gap-3">
                 {/* User Avatar / Fallback Initial */}
                 <CurrentUserAvatar
@@ -225,10 +378,10 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName ? "Write a reply..." : "Your Comment..."
+                      replyingToName ? "Write a reply..." : "Your Comment... (Type @ to tag someone)"
                     }
                     value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
+                    onChange={handleTextareaChange}
                     disabled={isSubmitting}
                     className="w-full bg-transparent text-sm text-white placeholder-neutral-500 outline-none resize-none no-scrollbar max-h-28 leading-relaxed block"
                   />
