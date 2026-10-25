@@ -87,10 +87,14 @@ const CommentAvatar: React.FC<{
   );
 };
 
-// Helper to highlight mention tags (@Name) in comment or reply body
+// Helper to highlight mention tags (@First Last) in comment or reply body
 const renderCommentBody = (text: string) => {
   if (!text) return null;
-  const match = text.match(/^(@[^\s]+)\s+([\s\S]*)$/);
+
+  // Matches @ followed by one or more words separated by spaces, followed by message body
+  // e.g. "@Alexander Bridge Thank you so much"
+  const match = text.match(/^(@[A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)*)\s+([\s\S]*)$/);
+
   if (match) {
     return (
       <>
