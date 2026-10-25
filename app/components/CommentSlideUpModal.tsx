@@ -290,7 +290,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 15 }}
-                  className="absolute bottom-20 left-4 right-4 z-30 max-h-48 overflow-y-auto no-scrollbar bg-neutral-950 border border-neutral-800 rounded-2xl p-2 shadow-2xl divide-y divide-neutral-900"
+                  className="absolute bottom-16 left-4 right-4 z-30 max-h-48 overflow-y-auto no-scrollbar bg-neutral-950 border border-neutral-800 rounded-2xl p-2 shadow-2xl divide-y divide-neutral-900"
                 >
                   <div className="px-3 py-1.5 text-[10px] font-mono text-neutral-500 uppercase tracking-wider">
                     Tag a Member
@@ -306,7 +306,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                       <div
                         key={user.id}
                         onClick={() => handleSelectMentionUser(user)}
-                        className="flex items-center gap-3 p-2 hover:bg-neutral-900/80 rounded-xl cursor-pointer transition-colors"
+                        className="flex items-center gap-3 p-2 hover:bg-neutral-900/80 cursor-pointer transition-colors"
                       >
                         {user.avatar_url ? (
                           <img
@@ -378,7 +378,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName ? "Write a reply..." : "Your Comment... (Type @ to tag someone)"
+                      replyingToName ? "Write a reply..." : "Comment... (Type @ to tag someone)"
                     }
                     value={commentText}
                     onChange={handleTextareaChange}
