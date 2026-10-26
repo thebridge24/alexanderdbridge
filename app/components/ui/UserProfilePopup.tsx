@@ -75,7 +75,7 @@ export function UserProfilePopup({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           {/* Backdrop Click to Close */}
           <motion.div
             initial={{ opacity: 0 }}
