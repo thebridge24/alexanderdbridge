@@ -101,16 +101,16 @@ export default function SettingsPage() {
     {
       title: "General",
       items: [
-        { id: "profile", label: "Profile Edit", icon: FaUserEdit, href: "/devotional/profile/edit" },
-        { id: "password", label: "Password & Security", icon: FaLock, href: "/devotional/settings/security" },
-        { id: "subscription", label: "Subscription & Patron", icon: FaCrown, href: "/devotional/support" },
+        { id: "profile", label: "Profile Edit", icon: FaUserEdit, href: "/devotional/profile-settings/edit" },
+        { id: "password", label: "Password & Security", icon: FaLock, href: "/devotional/profile-settings/security" },
+        { id: "subscription", label: "Subscription & Patron", icon: FaCrown, href: "/devotional/profile-settings/support" },
       ],
     },
     {
       title: "Others",
       items: [
         { id: "terms", label: "Terms & Conditions", icon: FaFileContract, href: "/devotional/terms" },
-        { id: "language", label: "Language & Region", icon: FaGlobe, href: "/devotional/settings/language" },
+        { id: "language", label: "Language & Region", icon: FaGlobe, href: "/devotional/profile-settings/language" },
       ],
     },
   ];

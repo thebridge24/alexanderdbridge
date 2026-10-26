@@ -39,6 +39,7 @@ interface CommentItemProps {
   activeReplyId?: string | null;
   activeReplyName?: string | null;
   isHighlighted?: boolean;
+  onAvatarClick?: (author: Comment | Reply) => void;
 }
 
 // Helper Avatar Component with image error fallback to first letter
@@ -101,9 +102,7 @@ const renderCommentBody = (text: string) => {
         return (
           <React.Fragment key={idx}>
             {isMention ? (
-              <span className="text-primary font-bold">
-                {word}
-              </span>
+              <span className="text-primary font-bold">{word}</span>
             ) : (
               word
             )}
@@ -115,11 +114,11 @@ const renderCommentBody = (text: string) => {
   );
 };
 
-
 export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   onLike,
   onReplySelect,
+  onAvatarClick,
   isSubmitting = false,
   activeReplyId = null,
   activeReplyName = null,
@@ -167,8 +166,14 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       <div className="flex items-start justify-between gap-3 z-10">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {/* Avatar */}
-          <CommentAvatar avatarUrl={comment.avatarUrl} name={comment.name} />
-
+          <button
+            type="button"
+            onClick={() => onAvatarClick?.(comment)}
+            aria-label={`View ${comment.name}'s profile`}
+            className="rounded-full shrink-0 cursor-pointer"
+          >
+            <CommentAvatar avatarUrl={comment.avatarUrl} name={comment.name} />
+          </button>
           {/* Details */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1 min-w-0">
@@ -237,33 +242,39 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 activeReplyId === comment.id && activeReplyName === reply.name;
 
               return (
-              <motion.div
-  key={reply.id}
-  layout="position"
-  initial={{ opacity: 0, y: 10, scale: 0.99 }}
-  animate={{ opacity: 1, y: 0, scale: 1 }}
-  exit={{ opacity: 0, y: -5 }}
-  transition={{
-    opacity: { duration: 0.2 },
-    y: {
-      type: "spring",
-      stiffness: 400,
-      damping: 32,
-    },
-    layout: {
-      type: "spring",
-      stiffness: 420,
-      damping: 38,
-    },
-  }}
-  className="flex items-start gap-3 relative"
->
+                <motion.div
+                  key={reply.id}
+                  layout="position"
+                  initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{
+                    opacity: { duration: 0.2 },
+                    y: {
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 32,
+                    },
+                    layout: {
+                      type: "spring",
+                      stiffness: 420,
+                      damping: 38,
+                    },
+                  }}
+                  className="flex items-start gap-3 relative"
+                >
                   {/* Reply Avatar */}
-                  <CommentAvatar
-                    avatarUrl={reply.avatarUrl}
-                    name={reply.name}
-                  />
-
+                  <button
+                    type="button"
+                    onClick={() => onAvatarClick?.(reply)}
+                    aria-label={`View ${reply.name}'s profile`}
+                    className="rounded-full shrink-0 cursor-pointer"
+                  >
+                    <CommentAvatar
+                      avatarUrl={reply.avatarUrl}
+                      name={reply.name}
+                    />
+                  </button>
                   {/* Reply Details */}
                   <div className="flex-1 min-w-0 pb-2 ">
                     <div className="flex items-center gap-1.5 flex-wrap">

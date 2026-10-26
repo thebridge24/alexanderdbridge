@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -5,10 +6,14 @@ import React, { useRef, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Comment, CommentItem } from "./CommentItem";
+import { Comment, CommentItem, Reply } from "./CommentItem";
 import Preloader from "./ui/Preloader";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { getUserVerificationTier } from "@/lib/utils/verification";
+import {
+  UserProfilePopup,
+  type UserProfileData,
+} from "@/app/components/ui/UserProfilePopup";
 
 interface MentionUser {
   id: string;
@@ -89,6 +94,8 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const [showMentionSlider, setShowMentionSlider] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
+  const [selectedProfile, setSelectedProfile] =
+    useState<UserProfileData | null>(null);
 
   // Fetch registered users for @ mentions when modal is opened
   useEffect(() => {
@@ -138,7 +145,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     return allUsers.filter(
       (u) =>
         (u.name || "").toLowerCase().includes(mentionQuery.toLowerCase()) ||
-        (u.email || "").toLowerCase().includes(mentionQuery.toLowerCase())
+        (u.email || "").toLowerCase().includes(mentionQuery.toLowerCase()),
     );
   }, [allUsers, mentionQuery]);
 
@@ -148,7 +155,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
 
     const nameToInsert = user.name || user.email.split("@")[0];
     const beforeAt = commentText.slice(0, mentionMatchIndex);
-    const afterAtQuery = commentText.slice(mentionMatchIndex + 1 + mentionQuery.length);
+    const afterAtQuery = commentText.slice(
+      mentionMatchIndex + 1 + mentionQuery.length,
+    );
 
     const updatedText = `${beforeAt}@${nameToInsert} ${afterAtQuery}`;
     setCommentText(updatedText);
@@ -220,6 +229,16 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     setReplyingTo(null, null);
   };
 
+  const handleAvatarClick = (author: Comment | Reply) => {
+    setSelectedProfile({
+      id: author.authorUserId ?? "",
+      name: author.name,
+      avatarUrl: author.avatarUrl,
+      verificationTier: author.authorVerificationTier,
+      currentStreak: author.streakCount ?? 0,
+    });
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -273,6 +292,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                       comment={comment}
                       onLike={onLikeComment}
                       onReplySelect={handleReplySelect}
+                      onAvatarClick={handleAvatarClick}
                       isSubmitting={isSubmitting}
                       activeReplyId={replyingToId}
                       activeReplyName={replyingToName}
@@ -378,7 +398,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName ? "Write a reply..." : "Comment... (Type @ to tag someone)"
+                      replyingToName
+                        ? "Write a reply..."
+                        : "Comment... (Type @ to tag someone)"
                     }
                     value={commentText}
                     onChange={handleTextareaChange}
@@ -402,6 +424,11 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               </form>
             </div>
           </motion.div>
+          <UserProfilePopup
+            isOpen={selectedProfile !== null}
+            onClose={() => setSelectedProfile(null)}
+            user={selectedProfile}
+          />
         </>
       )}
     </AnimatePresence>
