@@ -112,8 +112,8 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
 
       {/* Top Tag Header */}
       <div className="relative z-10 pt-8 px-6 text-center">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-950/40 border border-red-900/50 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
-          <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+        <span className="text-[10px] font-mono uppercase tracking-widest text-primary bg-red-950/40 border border-red-900/50 px-3 py-1 rounded-full inline-flex items-center gap-1.5">
+          <Heart className="w-3 h-3 fill-primary text-primary" />
           Bridge Daily Community
         </span>
       </div>
@@ -172,7 +172,7 @@ export const SupportIntroScreen: React.FC<SupportIntroScreenProps> = ({
         {/* Continue Button */}
         <button
           onClick={onNext}
-          className="w-full py-3.5 px-6 bg-red-600 hover:bg-red-500 active:scale-[0.98] text-white font-medium text-sm rounded-full shadow-xl shadow-red-950/50 transition-all flex items-center justify-center group"
+          className="w-full py-3.5 px-6 bg-red-600 hover:bg-primary active:scale-[0.98] text-white font-medium text-sm rounded-full shadow-xl shadow-red-950/50 transition-all flex items-center justify-center group"
         >
           <span>Continue</span>
         </button>
@@ -215,8 +215,8 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
             <h4 className="text-xs font-bold text-white truncate max-w-27.5">
               {card.name}
             </h4>
-            <div className="flex items-center gap-1 text-[10px] text-red-500 font-mono">
-              <Star className="w-2.5 h-2.5 fill-red-500" />
+            <div className="flex items-center gap-1 text-[10px] text-primary font-mono">
+              <Star className="w-2.5 h-2.5 fill-primary" />
               <span>{card.rating || 5}.0</span>
             </div>
           </div>
@@ -224,7 +224,7 @@ function TestimonialCard({ card }: { card: TestimonialCardData }) {
 
         {card.streakCount ? (
           <div className="flex items-center gap-1 bg-red-950/40 border border-red-900/40 text-red-400 text-[10px] font-mono px-2 py-0.5 rounded-full">
-            <Flame className="w-3 h-3 fill-red-500 text-red-500" />
+            <Flame className="w-3 h-3 fill-primary text-primary" />
             <span>{card.streakCount}d</span>
           </div>
         ) : null}

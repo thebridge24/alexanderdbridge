@@ -147,8 +147,8 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
           {/* Subtle live indicator & expand prompt */}
           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
             <div className="flex items-center justify-between text-[10px] text-white font-mono">
-              <span className="flex items-center gap-1 text-red-500 font-bold">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="flex items-center gap-1 text-primary font-bold">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 WATCH
               </span>
               <Volume2 className="w-3 h-3 text-white/70" />
@@ -202,7 +202,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
                 {/* Progress bar */}
                 <div className="w-full bg-white/20 h-1 rounded-full overflow-hidden">
                   <div
-                    className="bg-red-500 h-full transition-all duration-150"
+                    className="bg-primary h-full transition-all duration-150"
                     style={{ width: `${progress}%` }}
                   />
                 </div>

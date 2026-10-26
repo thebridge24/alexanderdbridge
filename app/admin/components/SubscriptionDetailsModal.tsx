@@ -96,7 +96,7 @@ export default function SubscriptionDetailsModal({
   };
 
   const fieldClass =
-    "w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-red-500 font-mono";
+    "w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-primary font-mono";
   const labelClass = "text-neutral-500 text-[10px] font-mono block mb-1";
 
   if (!isOpen) return null;
@@ -163,7 +163,7 @@ export default function SubscriptionDetailsModal({
             <div>
               <span className="text-[10px] font-mono text-neutral-500 uppercase">Subscription Details</span>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <FiAward className="text-red-500" /> {subscription.planName} Plan
+                <FiAward className="text-primary" /> {subscription.planName} Plan
               </h3>
             </div>
             <button
@@ -338,7 +338,7 @@ export default function SubscriptionDetailsModal({
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder={expectedDeletePhrase}
-                className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-red-500 font-mono"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-primary font-mono"
               />
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button
@@ -352,7 +352,7 @@ export default function SubscriptionDetailsModal({
                   type="button"
                   onClick={handleDelete}
                   disabled={deleteConfirmText !== expectedDeletePhrase || isDeleting}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold bg-red-600 text-white ${deleteConfirmText !== expectedDeletePhrase ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500"}`}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold bg-red-600 text-white ${deleteConfirmText !== expectedDeletePhrase ? "opacity-50 cursor-not-allowed" : "hover:bg-primary"}`}
                 >
                   {isDeleting ? "Deleting..." : "Confirm Delete"}
                 </button>

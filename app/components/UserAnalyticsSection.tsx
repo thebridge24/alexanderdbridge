@@ -217,7 +217,7 @@ export default function UserAnalyticsSection() {
           <button
             type="button"
             onClick={() => setIsBroadcasterOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
           >
             <Plus className="size-4" />
             <span>Broadcast</span>
@@ -230,7 +230,7 @@ export default function UserAnalyticsSection() {
         <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-900 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <FaChartPie className="text-red-500 size-4" /> Streak Distribution
+              <FaChartPie className="text-primary size-4" /> Streak Distribution
             </h3>
             {hoveredStreak !== null && (
               <button
@@ -337,7 +337,7 @@ export default function UserAnalyticsSection() {
           placeholder="Search user or email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full  pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+          className="w-full  pl-9 pr-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 outline-none focus:border-primary/50 transition-colors"
         />
       </div>
       {/* Users List */}
@@ -395,11 +395,11 @@ export default function UserAnalyticsSection() {
                   title={`Send broadcast email/push to ${user.name}`}
                   className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-neutral-800 transition-colors cursor-pointer mr-1"
                 >
-                  <FaPaperPlane className="size-3 text-red-500" />
+                  <FaPaperPlane className="size-3 text-primary" />
                 </button>
 
                 <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1 text-red-500 font-black text-sm">
+                  <div className="flex items-center gap-1 text-primary font-black text-sm">
                     <FaFire className="size-4 animate-pulse" />
                     <span>{user.currentStreak || 0}</span>
                   </div>

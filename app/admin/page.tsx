@@ -487,7 +487,7 @@ export default function AdminPage() {
                 </Link>
                 <div>
                   <h1 className="text-2xl font-black tracking-tight text-neutral-100 flex items-center gap-2">
-                    <FaBookOpen className="text-red-500 size-5" /> Devotional Admin
+                    <FaBookOpen className="text-primary size-5" /> Devotional Admin
                   </h1>
                   <p className="text-xs text-neutral-500">Manage devotionals & view engagement analytics</p>
                 </div>
@@ -631,7 +631,7 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(d)}
-                              className="p-2 rounded-lg bg-neutral-800/60 text-neutral-300 hover:text-red-500 hover:bg-red-950/40 transition-colors cursor-pointer"
+                              className="p-2 rounded-lg bg-neutral-800/60 text-neutral-300 hover:text-primary hover:bg-red-950/40 transition-colors cursor-pointer"
                               title="Delete devotional"
                             >
                               <FaTrash className="size-3.5" />
@@ -654,7 +654,7 @@ export default function AdminPage() {
                         required
                         value={dateString}
                         onChange={(e) => setDateString(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
 
@@ -668,7 +668,7 @@ export default function AdminPage() {
                         placeholder="e.g. 197"
                         value={dayNumber}
                         onChange={(e) => setDayNumber(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
                   </div>
@@ -690,7 +690,7 @@ export default function AdminPage() {
                         placeholder="e.g. Knowing God Personally"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
 
@@ -704,7 +704,7 @@ export default function AdminPage() {
                         placeholder="e.g. John 17:3"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
                   </div>
@@ -724,7 +724,7 @@ export default function AdminPage() {
                         value={memoryVerse.verse}
                         onChange={(e) => setMemoryVerse({ ...memoryVerse, verse: e.target.value })}
                         rows={2}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors resize-none"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors resize-none"
                       />
                     </div>
 
@@ -738,7 +738,7 @@ export default function AdminPage() {
                         placeholder="e.g. John 17:3, KJV"
                         value={memoryVerse.reference}
                         onChange={(e) => setMemoryVerse({ ...memoryVerse, reference: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
                   </div>
@@ -753,7 +753,7 @@ export default function AdminPage() {
                       value={explanation}
                       onChange={(e) => setExplanation(e.target.value)}
                       rows={6}
-                      className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                     />
                   </div>
 
@@ -783,13 +783,13 @@ export default function AdminPage() {
                             placeholder="e.g. Spend 15 minutes in quiet prayer today."
                             value={step}
                             onChange={(e) => handleStepChange(idx, e.target.value)}
-                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                           />
                           {neededSteps.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveStep(idx)}
-                              className="p-3 text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                              className="p-3 text-neutral-500 hover:text-primary transition-colors cursor-pointer"
                             >
                               <FaTrash className="size-4" />
                             </button>
@@ -825,13 +825,13 @@ export default function AdminPage() {
                             placeholder="e.g. Lord, grant me the grace to wait on your timing."
                             value={prayer}
                             onChange={(e) => handlePrayerChange(idx, e.target.value)}
-                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-red-500/50 transition-colors"
+                            className="flex-1 px-4 py-3 rounded-xl bg-neutral-950 border border-neutral-800 text-sm text-neutral-200 outline-none focus:border-primary/50 transition-colors"
                           />
                           {prayerPoints.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemovePrayer(idx)}
-                              className="p-3 text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                              className="p-3 text-neutral-500 hover:text-primary transition-colors cursor-pointer"
                             >
                               <FaTrash className="size-4" />
                             </button>
@@ -893,7 +893,7 @@ export default function AdminPage() {
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <div className="p-2.5 rounded-full bg-red-950/40 border border-red-900/60">
-                            <FaTrash className="size-5 text-red-500" />
+                            <FaTrash className="size-5 text-primary" />
                           </div>
                           <h4 className="text-base font-bold text-neutral-200">
                             Delete Devotional

@@ -48,7 +48,7 @@ export const VERIFICATION_TIERS: Record<
     label: "Partner",
     hexColor: "#dc2626",
     textColorClass: "text-red-600",
-    iconColorClass: "text-red-500",
+    iconColorClass: "text-primary",
     badgeBgClass: "bg-red-600/10 text-red-400 border-red-600/30",
     description: "Help us reach more lives through God's Word.",
   },

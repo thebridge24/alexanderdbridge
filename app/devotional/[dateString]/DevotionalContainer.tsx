@@ -93,7 +93,7 @@ export default function DevotionalContainer({ children }: DevotionalContainerPro
       avatarUrl: userAvatarUrl,
       onClick: () => setActiveTab("profile"),
       icon: (props) => <HiOutlineUser className={props?.className} />,
-      activeIcon: (props) => <HiUser className={`${props?.className} text-red-500`} />,
+      activeIcon: (props) => <HiUser className={`${props?.className} text-primary`} />,
     },
   ];
 

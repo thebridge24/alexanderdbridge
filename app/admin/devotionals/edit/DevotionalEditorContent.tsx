@@ -260,7 +260,7 @@ export default function DevotionalEditorPage() {
                 required
                 value={dateString}
                 onChange={(e) => setDateString(e.target.value)}
-                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-red-500 outline-none transition-colors font-mono"
+                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
               />
             </div>
 
@@ -273,7 +273,7 @@ export default function DevotionalEditorPage() {
                 required
                 value={dayNumber}
                 onChange={(e) => setDayNumber(e.target.value)}
-                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-red-500 outline-none transition-colors font-mono"
+                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
               />
             </div>
           </div>
@@ -289,7 +289,7 @@ export default function DevotionalEditorPage() {
                 placeholder="e.g. Knowing God Personally"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="w-full bg-transparent text-lg font-bold text-white pb-2 border-b border-white/15 focus:border-red-500 outline-none transition-colors"
+                className="w-full bg-transparent text-lg font-bold text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
               />
             </div>
 
@@ -304,7 +304,7 @@ export default function DevotionalEditorPage() {
                 placeholder="e.g. John 17:3"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full bg-transparent text-sm text-neutral-300 pb-2 border-b border-white/15 focus:border-red-500 outline-none transition-colors"
+                className="w-full bg-transparent text-sm text-neutral-300 pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
               />  
                 </div>
             
@@ -319,7 +319,7 @@ export default function DevotionalEditorPage() {
                   placeholder="John 17:3, KJV"
                   value={memoryVerse.reference}
                   onChange={(e) => setMemoryVerse({ ...memoryVerse, reference: e.target.value })}
-                  className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-red-500 outline-none transition-colors"
+                  className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
                 />
               </div>
             </div>
@@ -335,7 +335,7 @@ export default function DevotionalEditorPage() {
                   placeholder="“And this is life eternal...”"
                   value={memoryVerse.verse}
                   onChange={(e) => setMemoryVerse({ ...memoryVerse, verse: e.target.value })}
-                  className="w-full text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-red-500 outline-none transition-colors resize-y min-h-20"
+                  className="w-full text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-20"
                 />
               </div>
              
@@ -351,7 +351,7 @@ export default function DevotionalEditorPage() {
                 placeholder="Elaborate on the devotional message..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
-                className="w-full bg-black/50 text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-red-500 outline-none transition-colors resize-y min-h-40"
+                className="w-full bg-black/50 text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-40"
               />
             </div>
           </div>
@@ -364,7 +364,7 @@ export default function DevotionalEditorPage() {
                 <button
                   type="button"
                   onClick={handleAddStep}
-                  className="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1"
+                  className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
                 >
                   <FiPlus size={12} /> Add Step
                 </button>
@@ -379,10 +379,10 @@ export default function DevotionalEditorPage() {
                       placeholder="Step instruction..."
                       value={step}
                       onChange={(e) => handleStepChange(idx, e.target.value)}
-                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-red-500 outline-none"
+                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
                     />
                     {neededSteps.length > 1 && (
-                      <button type="button" onClick={() => handleRemoveStep(idx)} className="text-neutral-500 hover:text-red-500 p-1">
+                      <button type="button" onClick={() => handleRemoveStep(idx)} className="text-neutral-500 hover:text-primary p-1">
                         <FiTrash size={14} />
                       </button>
                     )}
@@ -397,7 +397,7 @@ export default function DevotionalEditorPage() {
                 <button
                   type="button"
                   onClick={handleAddPrayer}
-                  className="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1"
+                  className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
                 >
                   <FiPlus size={12} /> Add Prayer
                 </button>
@@ -412,10 +412,10 @@ export default function DevotionalEditorPage() {
                       placeholder="Prayer point..."
                       value={prayer}
                       onChange={(e) => handlePrayerChange(idx, e.target.value)}
-                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-red-500 outline-none"
+                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
                     />
                     {prayerPoints.length > 1 && (
-                      <button type="button" onClick={() => handleRemovePrayer(idx)} className="text-neutral-500 hover:text-red-500 p-1">
+                      <button type="button" onClick={() => handleRemovePrayer(idx)} className="text-neutral-500 hover:text-primary p-1">
                         <FiTrash size={14} />
                       </button>
                     )}
@@ -435,7 +435,7 @@ export default function DevotionalEditorPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full md:w-auto px-8 py-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full md:w-auto px-8 py-3 rounded-full bg-red-600 hover:bg-primary text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <FiCheck size={16} />
               {loading ? "Saving Devotional..." : "Publish Devotional"}

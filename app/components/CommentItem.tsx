@@ -101,7 +101,7 @@ const renderCommentBody = (text: string) => {
         return (
           <React.Fragment key={idx}>
             {isMention ? (
-              <span className="text-red-500 font-bold">
+              <span className="text-primary font-bold">
                 {word}
               </span>
             ) : (
@@ -152,7 +152,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       }}
       id={`comment-${comment.id}`}
       className={`flex flex-col mb-6 pb-3 border-b border-white/15 last:border-b-0 relative ${
-        isHighlighted ? "bg-red-500/10 ring-1 ring-red-500/30 px-3 py-3" : ""
+        isHighlighted ? "bg-primary/10 ring-1 ring-primary/30 px-3 py-3" : ""
       }`}
     >
       {/* Dynamic Comment Line */}
@@ -207,7 +207,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 onClick={() => onLike(comment.id)}
                 className={`flex gap-1 items-center rounded-full transition-transform active:scale-95 cursor-pointer ${
                   comment.liked
-                    ? "text-red-500"
+                    ? "text-primary"
                     : "text-neutral-500 hover:text-neutral-300"
                 }`}
                 aria-label="Like comment"

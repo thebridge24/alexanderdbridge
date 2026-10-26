@@ -184,7 +184,7 @@ export default function AddSubscriptionModal({
                 Membership Admin
               </span>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <FiAward className="text-red-500" /> Add Subscription Record
+                <FiAward className="text-primary" /> Add Subscription Record
               </h3>
             </div>
             <button
@@ -324,7 +324,7 @@ export default function AddSubscriptionModal({
                           <div className="font-bold flex items-center gap-2">
                             {p.name} Plan
                             {isSelected && (
-                              <FiCheck size={12} className="text-red-500" />
+                              <FiCheck size={12} className="text-primary" />
                             )}
                           </div>
                           <div className="text-[10px] text-neutral-500">
@@ -353,7 +353,7 @@ export default function AddSubscriptionModal({
                     const cycle = e.target.value as "monthly" | "yearly";
                     setBillingCycle(cycle);
                   }}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-red-500"
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-primary"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="yearly">Yearly (10% Off)</option>
@@ -374,7 +374,7 @@ export default function AddSubscriptionModal({
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
                   disabled={paymentType === "complimentary"}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-red-500 font-mono"
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-primary font-mono"
                 />
               </div>
             </div>
@@ -465,7 +465,7 @@ export default function AddSubscriptionModal({
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-lg shadow-red-950/50"
+                className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-primary text-white font-bold transition-all shadow-lg shadow-red-950/50"
               >
                 {submitting ? "Saving..." : "Save Subscription"}
               </button>

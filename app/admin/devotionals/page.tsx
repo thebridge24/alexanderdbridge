@@ -154,7 +154,7 @@ export default function DevotionalsAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <FiBookOpen className="text-red-500 size-6" /> Devotional Management
+            <FiBookOpen className="text-primary size-6" /> Devotional Management
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
             Create, schedule, edit, and track engagement for all published
@@ -164,7 +164,7 @@ export default function DevotionalsAdminPage() {
 
         <Link
           href={`/admin/devotionals/edit?date=${nextDateStr}`}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
+          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
         >
           <FiPlus size={16} />
           <span>Add Devotional</span>
@@ -255,7 +255,7 @@ export default function DevotionalsAdminPage() {
             placeholder="Search by topic, scripture, or date (YYYY-MM-DD)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-red-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-primary transition-colors"
           />
         </div>
         <div className="text-xs font-mono text-neutral-400">
@@ -278,7 +278,7 @@ export default function DevotionalsAdminPage() {
             <p>No devotionals found matching your query.</p>
             <Link
               href={`/admin/devotionals/edit?date=${nextDateStr}`}
-              className="text-red-500 underline font-semibold"
+              className="text-primary underline font-semibold"
             >
               Create your first devotional for today →
             </Link>
@@ -327,7 +327,7 @@ export default function DevotionalsAdminPage() {
                           {d.views || 0}
                         </span>
                         <span className="flex items-center gap-1">
-                          <FiHeart className="text-red-500" /> {d.likes || 0}
+                          <FiHeart className="text-primary" /> {d.likes || 0}
                         </span>
                         <span className="flex items-center gap-1">
                           <FiMessageCircle className="text-amber-500" />{" "}
@@ -350,7 +350,7 @@ export default function DevotionalsAdminPage() {
                         <button
                           type="button"
                           onClick={() => setDeletingDate(d.dateString)}
-                          className="p-2 rounded-xl bg-neutral-900 hover:bg-red-950/40 text-neutral-300 hover:text-red-500 transition-colors"
+                          className="p-2 rounded-xl bg-neutral-900 hover:bg-red-950/40 text-neutral-300 hover:text-primary transition-colors"
                           title="Delete devotional"
                         >
                           <FiTrash2 size={14} />
@@ -403,7 +403,7 @@ export default function DevotionalsAdminPage() {
                   type="button"
                   onClick={handleConfirmDelete}
                   disabled={isDeleting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-500 text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-primary text-white"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </button>

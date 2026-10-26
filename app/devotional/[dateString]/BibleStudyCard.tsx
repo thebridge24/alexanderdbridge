@@ -36,7 +36,7 @@ export default function BibleStudyCard({ dateString }: BibleStudyCardProps) {
     <section className="mt-12 rounded-2xl bg-black border border-red-900/30 p-6 md:p-8 text-white shadow-xl">
       <div className="flex flex-col items-start justify-between gap-6">
         <div className="space-y-2 max-w-xl">
-          <span className="text-xs font-bold tracking-widest text-red-500 uppercase">
+          <span className="text-xs font-bold tracking-widest text-primary uppercase">
             The 365 Bible Study Movement
           </span>
           <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
@@ -61,7 +61,7 @@ export default function BibleStudyCard({ dateString }: BibleStudyCardProps) {
           <Link
             href={`/study/365?date=${dateString || ''}`}
             onClick={handleJoin}
-            className="inline-flex w-full items-center justify-center px-6 py-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-semibold transition-all shadow-lg hover:shadow-red-600/30"
+            className="inline-flex w-full items-center justify-center px-6 py-3 rounded-full bg-red-600 hover:bg-primary text-white font-semibold transition-all shadow-lg hover:shadow-red-600/30"
           >
             {completed ? 'Revisit Reading' : joined ? 'Continue Reading' : 'Join the Movement'}
           </Link>

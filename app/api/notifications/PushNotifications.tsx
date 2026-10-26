@@ -426,7 +426,7 @@ const promptDelayMs = 20000;
       >
         <FaBell className="size-4" />
         {(unreadCount > 0 || status !== "enabled") && (
-          <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-red-500" />
+          <span className="absolute top-2.5 right-2.5 size-2 rounded-full bg-primary" />
         )}
       </button>
 
@@ -446,7 +446,7 @@ const promptDelayMs = 20000;
                   Notifications
                 </span>
                 {unreadCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-mono text-[10px] font-semibold border border-red-500/20">
+                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-red-400 font-mono text-[10px] font-semibold border border-primary/20">
                     {unreadCount} new
                   </span>
                 )}
@@ -561,7 +561,7 @@ const promptDelayMs = 20000;
                               {item.read ? (
                                 <BsCheck2All className="size-3" />
                               ) : (
-                                <span className="size-1.5 bg-red-500 rounded-full" />
+                                <span className="size-1.5 bg-primary rounded-full" />
                               )}
                               {item.timestamp}
                             </span>
@@ -595,16 +595,16 @@ const promptDelayMs = 20000;
               }
               setActiveToast(null);
             }}
-            className="fixed top-5 left-4 right-4 max-w-sm mx-auto z-100 bg-neutral-950/95 border border-red-500/30 rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl flex items-start gap-3 cursor-pointer text-left pointer-events-auto"
+            className="fixed top-5 left-4 right-4 max-w-sm mx-auto z-100 bg-neutral-950/95 border border-primary/30 rounded-2xl p-3.5 shadow-2xl backdrop-blur-xl flex items-start gap-3 cursor-pointer text-left pointer-events-auto"
           >
             {activeToast.avatarUrl ? (
               <img
                 src={activeToast.avatarUrl}
                 alt=""
-                className="size-9 rounded-full object-cover shrink-0 border border-red-500/30 mt-0.5"
+                className="size-9 rounded-full object-cover shrink-0 border border-primary/30 mt-0.5"
               />
             ) : (
-              <div className="size-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 text-red-500 mt-0.5">
+              <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary mt-0.5">
                 <FaBell className="size-4" />
               </div>
             )}

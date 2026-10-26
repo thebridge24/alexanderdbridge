@@ -195,7 +195,7 @@ export default function UserAnalyticsPage() {
     {
       header: "Current Streak",
       cell: (row) => (
-        <span className="font-mono text-red-500 font-bold">
+        <span className="font-mono text-primary font-bold">
           {/* Streak Medal & Count */}
           {row.currentStreak > 0 && (
             <span className="inline-flex items-end gap-2 text-[10px] font-medium text-neutral-300">
@@ -237,7 +237,7 @@ export default function UserAnalyticsPage() {
             title={`Message ${row.name}`}
             className="p-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition-colors cursor-pointer"
           >
-            <FaPaperPlane className="size-3 text-red-500" />
+            <FaPaperPlane className="size-3 text-primary" />
           </button>
         </div>
       ),
@@ -299,7 +299,7 @@ export default function UserAnalyticsPage() {
             onClick={() => setIsTimeframeOpen(!isTimeframeOpen)}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 text-white font-bold text-xs transition-colors cursor-pointer"
           >
-            <FaCalendarAlt className="text-red-500 size-3.5" />
+            <FaCalendarAlt className="text-primary size-3.5" />
             <span>{timeframeLabels[timeframe]}</span>
             <FaChevronDown
               className={`size-3 text-neutral-400 transition-transform ${isTimeframeOpen ? "rotate-180" : ""}`}
@@ -335,7 +335,7 @@ export default function UserAnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-neutral-950 border border-neutral-900">
         <div>
           <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <FaUsers className="text-red-500 size-5" /> 
+            <FaUsers className="text-primary size-5" /> 
           </h1>
         </div>
 
@@ -410,7 +410,7 @@ export default function UserAnalyticsPage() {
               placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-red-500 transition-colors"
+              className="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs text-white outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -492,7 +492,7 @@ export default function UserAnalyticsPage() {
               <div className="space-y-3 pt-4 border-t border-neutral-900">
                 <div className="flex justify-between p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs">
                   <span className="text-neutral-400">Current Streak</span>
-                  <span className="font-bold text-red-500 font-mono">
+                  <span className="font-bold text-primary font-mono">
                     {selectedUser.currentStreak || 0} Days
                   </span>
                 </div>

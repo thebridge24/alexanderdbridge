@@ -81,7 +81,7 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
   if (checking) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="size-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+        <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ export default function AdminPinGuard({ children }: AdminPinGuardProps) {
               type="button"
               onClick={() => handleKeyPress(key)}
               className={`w-20 h-20 rounded-full ${
-                isError ? "animate-shake border border-red-500/50" : ""
+                isError ? "animate-shake border border-primary/50" : ""
               } text-2xl font-medium bg-neutral-900/80 text-white border border-neutral-800 active:scale-95 hover:bg-neutral-800 transition duration-150 cursor-pointer flex items-center justify-center`}
             >
               {key}

@@ -390,7 +390,7 @@ export default function SurveySubmissionsPage() {
               <button
                 type="button"
                 onClick={() => setIsBroadcasterOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-primary text-white font-bold text-xs tracking-wider uppercase shadow-lg shadow-red-900/30 transition-all cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" /> Bulk Message
               </button>
@@ -410,8 +410,8 @@ export default function SurveySubmissionsPage() {
               <span className=" font-mono text-neutral-500 uppercase block">
                 Avg Rating
               </span>
-              <span className="text-5xl font-bold text-red-500 flex items-center justify-center gap-1">
-                {avgRating} <Star className="w-3.5 h-3.5 fill-red-500" />
+              <span className="text-5xl font-bold text-primary flex items-center justify-center gap-1">
+                {avgRating} <Star className="w-3.5 h-3.5 fill-primary" />
               </span>
             </div>
           </div>
@@ -426,7 +426,7 @@ export default function SurveySubmissionsPage() {
           {loading && (
             <p className="text-sm text-neutral-500">Loading responses...</p>
           )}
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-primary">{error}</p>}
 
           {/* Analytics Charts Grid */}
           {!loading && !error && (
@@ -435,7 +435,7 @@ export default function SurveySubmissionsPage() {
               <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
                   <div className="flex items-center gap-2">
-                    <PieIcon className="w-4 h-4 text-red-500" />
+                    <PieIcon className="w-4 h-4 text-primary" />
                     <h2 className="text-xs font-bold tracking-wide uppercase text-white">
                       Membership Willingness
                     </h2>
@@ -654,7 +654,7 @@ export default function SurveySubmissionsPage() {
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-1 font-semibold text-white">
                               <span>{sub.overallRating}</span>
-                              <Star className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                              <Star className="w-3.5 h-3.5 fill-primary text-primary" />
                             </div>
                           </td>
 

@@ -140,7 +140,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full py-4 rounded-3xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-xl"
+          className="w-full py-4 rounded-3xl bg-primary/10 hover:bg-primary/20 border border-primary/20 text-red-400 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-xl"
         >
           <FaSignOutAlt className="size-4" />
           <span>Log Out</span>

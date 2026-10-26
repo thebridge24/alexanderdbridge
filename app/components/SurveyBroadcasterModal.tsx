@@ -309,7 +309,7 @@ export default function SurveyBroadcasterModal({
           {/* Header */}
           <div className="px-4 py-4 sm:px-6 sm:py-5 bg-linear-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800 flex items-center justify-between shrink-0 gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="size-9 sm:size-11 rounded-xl sm:rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center text-red-500 shadow-inner shrink-0">
+              <div className="size-9 sm:size-11 rounded-xl sm:rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center text-primary shadow-inner shrink-0">
                 <Send className="size-4 sm:size-5" />
               </div>
               <div className="min-w-0">
@@ -428,7 +428,7 @@ export default function SurveyBroadcasterModal({
                   {/* Dynamic Target Select */}
                   <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-4 space-y-3">
                     <label className=" text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <Users className="size-3.5 text-red-500 shrink-0" />
+                      <Users className="size-3.5 text-primary shrink-0" />
                       Target Recipients
                     </label>
                     <select
@@ -563,8 +563,8 @@ export default function SurveyBroadcasterModal({
                   How this notification will appear on mobile phones and desktop browsers:
                 </p>
 
-                <div className="max-w-sm mx-auto bg-neutral-950/95 border border-red-500/40 rounded-2xl p-4 shadow-2xl flex items-start gap-3 text-left">
-                  <div className="size-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0 text-red-500 mt-0.5">
+                <div className="max-w-sm mx-auto bg-neutral-950/95 border border-primary/40 rounded-2xl p-4 shadow-2xl flex items-start gap-3 text-left">
+                  <div className="size-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0 text-primary mt-0.5">
                     <Bell className="size-5 animate-pulse" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -604,7 +604,7 @@ export default function SurveyBroadcasterModal({
               <div className="p-4 rounded-2xl bg-red-950/30 border border-red-800/80 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase tracking-wider">
-                    <AlertTriangle className="size-4 shrink-0 text-red-500" />
+                    <AlertTriangle className="size-4 shrink-0 text-primary" />
                     <span>Failed Deliveries ({failedEmails.length})</span>
                   </div>
                   <button
@@ -657,7 +657,7 @@ export default function SurveyBroadcasterModal({
               type="button"
               onClick={handleBroadcast}
               disabled={isSending}
-              className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-red-500 active:scale-95 disabled:opacity-50 shadow-xl shadow-red-900/40 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-primary active:scale-95 disabled:opacity-50 shadow-xl shadow-red-900/40 transition-all cursor-pointer"
             >
               <Send className="size-3.5 shrink-0" />
               {isSending ? <Preloader />: "Broadcast Message"}
@@ -712,7 +712,7 @@ export default function SurveyBroadcasterModal({
                       type="button"
                       disabled={isResending === item.id}
                       onClick={() => handleResendFailedEmail(item.id, item.email)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold shrink-0 cursor-pointer shadow-md transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-primary disabled:opacity-50 text-white text-xs font-semibold shrink-0 cursor-pointer shadow-md transition-all"
                     >
                       <RotateCcw className={`size-3 ${isResending === item.id ? "animate-spin" : ""}`} />
                       <span>{isResending === item.id ? "Resending..." : "Resend"}</span>

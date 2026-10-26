@@ -67,11 +67,11 @@ export const FieldRenderer: React.FC<FieldProps> = ({
                 }}
                 className={`p-2.5 rounded-xl border transition-all duration-200 flex items-center justify-center ${
                   isSelected
-                    ? "bg-red-600/10 border-red-600 text-red-500 scale-105"
+                    ? "bg-red-600/10 border-red-600 text-primary scale-105"
                     : "bg-neutral-900/80 border-neutral-800 text-neutral-500 hover:border-neutral-700 hover:text-neutral-300"
                 }`}
               >
-                <Star className={`w-6 h-6 ${isSelected ? "fill-red-500" : ""}`} />
+                <Star className={`w-6 h-6 ${isSelected ? "fill-primary" : ""}`} />
               </button>
             );
           })}
@@ -120,7 +120,7 @@ export const FieldRenderer: React.FC<FieldProps> = ({
                   <span className="text-xs md:text-sm">{opt.label}</span>
                   <div
                     className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
-                      isSelected ? "border-red-500 bg-red-600" : "border-neutral-600"
+                      isSelected ? "border-primary bg-red-600" : "border-neutral-600"
                     }`}
                   >
                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -203,7 +203,7 @@ export const FieldRenderer: React.FC<FieldProps> = ({
                   <span className="text-xs md:text-sm">{opt.label}</span>
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                      selected ? "border-red-500 bg-red-600" : "border-neutral-600"
+                      selected ? "border-primary bg-red-600" : "border-neutral-600"
                     }`}
                   >
                     {selected && <Check className="w-3 h-3 text-white" />}

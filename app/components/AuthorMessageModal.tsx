@@ -121,7 +121,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
                     key={idx}
                     className={`h-1 rounded-full transition-all duration-300 ${
                       idx === currentIndex
-                        ? "w-7 bg-red-500"
+                        ? "w-7 bg-primary"
                         : "w-2 bg-neutral-800"
                     }`}
                   />
@@ -170,7 +170,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
                 type="button"
                 onClick={handleNext}
                 aria-label="Next paragraph slide"
-                className="p-3 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-medium text-xs rounded-full shadow-lg shadow-red-950/40 transition-all duration-150 cursor-pointer flex items-center justify-center"
+                className="p-3 bg-red-600 hover:bg-primary active:scale-95 text-white font-medium text-xs rounded-full shadow-lg shadow-red-950/40 transition-all duration-150 cursor-pointer flex items-center justify-center"
               >
                 <ChevronRight strokeWidth={3} className="w-4 h-4" />
               </button>

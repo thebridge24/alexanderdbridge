@@ -78,7 +78,7 @@ export default function GlobalAppWrapper({ children }: { children: React.ReactNo
       href: "/devotional/profile-settings",
       avatarUrl: userAvatarUrl,
       icon: (props) => <HiOutlineUser className={props?.className} />,
-      activeIcon: (props) => <HiUser className={`${props?.className} text-red-500`} />,
+      activeIcon: (props) => <HiUser className={`${props?.className} text-primary`} />,
     },
   ];
 

@@ -87,7 +87,7 @@ export default function Header() {
         <div className="relative flex flex-col items-end">
           <Link
             href="/support"
-            className="flex items-center gap-1.5 px-4 h-11 rounded-full bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-950/50 backdrop-blur-md border border-red-500/40 active:scale-95 transition-all animate-shake-btn"
+            className="flex items-center gap-1.5 px-4 h-11 rounded-full bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-950/50 backdrop-blur-md border border-primary/40 active:scale-95 transition-all animate-shake-btn"
           >
             <FiHeart className="size-3.5 fill-current" />
             <span>Support</span>

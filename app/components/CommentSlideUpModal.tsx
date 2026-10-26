@@ -360,7 +360,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   {/* Floating Tag (Pinned Top-Left) */}
                   {replyingToName && (
                     <div className="float-left mr-2 mb-1">
-                      <span className="inline-flex items-center gap-1 bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-semibold px-2 py-0.5 rounded-full select-none">
+                      <span className="inline-flex items-center gap-1 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-2 py-0.5 rounded-full select-none">
                         @{replyingToName}
                         <button
                           type="button"

@@ -41,7 +41,7 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     heading: "Stay Connected",
     description: "Support Bridge Daily as you grow in God's Word.",
     buttonText: "Become a Reader",
-    heroBgClass: "bg-red-500",
+    heroBgClass: "bg-primary",
     badgeBgClass: "bg-red-100 text-red-600 border-red-200",
     badgeTextClass: "text-red-600",
     verifiedIconColor: "",

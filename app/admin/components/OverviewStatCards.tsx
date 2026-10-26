@@ -98,7 +98,7 @@ export function OverviewStatCards({ totals, loading }: StatProps) {
             key={idx}
             className={`p-6 rounded-3xl transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group ${
               card.featured
-                ? "bg-red-600 text-white border border-red-500 shadow-2xl shadow-red-950/50"
+                ? "bg-red-600 text-white border border-primary shadow-2xl shadow-red-950/50"
                 : "bg-neutral-950 text-white border border-white/15 hover:border-neutral-750"
             }`}
           >
@@ -115,7 +115,7 @@ export function OverviewStatCards({ totals, loading }: StatProps) {
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 ${
                   card.featured
                     ? "bg-white/20 text-white"
-                    : "bg-black/40 border border-neutral-800 text-neutral-300 group-hover:text-red-500"
+                    : "bg-black/40 border border-neutral-800 text-neutral-300 group-hover:text-primary"
                 }`}
               >
                 <Icon size={18} />

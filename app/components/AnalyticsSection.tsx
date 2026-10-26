@@ -59,7 +59,7 @@ const CustomTooltip = ({ active, payload, metric }: any) => {
         </p>
         <div className="flex items-center justify-between gap-4 pt-1 border-t border-neutral-900">
           <span className="capitalize text-neutral-400">{metric}:</span>
-          <span className="font-mono font-bold text-red-500">
+          <span className="font-mono font-bold text-primary">
             {data[metric as keyof ProcessedAnalyticsItem].toLocaleString()}
           </span>
         </div>
@@ -197,7 +197,7 @@ export default function AnalyticsSection({
             <span className="text-3xl md:text-4xl font-black text-white tracking-tight">
               {formatStatNumber(analyticsTotals.views)}
             </span>
-            <FaCheckCircle className="text-red-500 size-4" />
+            <FaCheckCircle className="text-primary size-4" />
           </div>
           <span className="text-[11px] text-neutral-500 italic">Steady activity</span>
         </button>
@@ -219,7 +219,7 @@ export default function AnalyticsSection({
             <span className="text-2xl md:text-4xl font-black text-white tracking-tight">
               {formatStatNumber(analyticsTotals.likes)}
             </span>
-            <FaArrowCircleUp className="text-red-500 size-4" />
+            <FaArrowCircleUp className="text-primary size-4" />
           </div>
           <span className="text-[11px] text-neutral-500 italic">+12% vs last period</span>
         </button>

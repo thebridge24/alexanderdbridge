@@ -48,9 +48,9 @@ export default function SubmissionDetailPage() {
 
     if (q.type === "rating") {
       return (
-        <div className="flex items-center gap-1.5 text-red-500 font-bold">
+        <div className="flex items-center gap-1.5 text-primary font-bold">
           <span>{answerValue} / 5</span>
-          <Star className="w-4 h-4 fill-red-500" />
+          <Star className="w-4 h-4 fill-primary" />
         </div>
       );
     }
@@ -122,7 +122,7 @@ export default function SubmissionDetailPage() {
         {/* User Summary Header Card */}
         <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-red-500">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-primary">
               Respondent Overview
             </span>
             <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3 mt-1">
@@ -154,7 +154,7 @@ export default function SubmissionDetailPage() {
                 {submission.answers.rating_overall || "N/A"} / 5
               </span>
             </div>
-            <Star className="w-6 h-6 fill-red-500 text-red-500" />
+            <Star className="w-6 h-6 fill-primary text-primary" />
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export default function SubmissionDetailPage() {
                       Q{String(index + 1).padStart(2, "0")}
                     </span>
                     {question.required && (
-                      <span className="text-[10px] font-mono text-red-500/80">
+                      <span className="text-[10px] font-mono text-primary/80">
                         Required
                       </span>
                     )}

@@ -150,7 +150,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
                   transition={{ duration: 0.25, ease: "easeInOut" }}
                   className="space-y-3.5"
                 >
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-red-500 bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full mb-2">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-primary bg-red-950/40 border border-red-900/50 px-2 py-0.5 rounded-full mb-2">
                     {config.intro.subheading}
                   </span>
                   <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
@@ -167,7 +167,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
                         setDirection(1);
                         setStep(0);
                       }}
-                      className="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-red-900/30 flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-primary text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-red-900/30 flex items-center justify-center gap-2"
                     >
                       {config.intro.buttonText}
                       <ArrowRight className="w-4 h-4" />
@@ -224,7 +224,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                    className="w-12 h-12 rounded-full bg-red-600/10 border border-red-500 flex items-center justify-center text-red-500"
+                    className="w-12 h-12 rounded-full bg-red-600/10 border border-primary flex items-center justify-center text-primary"
                   >
                     <Check className="w-6 h-6 stroke-[3]" />
                   </motion.div>
@@ -262,7 +262,7 @@ export const SurveyEngine: React.FC<SurveyEngineProps> = ({
                 disabled={!isCurrentValid() || isSubmitting}
                 className={`px-5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 ${
                   isCurrentValid() && !isSubmitting
-                    ? "bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40"
+                    ? "bg-red-600 hover:bg-primary text-white shadow-md shadow-red-950/40"
                     : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                 }`}
               >

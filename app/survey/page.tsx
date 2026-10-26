@@ -29,7 +29,7 @@ export default function DevotionalPage() {
     <main className="min-h-screen bg-black text-white flex items-center justify-center">
       <button
         onClick={() => setIsSurveyOpen(true)}
-        className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-all"
+        className="px-6 py-3 bg-red-600 hover:bg-primary text-white font-medium rounded-xl transition-all"
       >
         Open Devotional Survey
       </button>

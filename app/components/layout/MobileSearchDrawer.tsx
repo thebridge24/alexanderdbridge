@@ -135,7 +135,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
           >
             {/* Search Header */}
             <div className="h-16 flex items-center gap-3 px-4 border-b border-neutral-800 shrink-0 bg-neutral-950">
-              <FiSearch size={20} className="text-red-500" />
+              <FiSearch size={20} className="text-primary" />
               <input
                 ref={inputRef}
                 type="text"
@@ -176,7 +176,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
                     {/* Devotionals Results */}
                     {results.devotionals.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                           <FiBookOpen size={12} /> Devotionals ({results.devotionals.length})
                         </p>
                         <div className="space-y-1.5">
@@ -205,7 +205,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
                     {/* Users Results */}
                     {results.users.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                           <FiUsers size={12} /> Users & Streaks ({results.users.length})
                         </p>
                         <div className="space-y-1.5">
@@ -237,7 +237,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 bg-red-950/50 border border-red-900/50 text-red-400 text-xs font-mono font-bold px-2 py-0.5 rounded-full">
-                                <Flame size={12} className="fill-red-500" />
+                                <Flame size={12} className="fill-primary" />
                                 <span>{u.currentStreak || u.streak_count || 0}d</span>
                               </div>
                             </div>
@@ -249,7 +249,7 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
                     {/* Survey / Feedback Results */}
                     {results.surveys.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                           <FiMessageSquare size={12} /> Community Feedback ({results.surveys.length})
                         </p>
                         <div className="space-y-1.5">
@@ -293,21 +293,21 @@ export function MobileSearchDrawer({ isOpen, onClose }: MobileSearchDrawerProps)
                         className="w-full text-left p-3 rounded-xl bg-neutral-950 hover:bg-neutral-900 border border-white/15 text-neutral-300 cursor-pointer transition-colors flex items-center justify-between"
                       >
                         <span>Manage Devotionals & Articles</span>
-                        <span className="text-red-500"><ChevronRight /></span>
+                        <span className="text-primary"><ChevronRight /></span>
                       </button>
                       <button 
                         onClick={() => handleSelect("/admin/users")}
                         className="w-full text-left p-3 rounded-xl bg-neutral-950 hover:bg-neutral-900 border border-white/15 text-neutral-300 cursor-pointer transition-colors flex items-center justify-between"
                       >
                         <span>View User Streaks & Leaderboard</span>
-                        <span className="text-red-500"><ChevronRight /></span>
+                        <span className="text-primary"><ChevronRight /></span>
                       </button>
                       <button 
                         onClick={() => handleSelect("/admin/feedback")}
                         className="w-full text-left p-3 rounded-xl bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-300 cursor-pointer transition-colors flex items-center justify-between"
                       >
                         <span>Review Community Feedback</span>
-                        <span className="text-red-500"><ChevronRight /></span>
+                        <span className="text-primary"><ChevronRight /></span>
                       </button>
                     </div>
                   </div>

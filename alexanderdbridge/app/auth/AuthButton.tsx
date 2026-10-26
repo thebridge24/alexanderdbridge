@@ -299,7 +299,7 @@ useEffect(() => {
             <button
               type="button"
               onClick={handleSignOut}
-              className="w-full py-2.5 px-4 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 hover:bg-red-500/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-red-500/20"
+              className="w-full py-2.5 px-4 rounded-full text-xs font-semibold bg-primary/10 text-red-400 hover:bg-primary/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer border border-primary/20"
             >
               <FaSignOutAlt className="size-3.5" /> Sign Out
             </button>

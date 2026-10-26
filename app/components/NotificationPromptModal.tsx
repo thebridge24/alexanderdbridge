@@ -107,8 +107,8 @@ export default function NotificationPromptModal({
             {/* Graphic & Content Section */}
             <div className="flex flex-col items-center text-center space-y-4 py-2">
               {/* Notification Icon Glow Ring */}
-              <div className="relative w-16 h-16 rounded-full bg-red-950/40 border border-red-900/50 flex items-center justify-center text-red-500 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
-                <Bell className="w-8 h-8 fill-red-500 text-red-500 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-full bg-red-950/40 border border-red-900/50 flex items-center justify-center text-primary shadow-[0_0_30px_rgba(255,0,0,0.2)]">
+                <Bell className="w-8 h-8 fill-primary text-primary animate-pulse" />
                 <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full text-[9px] font-mono flex items-center justify-center font-bold text-white border border-black">
                   1
                 </span>
@@ -126,7 +126,7 @@ export default function NotificationPromptModal({
               {/* Sample Notification Preview Card Mock */}
               <div className="w-full bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-3 text-left space-y-2 shadow-inner">
                 <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
-                  <span className="text-red-500 font-bold uppercase">Bridge Daily</span>
+                  <span className="text-primary font-bold uppercase">Bridge Daily</span>
                   <span>Just now</span>
                 </div>
                 <div className="text-xs font-medium text-neutral-200">

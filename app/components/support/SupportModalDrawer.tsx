@@ -275,7 +275,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
 
                   <button
                     onClick={handleResetAndClose}
-                    className="w-full max-w-xs py-3.5 px-6 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-sm shadow-xl shadow-red-950/50 transition-all cursor-pointer"
+                    className="w-full max-w-xs py-3.5 px-6 rounded-full bg-red-600 hover:bg-primary text-white font-bold text-sm shadow-xl shadow-red-950/50 transition-all cursor-pointer"
                   >
                     Continue to Devotional
                   </button>
@@ -314,7 +314,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                   {/* Email Prompt Modal for Unauthenticated Users */}
                   {showEmailPrompt && (
                     <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4">
-                      <div className="size-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500">
+                      <div className="size-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
                         <CreditCard className="size-6" />
                       </div>
                       <div className="space-y-1">
@@ -335,7 +335,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                             placeholder="your.email@example.com"
                             value={manualEmail}
                             onChange={(e) => setManualEmail(e.target.value)}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-3 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-3 py-3 text-xs text-white focus:outline-none focus:border-primary"
                           />
                         </div>
 
@@ -349,7 +349,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                           </button>
                           <button
                             type="submit"
-                            className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg shadow-red-950/50"
+                            className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-primary text-xs font-bold text-white shadow-lg shadow-red-950/50"
                           >
                             Pay with Paystack
                           </button>
@@ -375,7 +375,7 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
                   {/* Subscribing Loading Overlay */}
                   {isSubscribing && (
                     <div className="absolute inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center space-y-3">
-                      <Loader2 className="size-8 text-red-500 animate-spin" />
+                      <Loader2 className="size-8 text-primary animate-spin" />
                       <p className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
                         Connecting to Paystack...
                       </p>

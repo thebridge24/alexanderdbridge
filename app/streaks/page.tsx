@@ -167,7 +167,7 @@ export default function LeaderboardPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="inline-block size-2 rounded-full bg-red-500 animate-ping" />
+            <span className="inline-block size-2 rounded-full bg-primary animate-ping" />
             <span className="text-xs font-bold text-neutral-300 tracking-wide uppercase">
               Live Standings
             </span>
@@ -247,7 +247,7 @@ export default function LeaderboardPage() {
                         size="xs"
                       />
                     </div>
-                    <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
+                    <div className="flex items-center gap-1 text-primary font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
                       <span>
                         {activeTab === "monthly"
@@ -296,7 +296,7 @@ export default function LeaderboardPage() {
                         size="xs"
                       />
                     </div>
-                    <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs sm:text-sm mt-0.5">
+                    <div className="flex items-center gap-1 text-primary font-extrabold text-xs sm:text-sm mt-0.5">
                       <FaFire className="size-3.5" />
                       <span>
                         {activeTab === "monthly"
@@ -342,7 +342,7 @@ export default function LeaderboardPage() {
                         size="xs"
                       />
                     </div>
-                    <div className="flex items-center gap-1 text-red-500 font-extrabold text-xs mt-0.5">
+                    <div className="flex items-center gap-1 text-primary font-extrabold text-xs mt-0.5">
                       <FaFire className="size-3" />
                       <span>
                         {activeTab === "monthly"

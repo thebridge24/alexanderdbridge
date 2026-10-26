@@ -138,7 +138,7 @@ export default function StreakFooterBanner({
             <FaGripLines className="size-3 text-neutral-500 shrink-0" />
 
             <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-300">
-              <FaClock className="size-3 text-red-500 animate-pulse" />
+              <FaClock className="size-3 text-primary animate-pulse" />
               <span className="text-[11px] text-neutral-400 font-mono">Timer:</span>
               <span className="font-mono text-white font-bold text-sm tracking-wide">
                 {formatTime(remainingSeconds)}
@@ -152,7 +152,7 @@ export default function StreakFooterBanner({
         {/* Footer Container */}
         <div className="w-full max-w-sm text-center flex flex-col items-center gap-4 text-xs md:text-sm text-white/40 font-light tracking-wide leading-relaxed">
           {isCompleted ? (
-            <span className="w-full text-red-500 font-medium text-sm">
+            <span className="w-full text-primary font-medium text-sm">
               Daily devotional time completed for today!
             </span>
           ) : (
@@ -166,7 +166,7 @@ export default function StreakFooterBanner({
                   className={`w-full py-3.5 px-6 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg transition-all duration-300 border ${
                     isMarkAsReadLocked
                       ? "bg-neutral-900 border-neutral-800 text-neutral-500 cursor-not-allowed opacity-60"
-                      : "bg-red-600 hover:bg-red-700 active:scale-[0.98] border-red-500/30 text-white cursor-pointer"
+                      : "bg-red-600 hover:bg-red-700 active:scale-[0.98] border-primary/30 text-white cursor-pointer"
                   }`}
                 >
                   {isMarkAsReadLocked ? (

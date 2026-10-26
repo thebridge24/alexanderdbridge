@@ -200,7 +200,7 @@ export default function FeedbackPage() {
                           {/* Streak Badge */}
                           {card.streakCount > 0 && (
                             <div className="flex items-center gap-1 bg-red-950/50 border border-red-900/50 text-red-400 text-xs font-mono font-bold px-2.5 py-1 rounded-full shrink-0">
-                              <Flame className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                              <Flame className="w-3.5 h-3.5 fill-primary text-primary" />
                               <span>{card.streakCount}d</span>
                             </div>
                           )}
@@ -297,7 +297,7 @@ export default function FeedbackPage() {
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-neutral-400 hover:text-white transition-colors group"
         >
           <span>Bridge Daily Devotional</span>
-          <span className="text-red-500 group-hover:translate-x-1 transition-transform">→</span>
+          <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
         </Link>
       </footer>
     </div>

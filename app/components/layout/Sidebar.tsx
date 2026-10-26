@@ -90,7 +90,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <span className="font-black tracking-tight text-sm text-white leading-none">
                   Bridge Daily
                 </span>
-                <span className="text-[9px] font-mono uppercase tracking-widest text-red-500 mt-0.5">
+                <span className="text-[9px] font-mono uppercase tracking-widest text-primary mt-0.5">
                   Devotional Admin
                 </span>
               </div>

@@ -187,7 +187,7 @@ function VerifyForm() {
         <div className="pt-2">
           <Link
             href="/devotional"
-            className="inline-block w-full sm:w-auto px-8 py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-full shadow-lg shadow-red-950/50 transition-all uppercase tracking-wider"
+            className="inline-block w-full sm:w-auto px-8 py-3.5 bg-red-600 hover:bg-primary text-white font-bold text-xs rounded-full shadow-lg shadow-red-950/50 transition-all uppercase tracking-wider"
           >
             Return to Daily Devotional
           </Link>
@@ -205,7 +205,7 @@ function VerifyForm() {
         >
           <ArrowLeft className="size-3.5" /> Back
         </Link>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-950/40 border border-red-900/50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-primary bg-red-950/40 border border-red-900/50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
           <ShieldCheck className="size-3" /> Payment Verification
         </span>
       </div>
@@ -338,7 +338,7 @@ function VerifyForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3.5 px-6 rounded-full bg-red-600 hover:bg-red-500 active:scale-98 text-white font-bold text-xs uppercase tracking-wider shadow-xl shadow-red-950/50 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          className="w-full py-3.5 px-6 rounded-full bg-red-600 hover:bg-primary active:scale-98 text-white font-bold text-xs uppercase tracking-wider shadow-xl shadow-red-950/50 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
           {isSubmitting ? (
             <>
@@ -360,7 +360,7 @@ export default function VerifyPaymentPage() {
       <Suspense
         fallback={
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="size-8 text-red-500 animate-spin" />
+            <Loader2 className="size-8 text-primary animate-spin" />
             <span className="text-xs text-neutral-400">
               Loading verification details...
             </span>

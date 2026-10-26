@@ -85,7 +85,7 @@ export function Header({ onOpenSidebar, onOpenSearch }: HeaderProps) {
 
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-white">{adminName}</span>
-            <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest">
+            <span className="text-[10px] font-mono text-primary uppercase tracking-widest">
             {adminName === "Alexander Christ" || "Alexander D Bridge" ? "Lead Admin" : "Team Member"}
             </span>
           </div>

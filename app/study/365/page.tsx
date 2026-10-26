@@ -134,7 +134,7 @@ function StudyPageContent() {
           </div>
 
           <div className="flex items-center justify-between pt-12">
-            <span className="text-base font-bold text-red-500 uppercase tracking-widest">
+            <span className="text-base font-bold text-primary uppercase tracking-widest">
               Day {dayOfYear} of 365
             </span>
             <span className="text-xs text-neutral-400 px-3 py-1 rounded-full font-medium">
@@ -156,7 +156,7 @@ function StudyPageContent() {
             <p className="text-red-400 text-sm font-medium">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-red-600/20"
+              className="px-5 py-2.5 bg-red-600 hover:bg-primary text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-red-600/20"
             >
               Retry Reading
             </button>
@@ -234,7 +234,7 @@ function StudyPageContent() {
               onClick={handleMarkAsRead}
               className={`w-full py-4 rounded-full font-bold transition-all shadow-xl ${
                 hasScrolledToBottom && !loading && !error
-                  ? "bg-red-600 hover:bg-red-500 text-white shadow-red-600/25 cursor-pointer"
+                  ? "bg-red-600 hover:bg-primary text-white shadow-red-600/25 cursor-pointer"
                   : "bg-neutral-900 border border-neutral-800 text-neutral-500 cursor-not-allowed"
               }`}
             >

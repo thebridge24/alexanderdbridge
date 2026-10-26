@@ -66,7 +66,7 @@ export default function StudyPage() {
             ← Return to Devotional
           </Link>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-red-500 uppercase tracking-widest">
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">
               Day {reading.dayOfYear} of 365
             </span>
             <span className="text-xs bg-neutral-800 text-neutral-400 px-2.5 py-1 rounded">
@@ -105,7 +105,7 @@ export default function StudyPage() {
               onClick={handleMarkAsRead}
               className={`w-full py-4 rounded-xl font-bold transition-all ${
                 hasScrolledToBottom
-                  ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg cursor-pointer'
+                  ? 'bg-red-600 hover:bg-primary text-white shadow-lg cursor-pointer'
                   : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
               }`}
             >

@@ -67,7 +67,7 @@ export function ActivityPeakChart({ users }: ActivityPeakChartProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <FaChartLine className="text-red-500 size-4" /> Real-Time Daily Activity Flow (Peak Hours)
+            <FaChartLine className="text-primary size-4" /> Real-Time Daily Activity Flow (Peak Hours)
           </h3>
           <p className="text-xs text-neutral-400">Based on actual user sign-in and activity timestamps.</p>
         </div>

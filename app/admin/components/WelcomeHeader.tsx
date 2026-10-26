@@ -70,7 +70,7 @@ export function WelcomeHeader() {
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs font-mono font-semibold text-neutral-300 w-fit shrink-0 relative z-10">
-        <FiCalendar className="text-red-500 size-4" />
+        <FiCalendar className="text-primary size-4" />
         <span>{formattedDate}</span>
       </div>
     </div>

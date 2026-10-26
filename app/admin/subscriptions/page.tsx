@@ -222,7 +222,7 @@ export default function SubscriptionsAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <FiAward className="text-red-500 size-6" /> Subscriptions
+            <FiAward className="text-primary size-6" /> Subscriptions
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
             Manage supporters, track subscription revenue, and keep every
@@ -232,7 +232,7 @@ export default function SubscriptionsAdminPage() {
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
+          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
         >
           <FiPlus size={16} />
           <span>Add Subscription</span>
@@ -267,7 +267,7 @@ export default function SubscriptionsAdminPage() {
             <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               Active Subscriptions
             </span>
-            <div className="p-2.5 rounded-2xl bg-red-950/30 text-red-500 border border-red-800/40">
+            <div className="p-2.5 rounded-2xl bg-red-950/30 text-primary border border-red-800/40">
               <FiAward size={18} />
             </div>
           </div>
@@ -312,7 +312,7 @@ export default function SubscriptionsAdminPage() {
             placeholder="Search by name, email, plan, or payment method..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-red-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-primary transition-colors"
           />
         </div>
         <div className="text-xs font-mono text-neutral-400">
