@@ -806,7 +806,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           opacity: isFloatingVisible ? 1 : 0,
         }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed z-40 bottom-6 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
+        className="fixed z-40 bottom-26 right-6 lg:right-[30vw] flex flex-col justify-between gap-4 pointer-events-auto"
       >
         <div className="flex flex-col items-center gap-1 z-40 relative">
           <div onClick={() => setIsStreakDrawerOpen(true)}>
@@ -1076,6 +1076,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!",
         ]}
       />
+      {/* Dynamic Survey Conditional Render (Shows only if completed count >= 5) */}
       {(() => {
         const history = streakData?.attendanceHistory || {};
         const completedCount = Object.values(history).filter(

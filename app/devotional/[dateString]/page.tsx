@@ -1,26 +1,28 @@
 import type { Metadata } from "next";
 import DevotionalView from "./DevotionalView";
 import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
-
+import DevotionalContainer from "./DevotionalContainer";
 type Props = {
   params: Promise<{ dateString: string }>;
 };
 
-// Define an interface for your Devotional object
 interface Devotional {
   dateString: string;
   topic: string;
   explanation: string;
 }
 
-async function getDevotionalData(dateString: string): Promise<Devotional | null> {
+async function getDevotionalData(
+  dateString: string,
+): Promise<Devotional | null> {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
+      process.env.NEXT_PUBLIC_SITE_URL &&
+      !process.env.NEXT_PUBLIC_SITE_URL.includes("localhost")
         ? process.env.NEXT_PUBLIC_SITE_URL
         : "https://alexanderdbridge.com";
     const res = await fetch(`${baseUrl}/api/devotionals`, {
-      next: { revalidate: 3600 }, 
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) return null;
@@ -48,8 +50,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     DEVOTIONALS_DATA.find((d) => d.dateString === dateString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  const title = devotional ? `${devotional.topic} | Daily Devotional` : "Daily Devotional";
-  const description = devotional ? devotional.explanation.slice(0, 160) : "Read today's daily devotional.";
+  const title = devotional
+    ? `${devotional.topic} | Daily Devotional`
+    : "Daily Devotional";
+  const description = devotional
+    ? devotional.explanation.slice(0, 160)
+    : "Read today's daily devotional.";
 
   return {
     title,
@@ -84,5 +90,9 @@ export default async function Page({ params }: Props) {
     DEVOTIONALS_DATA.find((d) => d.dateString === dateString) ??
     DEVOTIONALS_DATA[DEVOTIONALS_DATA.length - 1];
 
-  return <DevotionalView devotional={devotional} />;
+  return (
+    <DevotionalContainer devotional={devotional}>
+      <DevotionalView devotional={devotional} />
+    </DevotionalContainer>
+  );
 }

@@ -132,7 +132,7 @@ export default function YesterdayPromptCallout({
             stiffness: 380,
             damping: 18, // Bouncy spring effect
           }}
-          className="fixed left-6 bottom-8 z-50 cursor-pointer"
+          className="fixed left-6 bottom-26 z-50 cursor-pointer"
           onClick={handleNavigateToYesterday}
         >
           {/* Inner Shake Container */}

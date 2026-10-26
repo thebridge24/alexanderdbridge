@@ -47,7 +47,7 @@ export default function DevotionalArticle({
             {devotional.topic}
           </h1>
         </div>
-
+        <p>Text: {devotional.text}</p>
         <div className="p-6 rounded-2xl bg-white/5 border border-neutral-800/80 relative overflow-hidden text-center px-8">
           <p className="text-base md:text-lg font-medium text-neutral-200 leading-relaxed mb-3">
             {devotional.memoryVerse.verse}

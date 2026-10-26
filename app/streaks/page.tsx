@@ -215,9 +215,9 @@ export default function LeaderboardPage() {
         {/* Podium Area */}
         {!loading && sortedUsers.length > 0 && (
           <div className="pt-6 pb-2 relative overflow-visible">
-            <div className="flex items-end justify-center gap-3 sm:gap-6 min-h-[190px]">
+            <div className="flex items-end justify-center gap-3 sm:gap-6 min-h-47.5">
               {/* Rank 2 */}
-              <div className="flex flex-col items-center flex-1 max-w-[110px]">
+              <div className="flex flex-col items-center flex-1 max-w-27.5">
                 {top2 ? (
                   <>
                     <div className="relative mb-1.5">
@@ -255,7 +255,7 @@ export default function LeaderboardPage() {
                           : top2.highestStreak || 0}
                       </span>
                     </div>
-                    <div className="w-full h-20 bg-gradient-to-t from-neutral-900 to-slate-500/20 rounded-t-2xl border-t border-x border-slate-400/30 flex items-center justify-center text-2xl font-black text-slate-400/40 mt-2">
+                    <div className="w-full h-20 bg-linear-to-t from-neutral-900 to-slate-500/20 rounded-t-2xl border-t border-x border-slate-400/30 flex items-center justify-center text-2xl font-black text-slate-400/40 mt-2">
                       2
                     </div>
                   </>
@@ -265,7 +265,7 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Rank 1 (Winner) */}
-              <div className="flex flex-col items-center flex-1 max-w-[125px] -mt-5">
+              <div className="flex flex-col items-center flex-1 max-w-31.25 -mt-5">
                 {top1 ? (
                   <>
                     <div className="relative mb-1.5">
@@ -304,7 +304,7 @@ export default function LeaderboardPage() {
                           : top1.highestStreak || 0}
                       </span>
                     </div>
-                    <div className="w-full h-28 bg-gradient-to-t from-neutral-900 to-amber-500/20 rounded-t-2xl border-t border-x border-amber-400/40 flex items-center justify-center text-3xl font-black text-amber-400/40 mt-2">
+                    <div className="w-full h-28 bg-linear-to-t from-neutral-900 to-amber-500/20 rounded-t-2xl border-t border-x border-amber-400/40 flex items-center justify-center text-3xl font-black text-amber-400/40 mt-2">
                       1
                     </div>
                   </>
