@@ -64,7 +64,7 @@ export default function SettingsPage() {
           avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
           bannerUrl: user.user_metadata?.banner_url || "",
           birthday: user.user_metadata?.birthday || "15 Nov 2024", // Editable in profile
-          location: user.user_metadata?.location || "Cooper Square NY", // Editable in profile
+          location: user.user_metadata?.location || "Benin City, Nigeria", // Editable in profile
           bio: user.user_metadata?.bio || "Passionate about faith, devotion, and living a purposeful daily lifestyle!",
           verificationTier: tier,
         });

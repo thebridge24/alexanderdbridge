@@ -141,7 +141,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
                 >
                   {item.avatarUrl ? (
                     <div
-                      className={`size-6 rounded-full overflow-hidden border ${isActive ? "border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" : "border-neutral-700"}`}
+                      className={`size-6 rounded-full overflow-hidden border ${isActive ? "border-white" : "border-neutral-700"}`}
                     >
                       <img
                         src={item.avatarUrl}
