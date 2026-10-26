@@ -78,7 +78,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
             scale: isMinimized ? 0.96 : 1,
           }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full pointer-events-auto relative flex items-center justify-around px-1 rounded-full bg-black/20 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
+          className="w-full pointer-events-auto relative flex items-center justify-around px-1 rounded-full bg-black/5 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
           style={{ backdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent pointer-events-none" />

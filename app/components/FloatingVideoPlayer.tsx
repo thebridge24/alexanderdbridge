@@ -132,7 +132,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={handleExpand}
-          className="fixed bottom-12 left-4 sm:left-6 z-50 w-32 sm:w-40 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black cursor-pointer pointer-events-auto group transition-transform hover:scale-105"
+          className="fixed bottom-26 left-4 sm:left-6 z-50 w-32 sm:w-40 aspect-9/16 rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-black cursor-pointer pointer-events-auto group transition-transform hover:scale-105"
         >
           <video
             ref={videoRef}
@@ -145,7 +145,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
           />
           
           {/* Subtle live indicator & expand prompt */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
             <div className="flex items-center justify-between text-[10px] text-white font-mono">
               <span className="flex items-center gap-1 text-red-500 font-bold">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -177,7 +177,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-sm sm:max-w-md aspect-[9/16] max-h-[80vh] rounded-[28px] overflow-hidden shadow-2xl bg-neutral-950 border border-white/15 flex flex-col justify-between"
+              className="relative w-full max-w-sm sm:max-w-md aspect-9/16 max-h-[80vh] rounded-[28px] overflow-hidden shadow-2xl bg-neutral-950 border border-white/15 flex flex-col justify-between"
             >
               {/* Video Element */}
               <video
@@ -190,14 +190,14 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
               />
 
               {/* Dark Gradient Overlay - Top (Timer) */}
-              <div className="relative z-10 w-full p-4 bg-gradient-to-b from-black/70 via-black/25 to-transparent flex items-center justify-center">
+              <div className="relative z-10 w-full p-4 bg-linear-to-b from-black/70 via-black/25 to-transparent flex items-center justify-center">
                 <div className="px-3 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-xs font-mono text-white tracking-widest">
                   {timeLeft} remaining
                 </div>
               </div>
 
               {/* Dark Gradient Overlay - Bottom (Controls & Progress Bar) */}
-              <div className="relative z-10 w-full p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col gap-3">
+              <div className="relative z-10 w-full p-4 bg-linear-to-t from-black/80 via-black/30 to-transparent flex flex-col gap-3">
                 
                 {/* Progress bar */}
                 <div className="w-full bg-white/20 h-1 rounded-full overflow-hidden">
@@ -209,7 +209,7 @@ export default function FloatingVideoPlayer({ videos = [] }: FloatingVideoPlayer
 
                 {/* Control bar */}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-white/90 truncate max-w-[200px]">
+                  <span className="text-xs font-medium text-white/90 truncate max-w-50">
                     {activeVideo.title || "Daily Devotional Message"}
                   </span>
 
