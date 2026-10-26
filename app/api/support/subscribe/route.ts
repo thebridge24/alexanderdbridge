@@ -4,6 +4,7 @@ import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
 import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PLAN_CONFIGS, PlanType } from "@/lib/payments/plans";
 import { buildPeriodFields } from "@/lib/subscriptions/period";
+import { findUserIdByEmail } from "@/lib/subscriptions/activate";
 import { getSubscriptionEmail } from "@/lib/email/templates/subscription";
 import { sendNotification } from "@/lib/notifications/sender";
 
@@ -134,13 +135,10 @@ export async function POST(request: NextRequest) {
 
     // If not found from token, try looking up or finding by email
     if (!userId && userEmail) {
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const existing = usersData?.users?.find(
-        (u) => u.email?.toLowerCase() === userEmail?.toLowerCase(),
-      );
+      const existing = await findUserIdByEmail(supabase, userEmail);
       if (existing) {
         userId = existing.id;
-        userName = existing.user_metadata?.full_name || userName;
+        userName = existing.name || userName;
       }
     }
 

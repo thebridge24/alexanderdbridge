@@ -46,6 +46,29 @@ export default function SubscriptionsAdminPage() {
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [syncing, setSyncing] = useState(false);
+
+  // Adds subscriptions for paid transactions that never got linked to an account
+  const handleSyncPayments = async () => {
+    try {
+      setSyncing(true);
+      const res = await fetch("/api/admin/subscriptions/sync", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Sync failed");
+      const notes = (data.skipped || [])
+        .map((s: any) => `• ${s.email || s.reference}: ${s.message}`)
+        .join("\n");
+      alert(
+        `Checked ${data.checked} payment(s), added ${data.activated} subscription(s).` +
+          (notes ? `\n\nNot added:\n${notes}` : ""),
+      );
+      fetchSubscriptions();
+    } catch (err: any) {
+      alert(err.message || "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modals state
@@ -230,13 +253,23 @@ export default function SubscriptionsAdminPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
-        >
-          <FiPlus size={16} />
-          <span>Add Subscription</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleSyncPayments}
+            disabled={syncing}
+            title="Adds subscriptions for successful payments that were never linked to an account"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer w-fit disabled:opacity-50"
+          >
+            <span>{syncing ? "Syncing..." : "Sync Payments"}</span>
+          </button>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-fit"
+          >
+            <FiPlus size={16} />
+            <span>Add Subscription</span>
+          </button>
+        </div>
       </div>
 
       {/* Subscription Overview Cards */}

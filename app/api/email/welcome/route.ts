@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/email/sendbyte";
 import { getAuthRedirectUrl } from "@/lib/utils/auth";
+import { syncPaidTransactions } from "@/lib/subscriptions/claim";
 
 export async function POST(request: NextRequest) {
   const authorization = request.headers.get("authorization");
@@ -23,6 +24,14 @@ export async function POST(request: NextRequest) {
 
     const user = userData.user;
     const userEmail = user.email;
+
+    // Link any payment this person made before their account matched (paid with a different
+    // session, or the webhook missed them) so it shows up as a subscription.
+    if (userEmail) {
+      await syncPaidTransactions(supabase, { email: userEmail }).catch((err) =>
+        console.error("Could not link earlier payments:", err),
+      );
+    }
 
     if (!userEmail) {
       return NextResponse.json({ error: "User does not have an email address" }, { status: 400 });

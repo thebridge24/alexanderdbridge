@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
       returnUrl,
     } = body || {};
 
-    if (!plan || !["reader", "supporter", "sponsor", "patron"].includes(plan)) {
+    if (!plan || !(plan in PLAN_CONFIGS)) {
       return NextResponse.json(
-        { error: "Invalid plan specified. Choose reader, supporter, sponsor, or patron." },
+        { error: "Invalid plan specified. Choose reader, supporter, sponsor, partner, or patron." },
         { status: 400 },
       );
     }
@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
     // Paystack must return to the server verification endpoint first. Sending
     // users directly to the form leaves successful payments unprocessed.
     const defaultCallback = `${baseUrl}/api/support/paystack/verify`;
-    const callbackUrl = returnUrl || defaultCallback;
+    // Only same-site return URLs are honoured so payments always come back through verification
+    const callbackUrl =
+      typeof returnUrl === "string" && returnUrl.startsWith(baseUrl) ? returnUrl : defaultCallback;
 
     const result = await initializePaystackTransaction({
       email: userEmail.trim().toLowerCase(),

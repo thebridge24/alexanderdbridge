@@ -6,6 +6,7 @@ import { VERIFICATION_TIERS, VerificationTier } from "@/lib/utils/verification";
 import { PLAN_CONFIGS, PlanType, BillingCycle } from "@/lib/payments/plans";
 import { recordPaymentTransaction } from "@/lib/payments/transactions";
 import { buildPeriodFields } from "@/lib/subscriptions/period";
+import { findUserIdByEmail } from "@/lib/subscriptions/activate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,10 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!userId) {
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const existingUser = usersData?.users?.find(
-        (u) => u.email?.toLowerCase() === cleanEmail,
-      );
+      const existingUser = await findUserIdByEmail(supabase, cleanEmail);
       if (existingUser) {
         userId = existingUser.id;
       }
