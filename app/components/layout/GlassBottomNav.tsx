@@ -44,7 +44,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
   });
 
   return (
-    <div className=" fixed bottom-6 z-9999 left-0 w-full flex justify-center">
+    <div className=" fixed bottom-0 z-9999 left-0 w-full flex justify-center">
       <svg
         className="hidden pointer-events-none absolute w-0 h-0"
         aria-hidden="true"
@@ -69,7 +69,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
       </svg>
 
       <div
-        className={` flex justify-center items-center px-4 pointer-events-none w-full max-w-md ${className}`}
+        className={`relative z-10 pb-6 flex justify-center items-center px-4 pointer-events-none w-full max-w-md ${className}`}
       >
         <motion.nav
           initial={false}
@@ -78,22 +78,42 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
             scale: isMinimized ? 0.96 : 1,
           }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full pointer-events-auto relative flex items-center justify-around p-1.5 rounded-full bg-black/20 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
+          className="w-full pointer-events-auto relative flex items-center justify-around px-1 rounded-full bg-black/20 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
           style={{ backdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
 
           {items.map((item) => {
-            // Sub-url active check: if href is /devotional, /devotional/2026-10-25 will also be active
-            const isActive = item.href
-              ? item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href)
-              : false;
+            // Determine route activity cleanly under the /devotional/ namespace
+            const isActive = (() => {
+              if (!item.href) return false;
+
+              // Direct root homepage check
+              if (item.href === "/") return pathname === "/";
+
+              // Standard exact route or specific sub-path match (e.g. /devotional/community)
+              if (item.href !== "/devotional") {
+                return (
+                  pathname === item.href || pathname.startsWith(`${item.href}/`)
+                );
+              }
+
+              // Special check for the main Devotional tab:
+              // Active on /devotional OR /devotional/[dateString], but NOT on /devotional/community, /devotional/journal, etc.
+              const isOtherDevotionalSection =
+                pathname.startsWith("/devotional/community") ||
+                pathname.startsWith("/devotional/journal") ||
+                pathname.startsWith("/devotional/profile") ||
+                pathname.startsWith("/devotional/profile-settings") ||
+                pathname.startsWith("/devotional/messages");
+
+              return (
+                pathname.startsWith("/devotional") && !isOtherDevotionalSection
+              );
+            })();
 
             const IconComponent =
               isActive && item.activeIcon ? item.activeIcon : item.icon;
-
             return (
               <button
                 key={item.id}
@@ -102,7 +122,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
                   if (item.onClick) item.onClick();
                   if (item.href) router.push(item.href);
                 }}
-                className={`relative group flex flex-col items-center justify-center py-1 sm:px-4 rounded-full transition-all duration-300 cursor-pointer w-full ${
+                className={`relative group flex flex-col items-center justify-center py-1 my-1 sm:px-4 rounded-full transition-all duration-300 cursor-pointer w-full ${
                   isActive
                     ? "bg-white/10 text-white "
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
@@ -121,7 +141,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
                 >
                   {item.avatarUrl ? (
                     <div
-                      className={`size-7 rounded-full overflow-hidden border ${isActive ? "border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" : "border-neutral-700"}`}
+                      className={`size-6 rounded-full overflow-hidden border ${isActive ? "border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" : "border-neutral-700"}`}
                     >
                       <img
                         src={item.avatarUrl}
@@ -148,6 +168,8 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
           })}
         </motion.nav>
       </div>
+            <div className="w-full absolute bottom-0 h-16 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none" />
+
     </div>
   );
 }

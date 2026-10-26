@@ -114,7 +114,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="dark selection:bg-neutral-800 selection:text-white"
+      className="selection:bg-neutral-800 selection:text-white"
     >
       <body
         className="font-sans bg-black text-white antialiased min-h-screen tracking-tight"
