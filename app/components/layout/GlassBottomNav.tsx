@@ -69,16 +69,16 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
       </svg>
 
       <div
-        className={`relative z-10 pb-6 flex justify-center items-center px-4 pointer-events-none w-full max-w-md ${className}`}
+        className={`relative z-10 pb-6 flex px-4 pointer-events-none w-full max-w-md ${className}`}
       >
         <motion.nav
           initial={false}
           animate={{
-            y: isMinimized ? 8 : 0,
-            scale: isMinimized ? 0.96 : 1,
+            y: isMinimized ? 12 : 0,
+            scale: isMinimized ? 0.86 : 1,
           }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full pointer-events-auto relative flex items-center justify-around px-1 rounded-full bg-black/5 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
+          className="w-full pointer-events-auto relative flex items-center justify-around py-1 pt-1.25 px-1.25 rounded-full bg-black/5 border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)] backdrop-blur-2xl backdrop-saturate-200"
           style={{ backdropFilter: "blur(20px) saturate(180%)" }}
         >
           <div className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
@@ -122,9 +122,9 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
                   if (item.onClick) item.onClick();
                   if (item.href) router.push(item.href);
                 }}
-                className={`relative group flex flex-col items-center justify-center py-1 my-1 sm:px-4 rounded-full transition-all duration-300 cursor-pointer w-full ${
+                className={`relative group flex flex-col items-center justify-center h-full py-1 sm:px-4 rounded-full transition-all duration-300 cursor-pointer w-full ${
                   isActive
-                    ? "bg-white/10 text-white "
+                    ? "bg-primary/50 text-white "
                     : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
                 }`}
               >

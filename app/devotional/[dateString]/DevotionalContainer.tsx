@@ -85,7 +85,7 @@ export default function DevotionalContainer({ children }: DevotionalContainerPro
       href: "/journal",
       onClick: () => setActiveTab("journal"),
       icon: (props) => <LuNotebookPen className={props?.className} />,
-      activeIcon: (props) => <HiPencilAlt className={props?.className} />,
+      activeIcon: (props) => <LuNotebookPen className={props?.className} />,
     },
     {
       id: "account",

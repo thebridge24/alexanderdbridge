@@ -258,7 +258,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto h-[75vh] max-h-162.5 bg-black border-t border-neutral-800 rounded-t-4xl z-50 flex flex-col overflow-hidden shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto h-[75vh] max-h-162.5 bg-black border-t border-neutral-800 rounded-t-4xl z-50000 flex flex-col overflow-hidden shadow-2xl"
           >
             {/* Top Handle Bar */}
             <div className="w-full flex flex-col items-center pt-3 pb-2 shrink-0 relative border-b border-neutral-900">
