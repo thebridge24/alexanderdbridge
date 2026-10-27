@@ -4,23 +4,28 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoArrowBack } from "react-icons/io5";
+import { IoArrowBack, IoMic } from "react-icons/io5";
 import { FiCheck, FiTrash, FiPlus, FiEye, FiEdit3 } from "react-icons/fi";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import DevotionalArticle from "../../../components/DevotionalArticle"; 
+import DevotionalArticle from "../../../components/DevotionalArticle";
 import { formatDate } from "@/lib/format-date";
 import Preloader from "@/app/components/ui/Preloader";
+import { AudioRecordingStudio } from "@/app/components/audio/AudioRecordingStudio";
 
 export default function DevotionalEditorPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const dateParam = searchParams.get("date") || new Date().toISOString().slice(0, 10);
+  const dateParam =
+    searchParams.get("date") || new Date().toISOString().slice(0, 10);
 
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Form States
   const [dateString, setDateString] = useState(dateParam);
@@ -32,6 +37,10 @@ export default function DevotionalEditorPage() {
   const [explanation, setExplanation] = useState("");
   const [neededSteps, setNeededSteps] = useState<string[]>([""]);
   const [prayerPoints, setPrayerPoints] = useState<string[]>([""]);
+
+  // Devotional audio studio
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [existingAudioUrl, setExistingAudioUrl] = useState<string | null>(null);
 
   // Auto-generate display date when dateString changes
   useEffect(() => {
@@ -59,7 +68,9 @@ export default function DevotionalEditorPage() {
     async function loadDevotionalData() {
       try {
         setFetching(true);
-        const res = await fetch(`/api/devotionals/${encodeURIComponent(dateParam)}`);
+        const res = await fetch(
+          `/api/devotionals/${encodeURIComponent(dateParam)}`,
+        );
         if (res.ok) {
           const data = await res.json();
           if (data.devotional) {
@@ -69,8 +80,16 @@ export default function DevotionalEditorPage() {
             setText(d.text || "");
             setMemoryVerse(d.memoryVerse || { verse: "", reference: "" });
             setExplanation(d.explanation || "");
-            setNeededSteps(Array.isArray(d.neededSteps) && d.neededSteps.length ? d.neededSteps : [""]);
-            setPrayerPoints(Array.isArray(d.prayerPoints) && d.prayerPoints.length ? d.prayerPoints : [""]);
+            setNeededSteps(
+              Array.isArray(d.neededSteps) && d.neededSteps.length
+                ? d.neededSteps
+                : [""],
+            );
+            setPrayerPoints(
+              Array.isArray(d.prayerPoints) && d.prayerPoints.length
+                ? d.prayerPoints
+                : [""],
+            );
           }
         } else {
           // If not found, fetch latest to calculate next day number
@@ -78,7 +97,8 @@ export default function DevotionalEditorPage() {
           if (listRes.ok) {
             const listData = await listRes.json();
             if (listData.devotionals && listData.devotionals.length > 0) {
-              const latest = listData.devotionals[listData.devotionals.length - 1];
+              const latest =
+                listData.devotionals[listData.devotionals.length - 1];
               if (latest.dayNumber) {
                 setDayNumber(String(latest.dayNumber + 1));
               }
@@ -102,7 +122,8 @@ export default function DevotionalEditorPage() {
     setNeededSteps(updated);
   };
   const handleRemoveStep = (index: number) => {
-    if (neededSteps.length > 1) setNeededSteps(neededSteps.filter((_, i) => i !== index));
+    if (neededSteps.length > 1)
+      setNeededSteps(neededSteps.filter((_, i) => i !== index));
   };
 
   const handleAddPrayer = () => setPrayerPoints([...prayerPoints, ""]);
@@ -112,7 +133,8 @@ export default function DevotionalEditorPage() {
     setPrayerPoints(updated);
   };
   const handleRemovePrayer = (index: number) => {
-    if (prayerPoints.length > 1) setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
+    if (prayerPoints.length > 1)
+      setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,11 +155,14 @@ export default function DevotionalEditorPage() {
     };
 
     try {
-      const response = await fetch(`/api/devotionals/${encodeURIComponent(dateString)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `/api/devotionals/${encodeURIComponent(dateString)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
       // If PUT fails because it doesn't exist yet, try POST
       let res = response;
@@ -152,10 +177,16 @@ export default function DevotionalEditorPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save devotional");
 
-      setMessage({ type: "success", text: "Devotional saved and published successfully!" });
+      setMessage({
+        type: "success",
+        text: "Devotional saved and published successfully!",
+      });
       setTimeout(() => router.push("/admin/devotionals"), 1200);
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "An error occurred while saving." });
+      setMessage({
+        type: "error",
+        text: err.message || "An error occurred while saving.",
+      });
     } finally {
       setLoading(false);
     }
@@ -174,9 +205,12 @@ export default function DevotionalEditorPage() {
           </Link>
           <div>
             <h1 className="text-xl font-black tracking-tight text-white">
-              Create New/Edit ({formatDate(dateString, { includeWeekday: true })})
+              Create New/Edit (
+              {formatDate(dateString, { includeWeekday: true })})
             </h1>
-            <p className="text-xs text-neutral-500">Day {dayNumber} • {displayDate}</p>
+            <p className="text-xs text-neutral-500">
+              Day {dayNumber} • {displayDate}
+            </p>
           </div>
         </div>
 
@@ -249,199 +283,285 @@ export default function DevotionalEditorPage() {
         </div>
       ) : (
         /* EDIT FORM (Bottom-Border-Only Inputs & Auto-Growing Textareas) */
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:p-6 rounded-3xl bg-black md:border border-white/15">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                Publish Date
-              </label>
-              <input
-                type="date"
-                required
-                value={dateString}
-                onChange={(e) => setDateString(e.target.value)}
-                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
-              />
+        <>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:p-6 rounded-3xl bg-black md:border border-white/15">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                  Publish Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={dateString}
+                  onChange={(e) => setDateString(e.target.value)}
+                  className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                  Day Number
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={dayNumber}
+                  onChange={(e) => setDayNumber(e.target.value)}
+                  className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                Day Number
-              </label>
-              <input
-                type="number"
-                required
-                value={dayNumber}
-                onChange={(e) => setDayNumber(e.target.value)}
-                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors font-mono"
-              />
-            </div>
-          </div>
-
-          <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-6">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                Topic / Title
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Knowing God Personally"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="w-full bg-transparent text-lg font-bold text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
-              />
-            </div>
-
-            <div className="flex gap-4 w-full">
-                <div className="w-full">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                Scripture Reference
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. John 17:3"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="w-full bg-transparent text-sm text-neutral-300 pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
-              />  
-                </div>
-            
-
-               <div className="w-full">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
-                  Verse Reference
+            <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                  Topic / Title
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="John 17:3, KJV"
-                  value={memoryVerse.reference}
-                  onChange={(e) => setMemoryVerse({ ...memoryVerse, reference: e.target.value })}
-                  className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
+                  placeholder="e.g. Knowing God Personally"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  className="w-full bg-transparent text-lg font-bold text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 pt-2">
-              <div className="">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
-                  Memory Verse Quote
+              <div className="flex gap-4 w-full">
+                <div className="w-full">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                    Scripture Reference
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. John 17:3"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    className="w-full bg-transparent text-sm text-neutral-300 pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
+                    Verse Reference
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="John 17:3, KJV"
+                    value={memoryVerse.reference}
+                    onChange={(e) =>
+                      setMemoryVerse({
+                        ...memoryVerse,
+                        reference: e.target.value,
+                      })
+                    }
+                    className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 pt-2">
+                <div className="">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
+                    Memory Verse Quote
+                  </label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="“And this is life eternal...”"
+                    value={memoryVerse.verse}
+                    onChange={(e) =>
+                      setMemoryVerse({ ...memoryVerse, verse: e.target.value })
+                    }
+                    className="w-full text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-20"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                  Devotional Body / Explanation
                 </label>
                 <textarea
                   required
-                  rows={2}
-                  placeholder="“And this is life eternal...”"
-                  value={memoryVerse.verse}
-                  onChange={(e) => setMemoryVerse({ ...memoryVerse, verse: e.target.value })}
-                  className="w-full text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-20"
+                  rows={6}
+                  placeholder="Elaborate on the devotional message..."
+                  value={explanation}
+                  onChange={(e) => setExplanation(e.target.value)}
+                  className="w-full bg-black/50 text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-40"
                 />
               </div>
-             
             </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                Devotional Body / Explanation
-              </label>
-              <textarea
-                required
-                rows={6}
-                placeholder="Elaborate on the devotional message..."
-                value={explanation}
-                onChange={(e) => setExplanation(e.target.value)}
-                className="w-full bg-black/50 text-sm text-neutral-200 p-4 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-40"
-              />
+            {/* Needed Steps & Prayer Points */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 ">
+              <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    Needed Steps
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleAddStep}
+                    className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
+                  >
+                    <FiPlus size={12} /> Add Step
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {neededSteps.map((step, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <span className="font-mono text-xs font-bold text-neutral-500 w-6">
+                        {idx + 1}.
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Step instruction..."
+                        value={step}
+                        onChange={(e) => handleStepChange(idx, e.target.value)}
+                        className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
+                      />
+                      {neededSteps.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveStep(idx)}
+                          className="text-neutral-500 hover:text-primary p-1"
+                        >
+                          <FiTrash size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    Prayer Points
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleAddPrayer}
+                    className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
+                  >
+                    <FiPlus size={12} /> Add Prayer
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {prayerPoints.map((prayer, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <span className="font-mono text-xs font-bold text-neutral-500 w-6">
+                        {idx + 1}.
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Prayer point..."
+                        value={prayer}
+                        onChange={(e) =>
+                          handlePrayerChange(idx, e.target.value)
+                        }
+                        className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
+                      />
+                      {prayerPoints.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePrayer(idx)}
+                          className="text-neutral-500 hover:text-primary p-1"
+                        >
+                          <FiTrash size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+
+            <div className="pt-4 flex justify-end gap-3 md:gap-4">
+              <Link
+                href="/admin/devotionals"
+                className="px-6 py-3 rounded-full border border-white/15 bg-black text-xs font-bold text-neutral-300 hover:bg-black transition-all"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full md:w-auto px-8 py-3 rounded-full bg-red-600 hover:bg-primary text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <FiCheck size={16} />
+                {loading ? "Saving Devotional..." : "Publish Devotional"}
+              </button>
+            </div>
+          </form>
+          {/* Integrated Section inside DevotionalEditorContent.tsx  */}
+          <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  Devotional Voice Audio
+                </h3>
+                <p className="text-[11px] text-neutral-500">
+                  Record audio narrative for this daily entry.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsStudioOpen(true)}
+                className="px-4 py-2 rounded-full bg-red-600/10 border border-red-500/20 text-red-500 font-bold text-xs flex items-center gap-1.5 hover:bg-red-600/20 transition-all cursor-pointer"
+              >
+                <IoMic className="size-4" />
+                {existingAudioUrl ? "Re-record Audio" : "Record Voice"}
+              </button>
+            </div>
+
+            {existingAudioUrl && (
+              <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <audio src={existingAudioUrl} controls className="w-full h-8" />
+              </div>
+            )}
+
+            <AudioRecordingStudio
+              isOpen={isStudioOpen}
+              onClose={() => setIsStudioOpen(false)}
+              dateString={dateString}
+              initialScript={explanation || topic}
+              onSaveAudio={async (blob, duration) => {
+                try {
+                  // Temporary local preview, until backend upload is connected.
+                  const previewUrl = URL.createObjectURL(blob);
+
+                  setExistingAudioUrl((previousUrl) => {
+                    if (previousUrl?.startsWith("blob:")) {
+                      URL.revokeObjectURL(previousUrl);
+                    }
+
+                    return previewUrl;
+                  });
+
+                  setIsStudioOpen(false);
+
+                  console.log("Audio recording ready:", {
+                    dateString,
+                    duration,
+                    size: blob.size,
+                    type: blob.type,
+                  });
+                } catch (error) {
+                  console.error("Could not prepare audio preview:", error);
+                  throw error;
+                }
+              }}
+            />
           </div>
-
-          {/* Needed Steps & Prayer Points */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 ">
-            <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Needed Steps</h3>
-                <button
-                  type="button"
-                  onClick={handleAddStep}
-                  className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
-                >
-                  <FiPlus size={12} /> Add Step
-                </button>
-              </div>
-              <div className="space-y-3">
-                {neededSteps.map((step, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <span className="font-mono text-xs font-bold text-neutral-500 w-6">{idx + 1}.</span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Step instruction..."
-                      value={step}
-                      onChange={(e) => handleStepChange(idx, e.target.value)}
-                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
-                    />
-                    {neededSteps.length > 1 && (
-                      <button type="button" onClick={() => handleRemoveStep(idx)} className="text-neutral-500 hover:text-primary p-1">
-                        <FiTrash size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Prayer Points</h3>
-                <button
-                  type="button"
-                  onClick={handleAddPrayer}
-                  className="text-xs font-bold text-primary hover:text-red-400 flex items-center gap-1"
-                >
-                  <FiPlus size={12} /> Add Prayer
-                </button>
-              </div>
-              <div className="space-y-3">
-                {prayerPoints.map((prayer, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <span className="font-mono text-xs font-bold text-neutral-500 w-6">{idx + 1}.</span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Prayer point..."
-                      value={prayer}
-                      onChange={(e) => handlePrayerChange(idx, e.target.value)}
-                      className="flex-1 bg-transparent text-xs text-white py-2 border-b border-white/15 focus:border-primary outline-none"
-                    />
-                    {prayerPoints.length > 1 && (
-                      <button type="button" onClick={() => handleRemovePrayer(idx)} className="text-neutral-500 hover:text-primary p-1">
-                        <FiTrash size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 flex justify-end gap-3 md:gap-4">
-            <Link
-              href="/admin/devotionals"
-              className="px-6 py-3 rounded-full border border-white/15 bg-black text-xs font-bold text-neutral-300 hover:bg-black transition-all"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full md:w-auto px-8 py-3 rounded-full bg-red-600 hover:bg-primary text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <FiCheck size={16} />
-              {loading ? "Saving Devotional..." : "Publish Devotional"}
-            </button>
-          </div>
-        </form>
+        </>
       )}
     </div>
   );

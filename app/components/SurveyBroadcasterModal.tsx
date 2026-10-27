@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -158,10 +159,14 @@ export default function SurveyBroadcasterModal({
   }, [isOpen, defaultCategory]);
 
   useEffect(() => {
-    if (isOpen && activeTab === "editor" && editorRef.current) {
+    if (!isOpen || activeTab !== "editor" || !editorRef.current) {
+      return;
+    }
+
+    if (editorRef.current.innerText !== rawText) {
       editorRef.current.innerText = rawText;
     }
-  }, [isOpen, activeTab, rawText]);
+  }, [isOpen, activeTab]);
 
   const paragraphs = rawText
     .split(/\n\s*\n|\n/)
@@ -192,19 +197,31 @@ export default function SurveyBroadcasterModal({
 
   const handleBroadcast = async () => {
     if (!subject.trim()) {
-      setResultMessage({ type: "error", text: "Please enter a message subject/title." });
+      setResultMessage({
+        type: "error",
+        text: "Please enter a message subject/title.",
+      });
       return;
     }
     if (paragraphs.length === 0) {
-      setResultMessage({ type: "error", text: "Please enter at least one paragraph of text." });
+      setResultMessage({
+        type: "error",
+        text: "Please enter at least one paragraph of text.",
+      });
       return;
     }
     if (!sendEmail && !sendPush) {
-      setResultMessage({ type: "error", text: "Please select at least one channel (Email or Push)." });
+      setResultMessage({
+        type: "error",
+        text: "Please select at least one channel (Email or Push).",
+      });
       return;
     }
     if (target === "selected_users" && selectedUsers.length === 0) {
-      setResultMessage({ type: "error", text: "Please select at least one user to broadcast to." });
+      setResultMessage({
+        type: "error",
+        text: "Please select at least one user to broadcast to.",
+      });
       return;
     }
 
@@ -239,14 +256,20 @@ export default function SurveyBroadcasterModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Broadcast failed");
 
-      if (data.failedDetails && Array.isArray(data.failedDetails) && data.failedDetails.length > 0) {
+      if (
+        data.failedDetails &&
+        Array.isArray(data.failedDetails) &&
+        data.failedDetails.length > 0
+      ) {
         setFailedEmails(data.failedDetails);
-        const newFailedItems: FailedEmailItem[] = data.failedDetails.map((f: any, idx: number) => ({
-          id: `broadcast-${Date.now()}-${idx}`,
-          email: f.email,
-          errorReason: f.error || "Delivery failure",
-          failedAt: f.timestamp || new Date().toISOString(),
-        }));
+        const newFailedItems: FailedEmailItem[] = data.failedDetails.map(
+          (f: any, idx: number) => ({
+            id: `broadcast-${Date.now()}-${idx}`,
+            email: f.email,
+            errorReason: f.error || "Delivery failure",
+            failedAt: f.timestamp || new Date().toISOString(),
+          }),
+        );
         setFailedMails((prev) => [...newFailedItems, ...prev]);
       }
 
@@ -262,7 +285,10 @@ export default function SurveyBroadcasterModal({
         });
       }
     } catch (err: any) {
-      setResultMessage({ type: "error", text: err.message || "Failed to deliver broadcast." });
+      setResultMessage({
+        type: "error",
+        text: err.message || "Failed to deliver broadcast.",
+      });
     } finally {
       setIsSending(false);
     }
@@ -290,7 +316,10 @@ export default function SurveyBroadcasterModal({
 
   const emailHtmlPreview = getBroadcastEmailHtml({
     subject,
-    paragraphs: paragraphs.length > 0 ? paragraphs : ["Your paragraph content will appear here..."],
+    paragraphs:
+      paragraphs.length > 0
+        ? paragraphs
+        : ["Your paragraph content will appear here..."],
     recipientName: "Believer",
     ctaText: "Open Daily Devotional",
     ctaUrl: "https://alexanderdbridge.com/devotional",
@@ -438,10 +467,13 @@ export default function SurveyBroadcasterModal({
                     >
                       {recipientCategories.map((cat) => (
                         <option key={cat.id} value={cat.id}>
-                          {cat.label} {cat.count !== undefined ? `(${cat.count})` : ""}
+                          {cat.label}{" "}
+                          {cat.count !== undefined ? `(${cat.count})` : ""}
                         </option>
                       ))}
-                      <option value="selected_users">Select Specific Individuals</option>
+                      <option value="selected_users">
+                        Select Specific Individuals
+                      </option>
                     </select>
 
                     {/* Individual User Search & Selection Toggle Tags */}
@@ -461,26 +493,31 @@ export default function SurveyBroadcasterModal({
                             className="w-full bg-black border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-600"
                           />
 
-                          {isUserDropdownOpen && userSearchQuery.trim().length > 0 && (
-                            <div className="absolute z-30 mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl max-h-40 overflow-y-auto">
-                              {filteredUsersList.length > 0 ? (
-                                filteredUsersList.map((u) => (
-                                  <div
-                                    key={u.id}
-                                    onClick={() => handleSelectUser(u)}
-                                    className="px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 cursor-pointer flex flex-col border-b border-neutral-800/50 last:border-none"
-                                  >
-                                    <span className="font-semibold text-white">{u.name}</span>
-                                    <span className="text-[10px] text-neutral-400 font-mono">{u.email}</span>
+                          {isUserDropdownOpen &&
+                            userSearchQuery.trim().length > 0 && (
+                              <div className="absolute z-30 mt-1 w-full bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl max-h-40 overflow-y-auto">
+                                {filteredUsersList.length > 0 ? (
+                                  filteredUsersList.map((u) => (
+                                    <div
+                                      key={u.id}
+                                      onClick={() => handleSelectUser(u)}
+                                      className="px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 cursor-pointer flex flex-col border-b border-neutral-800/50 last:border-none"
+                                    >
+                                      <span className="font-semibold text-white">
+                                        {u.name}
+                                      </span>
+                                      <span className="text-[10px] text-neutral-400 font-mono">
+                                        {u.email}
+                                      </span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="px-3 py-2 text-xs text-neutral-500">
+                                    No users found
                                   </div>
-                                ))
-                              ) : (
-                                <div className="px-3 py-2 text-xs text-neutral-500">
-                                  No users found
-                                </div>
-                              )}
-                            </div>
-                          )}
+                                )}
+                              </div>
+                            )}
                         </div>
 
                         {selectedUsers.length > 0 && (
@@ -490,7 +527,9 @@ export default function SurveyBroadcasterModal({
                                 key={u.email}
                                 className="inline-flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-white text-[11px] px-2.5 py-1 rounded-full font-medium"
                               >
-                                <span className="truncate max-w-30">{u.name || u.email}</span>
+                                <span className="truncate max-w-30">
+                                  {u.name || u.email}
+                                </span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveUser(u.email)}
@@ -544,7 +583,6 @@ export default function SurveyBroadcasterModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-neutral-400 gap-2">
                   <span>Email Template:</span>
-                 
                 </div>
                 <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-2 overflow-hidden">
                   <iframe
@@ -560,7 +598,8 @@ export default function SurveyBroadcasterModal({
             {activeTab === "push_preview" && (
               <div className="space-y-4 py-2">
                 <p className="text-xs text-neutral-400">
-                  How this notification will appear on mobile phones and desktop browsers:
+                  How this notification will appear on mobile phones and desktop
+                  browsers:
                 </p>
 
                 <div className="max-w-sm mx-auto bg-neutral-950/95 border border-primary/40 rounded-2xl p-4 shadow-2xl flex items-start gap-3 text-left">
@@ -572,10 +611,13 @@ export default function SurveyBroadcasterModal({
                       <h5 className="text-xs font-bold text-white truncate">
                         {subject || "Notification Title"}
                       </h5>
-                      <span className="text-[10px] text-neutral-400 shrink-0">Just now</span>
+                      <span className="text-[10px] text-neutral-400 shrink-0">
+                        Just now
+                      </span>
                     </div>
                     <p className="text-xs text-neutral-300 mt-1 line-clamp-3 leading-relaxed">
-                      {paragraphs[0] || "Your broadcast message will display here..."}
+                      {paragraphs[0] ||
+                        "Your broadcast message will display here..."}
                     </p>
                   </div>
                 </div>
@@ -660,7 +702,7 @@ export default function SurveyBroadcasterModal({
               className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider bg-red-600 text-white hover:bg-primary active:scale-95 disabled:opacity-50 shadow-xl shadow-red-900/40 transition-all cursor-pointer"
             >
               <Send className="size-3.5 shrink-0" />
-              {isSending ? <Preloader />: "Broadcast Message"}
+              {isSending ? <Preloader /> : "Broadcast Message"}
             </button>
           </div>
         </motion.div>
@@ -678,7 +720,9 @@ export default function SurveyBroadcasterModal({
             <div className="px-5 py-4 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <AlertTriangle className="size-5 text-amber-500" />
-                <h4 className="text-sm font-bold text-white">Failed Email Deliveries</h4>
+                <h4 className="text-sm font-bold text-white">
+                  Failed Email Deliveries
+                </h4>
               </div>
               <button
                 onClick={() => setIsFailedMailsOpen(false)}
@@ -691,7 +735,8 @@ export default function SurveyBroadcasterModal({
             <div className="p-4 overflow-y-auto space-y-3 flex-1 text-left">
               {failedMails.length === 0 ? (
                 <div className="py-12 text-center text-xs text-neutral-500">
-                  No failed emails recorded. All broadcasts delivered successfully!
+                  No failed emails recorded. All broadcasts delivered
+                  successfully!
                 </div>
               ) : (
                 failedMails.map((item) => (
@@ -711,11 +756,17 @@ export default function SurveyBroadcasterModal({
                     <button
                       type="button"
                       disabled={isResending === item.id}
-                      onClick={() => handleResendFailedEmail(item.id, item.email)}
+                      onClick={() =>
+                        handleResendFailedEmail(item.id, item.email)
+                      }
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-primary disabled:opacity-50 text-white text-xs font-semibold shrink-0 cursor-pointer shadow-md transition-all"
                     >
-                      <RotateCcw className={`size-3 ${isResending === item.id ? "animate-spin" : ""}`} />
-                      <span>{isResending === item.id ? "Resending..." : "Resend"}</span>
+                      <RotateCcw
+                        className={`size-3 ${isResending === item.id ? "animate-spin" : ""}`}
+                      />
+                      <span>
+                        {isResending === item.id ? "Resending..." : "Resend"}
+                      </span>
                     </button>
                   </div>
                 ))

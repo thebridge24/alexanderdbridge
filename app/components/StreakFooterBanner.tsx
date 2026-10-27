@@ -122,7 +122,7 @@ export default function StreakFooterBanner({
       {/* Full-screen constraint boundary for dragging */}
       <div
         ref={dragConstraintsRef}
-        className="fixed inset-0 pointer-events-none z-50 p-4"
+        className="fixed inset-0 pointer-events-none z-500000 p-4"
       >
         {/* Floating Draggable Reading Timer */}
         {!isCompleted && (
@@ -131,7 +131,7 @@ export default function StreakFooterBanner({
             dragConstraints={dragConstraintsRef}
             dragElastic={0.1}
             dragMomentum={false}
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             className="pointer-events-auto absolute top-6 right-6 flex items-center gap-2.5 px-3.5 py-2 bg-neutral-950/90 backdrop-blur-md border border-neutral-800 rounded-full shadow-2xl cursor-grab active:cursor-grabbing hover:border-neutral-700 transition-colors select-none"
           >
@@ -205,7 +205,7 @@ export default function StreakFooterBanner({
         {/* Modal Celebration Popup */}
         <AnimatePresence>
           {showCelebration && (
-            <div className="fixed inset-0 z-100 flex items-end justify-center p-4 bg-black/70 backdrop-blur-xs">
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
               <motion.div
                 initial={{ scale: 0.85, opacity: 0, y: 300 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
