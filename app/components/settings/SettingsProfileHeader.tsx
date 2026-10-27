@@ -102,7 +102,7 @@ export function SettingsProfileHeader({
                 tier={profile.verificationTier}
                 name={profile.name}
                 showLabel
-                size="sm"
+                size="lg"
               />
             )}
           </div>
