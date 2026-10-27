@@ -284,6 +284,67 @@ export default function DevotionalEditorPage() {
       ) : (
         /* EDIT FORM (Bottom-Border-Only Inputs & Auto-Growing Textareas) */
         <>
+         {/* Integrated Section inside DevotionalEditorContent.tsx  */}
+          <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  Devotional Voice Audio
+                </h3>
+                <p className="text-[11px] text-neutral-500">
+                  Record audio for this devotional.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsStudioOpen(true)}
+                className="px-4 py-2 rounded-full bg-red-600/10 border border-red-500/20 text-red-500 font-bold text-xs flex items-center gap-1.5 hover:bg-red-600/20 transition-all cursor-pointer"
+              >
+                <IoMic className="size-4" />
+                {existingAudioUrl ? "Re-record Audio" : "Record Voice"}
+              </button>
+            </div>
+
+            {existingAudioUrl && (
+              <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <audio src={existingAudioUrl} controls className="w-full h-8" />
+              </div>
+            )}
+
+            <AudioRecordingStudio
+              isOpen={isStudioOpen}
+              onClose={() => setIsStudioOpen(false)}
+              dateString={dateString}
+              initialScript={explanation || topic}
+              onSaveAudio={async (blob, duration) => {
+                try {
+                  // Temporary local preview, until backend upload is connected.
+                  const previewUrl = URL.createObjectURL(blob);
+
+                  setExistingAudioUrl((previousUrl) => {
+                    if (previousUrl?.startsWith("blob:")) {
+                      URL.revokeObjectURL(previousUrl);
+                    }
+
+                    return previewUrl;
+                  });
+
+                  setIsStudioOpen(false);
+
+                  console.log("Audio recording ready:", {
+                    dateString,
+                    duration,
+                    size: blob.size,
+                    type: blob.type,
+                  });
+                } catch (error) {
+                  console.error("Could not prepare audio preview:", error);
+                  throw error;
+                }
+              }}
+            />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:p-6 rounded-3xl bg-black md:border border-white/15">
               <div>
@@ -500,67 +561,7 @@ export default function DevotionalEditorPage() {
               </button>
             </div>
           </form>
-          {/* Integrated Section inside DevotionalEditorContent.tsx  */}
-          <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                  Devotional Voice Audio
-                </h3>
-                <p className="text-[11px] text-neutral-500">
-                  Record audio narrative for this daily entry.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsStudioOpen(true)}
-                className="px-4 py-2 rounded-full bg-red-600/10 border border-red-500/20 text-red-500 font-bold text-xs flex items-center gap-1.5 hover:bg-red-600/20 transition-all cursor-pointer"
-              >
-                <IoMic className="size-4" />
-                {existingAudioUrl ? "Re-record Audio" : "Record Voice"}
-              </button>
-            </div>
-
-            {existingAudioUrl && (
-              <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <audio src={existingAudioUrl} controls className="w-full h-8" />
-              </div>
-            )}
-
-            <AudioRecordingStudio
-              isOpen={isStudioOpen}
-              onClose={() => setIsStudioOpen(false)}
-              dateString={dateString}
-              initialScript={explanation || topic}
-              onSaveAudio={async (blob, duration) => {
-                try {
-                  // Temporary local preview, until backend upload is connected.
-                  const previewUrl = URL.createObjectURL(blob);
-
-                  setExistingAudioUrl((previousUrl) => {
-                    if (previousUrl?.startsWith("blob:")) {
-                      URL.revokeObjectURL(previousUrl);
-                    }
-
-                    return previewUrl;
-                  });
-
-                  setIsStudioOpen(false);
-
-                  console.log("Audio recording ready:", {
-                    dateString,
-                    duration,
-                    size: blob.size,
-                    type: blob.type,
-                  });
-                } catch (error) {
-                  console.error("Could not prepare audio preview:", error);
-                  throw error;
-                }
-              }}
-            />
-          </div>
+         
         </>
       )}
     </div>
