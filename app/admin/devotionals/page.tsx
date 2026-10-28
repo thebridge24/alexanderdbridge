@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Preloader from "@/app/components/ui/Preloader";
+import { formatDate } from "@/lib/format-date";
 
 export default function DevotionalsAdminPage() {
   const router = useRouter();
@@ -311,7 +312,7 @@ export default function DevotionalsAdminPage() {
                         Day {d.dayNumber}
                       </span>
                       <span className="text-neutral-500 text-[10px] flex items-center gap-1 mt-0.5 whitespace-nowrap">
-                        <FiCalendar size={10} /> {d.dateString}
+                        <FiCalendar size={10} /> {formatDate(d.dateString)}
                       </span>
                     </td>
                     <td className="py-4 px-3 font-bold text-neutral-200 group-hover:text-red-400 transition-colors whitespace-nowrap">
