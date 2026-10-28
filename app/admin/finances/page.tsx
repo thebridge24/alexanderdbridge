@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   FiPieChart,
   FiPlus,
@@ -12,26 +13,20 @@ import {
   FiFilter,
   FiChevronDown,
 } from "react-icons/fi";
+import { Users } from "lucide-react";
 import { DataTable, Column } from "../components/DataTable";
 import { Dropdown } from "@/app/components/ui/Dropdown";
 import { formatDate } from "@/lib/format-date";
 import AddIncomeModal from "../components/AddIncomeModal";
 import AddExpenseModal from "../components/AddExpenseModal";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
-import { Users } from "lucide-react";
+import FinanceChart from "../components/FinanceChart";
 
 export interface FinanceRecord {
   id: string;
   title: string;
   amount: number;
+  grossAmount?: number;
+  paystackFee?: number;
   category: string;
   type: "income" | "expense";
   narration?: string;
@@ -42,15 +37,16 @@ export interface FinanceRecord {
 type TimeFilterOption = "all" | "week" | "month" | "year" | "custom";
 
 export default function FinancesAdminPage() {
+  const router = useRouter();
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter states
+  // Filters
   const [timeFilter, setTimeFilter] = useState<TimeFilterOption>("all");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
 
-  // Modals state
+  // Modals
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
@@ -73,7 +69,6 @@ export default function FinancesAdminPage() {
     fetchFinances();
   }, []);
 
-  // Filter logic
   const filterByDate = (dateStr: string) => {
     if (timeFilter === "all") return true;
     if (!dateStr) return false;
@@ -101,9 +96,7 @@ export default function FinancesAdminPage() {
     if (timeFilter === "custom") {
       if (!customStartDate && !customEndDate) return true;
       const start = customStartDate ? new Date(customStartDate) : new Date(0);
-      const end = customEndDate
-        ? new Date(customEndDate)
-        : new Date(8640000000000000);
+      const end = customEndDate ? new Date(customEndDate) : new Date(8640000000000000);
       end.setHours(23, 59, 59, 999);
       return itemDate >= start && itemDate <= end;
     }
@@ -124,51 +117,13 @@ export default function FinancesAdminPage() {
 
   const getTimeFilterLabel = () => {
     switch (timeFilter) {
-      case "week":
-        return "This Week (Sun+)";
-      case "month":
-        return "This Month";
-      case "year":
-        return "This Year";
-      case "custom":
-        return "Custom Range";
-      default:
-        return "All Time";
+      case "week": return "This Week (Sun+)";
+      case "month": return "This Month";
+      case "year": return "This Year";
+      case "custom": return "Custom Range";
+      default: return "All Time";
     }
   };
-  // Prepare Recharts chart data grouped by formatted readable dates
-  const chartDataMap: Record<
-    string,
-    { date: string; displayDate: string; income: number; expense: number }
-  > = {};
-
-  filteredRecords.forEach((r) => {
-    const rawDate = r.date || "2026-01-01";
-
-    // Format date nicely (e.g., "May 14" or "Oct 28")
-    const parsedDate = new Date(rawDate);
-    const displayDate = isNaN(parsedDate.getTime())
-      ? rawDate
-      : parsedDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-
-    if (!chartDataMap[rawDate]) {
-      chartDataMap[rawDate] = {
-        date: rawDate,
-        displayDate,
-        income: 0,
-        expense: 0,
-      };
-    }
-    if (r.type === "income") chartDataMap[rawDate].income += r.amount;
-    if (r.type === "expense") chartDataMap[rawDate].expense += r.amount;
-  });
-
-  const chartData = Object.values(chartDataMap).sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
 
   const columns: Column<FinanceRecord>[] = [
     {
@@ -222,8 +177,7 @@ export default function FinancesAdminPage() {
       header: "Date",
       cell: (row) => (
         <span className="font-mono text-neutral-300 flex items-center gap-1">
-          <FiCalendar size={12} className="text-neutral-500" />{" "}
-          {formatDate(row.date)}
+          <FiCalendar size={12} className="text-neutral-500" /> {formatDate(row.date)}
         </span>
       ),
     },
@@ -238,13 +192,11 @@ export default function FinancesAdminPage() {
             <FiPieChart className="text-primary size-6" /> Income & Expenses
           </h1>
           <p className="text-xs text-neutral-400 mt-1">
-            Automated subscription revenue logging paired with manual expense &
-            income tracking.
+            Automated subscription revenue logging paired with manual expense & income tracking.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Time Filter Dropdown */}
           <Dropdown
             trigger={
               <button
@@ -258,62 +210,17 @@ export default function FinancesAdminPage() {
             }
           >
             <div className="p-2 space-y-1 w-52">
-              <button
-                onClick={() => setTimeFilter("all")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "all"
-                    ? "bg-red-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                All Time
-              </button>
-              <button
-                onClick={() => setTimeFilter("week")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "week"
-                    ? "bg-red-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Week (Sun - Sat)
-              </button>
-              <button
-                onClick={() => setTimeFilter("month")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "month"
-                    ? "bg-red-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Month
-              </button>
-              <button
-                onClick={() => setTimeFilter("year")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "year"
-                    ? "bg-red-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Year
-              </button>
-              <button
-                onClick={() => setTimeFilter("custom")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "custom"
-                    ? "bg-red-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                Custom Range
-              </button>
+              <button onClick={() => setTimeFilter("all")} className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:bg-neutral-900">All Time</button>
+              <button onClick={() => setTimeFilter("week")} className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:bg-neutral-900">This Week</button>
+              <button onClick={() => setTimeFilter("month")} className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:bg-neutral-900">This Month</button>
+              <button onClick={() => setTimeFilter("year")} className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:bg-neutral-900">This Year</button>
+              <button onClick={() => setTimeFilter("custom")} className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:bg-neutral-900">Custom Range</button>
             </div>
           </Dropdown>
 
           <button
             onClick={() => setIsIncomeModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white hover:opacity-75 active:scale-95 text-black font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-950/50 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white hover:opacity-75 text-black font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
           >
             <FiPlus size={16} />
             <span>Add Income</span>
@@ -321,7 +228,7 @@ export default function FinancesAdminPage() {
 
           <button
             onClick={() => setIsExpenseModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
           >
             <FiPlus size={16} />
             <span>Add Expense</span>
@@ -363,144 +270,48 @@ export default function FinancesAdminPage() {
       {/* Metrics Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Total Income
-            </span>
-            <div className="p-2.5 rounded-2xl bg-emerald-950/30 text-emerald-400 border border-emerald-800/40">
-              <FiTrendingUp size={18} />
-            </div>
-          </div>
-          <div className="text-3xl font-black text-white font-mono">
-            ₦{totalIncome.toLocaleString()}
-          </div>
+          <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Income</span>
+          <div className="text-3xl font-black text-white font-mono">₦{totalIncome.toLocaleString()}</div>
         </div>
 
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Total Expenses
-            </span>
-            <div className="p-2.5 rounded-2xl bg-red-950/30 text-red-400 border border-red-800/40">
-              <FiTrendingDown size={18} />
-            </div>
-          </div>
-          <div className="text-3xl font-black text-red-400 font-mono">
-            ₦{totalExpenses.toLocaleString()}
-          </div>
+          <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Expenses</span>
+          <div className="text-3xl font-black text-red-400 font-mono">₦{totalExpenses.toLocaleString()}</div>
         </div>
 
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Net Balance
-            </span>
-            <div className="p-2.5 rounded-2xl bg-blue-950/30 text-blue-400 border border-blue-800/40">
-              <FiDollarSign size={18} />
-            </div>
-          </div>
-          <div
-            className={`text-3xl font-black font-mono ${netBalance >= 0 ? "text-white" : "text-red-400"}`}
-          >
+          <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Net Balance</span>
+          <div className={`text-3xl font-black font-mono ${netBalance >= 0 ? "text-white" : "text-red-400"}`}>
             ₦{netBalance.toLocaleString()}
           </div>
         </div>
 
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-              Total Records
-            </span>
-            <div className="p-2.5 rounded-2xl bg-emerald-950/30 text-emerald-400 border border-emerald-800/40">
-              <Users size={18} />
-            </div>
-          </div>
-          <div className="text-3xl font-black text-white font-mono">
-           {filteredRecords.length}
-          </div>
+          <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Records</span>
+          <div className="text-3xl font-black text-white font-mono">{filteredRecords.length}</div>
         </div>
       </div>
 
-      {/* Dual Recharts Gradient Chart (Green Income vs Red Expenses) */}
-      <div className="p-6 rounded-3xl bg-neutral-950 border border-neutral-800 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-white">
-              Financial Flow Overview
-            </h3>
-            <p className="text-xs text-neutral-400">
-              Comparing income growth against operational expenses
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <span className="flex items-center gap-1.5 text-white">
-              <span className="size-2 rounded-full bg-emerald-500" /> Income
-            </span>
-            <span className="flex items-center gap-1.5 text-red-400">
-              <span className="size-2 rounded-full bg-red-500" /> Expenses
-            </span>
-          </div>
-        </div>
+      {/* Reusable Chart Component */}
+      <FinanceChart records={filteredRecords} />
 
-        <div className="h-72 w-full pt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient
-                  id="expenseGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-              <XAxis
-                dataKey="displayDate"
-                stroke="#737373"
-                fontSize={11}
-                tickLine={false}
-              />
-              <YAxis stroke="#737373" fontSize={11} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#0a0a0a",
-                  borderColor: "#262626",
-                  borderRadius: "12px",
-                  fontSize: "12px",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="income"
-                stroke="#10b981"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#incomeGradient)"
-              />
-              <Area
-                type="monotone"
-                dataKey="expense"
-                stroke="#ef4444"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#expenseGradient)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Transactions Table */}
+      {/* Data Table */}
       <DataTable<FinanceRecord>
-        columns={columns}
+        columns={columns.map((col) => ({
+          ...col,
+          cell: (row: FinanceRecord, idx: number) => (
+            <div
+              onClick={() => router.push(`/admin/finances/${row.id}`)}
+              className="cursor-pointer"
+            >
+              {col.cell
+                ? col.cell(row, idx)
+                : col.accessorKey
+                ? String(row[col.accessorKey] ?? "")
+                : null}
+            </div>
+          ),
+        }))}
         data={filteredRecords}
         isLoading={loading}
         emptyMessage="No financial records found for this period."
@@ -512,7 +323,6 @@ export default function FinancesAdminPage() {
         onClose={() => setIsIncomeModalOpen(false)}
         onSuccess={fetchFinances}
       />
-
       <AddExpenseModal
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}

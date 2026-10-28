@@ -72,7 +72,7 @@ export function OverviewStatCards({ totals, loading }: StatProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {cards.map((card, idx) => {
         const Icon = card.icon;
 
