@@ -23,14 +23,16 @@ export async function GET() {
     if (!supabase) {
       return NextResponse.json(
         { error: "Supabase admin configuration missing" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // 1. Fetch automated Paystack gateway transactions
     const { data: transactions, error: txError } = await supabase
       .from("support_payment_transactions")
-      .select("id, user_id, user_email, plan_type, amount, status, paid_at, created_at, paystack_reference, paystack_channel")
+      .select(
+        "id, user_id, user_email, plan_type, amount, status, paid_at, created_at, paystack_reference, paystack_channel",
+      )
       .eq("status", "success");
 
     if (txError) {
@@ -40,7 +42,9 @@ export async function GET() {
     // 2. Fetch subscriptions from user_subscriptions table
     const { data: subscriptions, error: subError } = await supabase
       .from("user_subscriptions")
-      .select("id, user_id, user_email, plan_type, amount, status, created_at, updated_at, is_complimentary, paystack_reference")
+      .select(
+        "id, user_id, user_email, plan_type, amount, status, created_at, updated_at, is_complimentary, paystack_reference",
+      )
       .or("status.eq.active,status.eq.Active");
 
     if (subError) {
@@ -82,35 +86,33 @@ export async function GET() {
       };
     });
 
-    // B. Map Manual/Admin Subscriptions (NEVER deducts Paystack charges since you added them manually)
-    const subscriptionIncomes = (subscriptions || []).map((sub: any) => {
-      const ref = sub.paystack_reference?.trim();
-      
-      // If this subscription reference already exists in the automated gateway log, skip it entirely to avoid duplication.
-      if (ref && processedReferences.has(ref)) {
-        return null;
-      }
+    const subscriptionIncomes = (subscriptions || [])
+      .map((sub: any) => {
+        const ref = sub.paystack_reference?.trim();
 
-      const grossAmount = Number(sub.amount) || 0;
-      
-      // Since these were added manually by you, paystackFee is strictly 0!
-      const paystackFee = 0; 
-      const netAmount = grossAmount;
+        // Avoid duplicate records already captured by Paystack.
+        if (ref && processedReferences.has(ref)) {
+          return null;
+        }
 
-      return {
-        id: `sub_${sub.id}`,
-        title: `${(sub.plan_type || "Subscription").toUpperCase()} (Manual Entry)`,
-        amount: netAmount,
-        grossAmount,
-        paystackFee,
-        category: "Subscription",
-        type: "income" as const,
-        narration: sub.is_complimentary
-          ? `Complimentary Tier (Manual) | ${sub.user_email || "Member"}`
-          : `Manual Subscription Entry | Full: ₦${grossAmount.toLocaleString()} | ${sub.user_email || "Member"}`,
-        date: sub.created_at || new Date().toISOString(),
-      };
-    }).filter(Boolean);
+        const grossAmount = Number(sub.amount) || 0;
+        const paystackFee = 0;
+
+        return {
+          id: `sub_${sub.id}`,
+          title: `${(sub.plan_type || "Subscription").toUpperCase()} (Manual Entry)`,
+          amount: grossAmount,
+          grossAmount,
+          paystackFee,
+          category: "Subscription",
+          type: "income" as const,
+          narration: sub.is_complimentary
+            ? `Complimentary Tier (Manual) | ${sub.user_email || "Member"}`
+            : `Manual Subscription Entry | Full: ₦${grossAmount.toLocaleString()} | ${sub.user_email || "Member"}`,
+          date: sub.created_at || new Date().toISOString(),
+        };
+      })
+      .filter((sub) => sub !== null);
 
     // C. Map manual ledger entries (Income & Expenses)
     const manualLedgerRecords = (ledgers || []).map((l: any) => ({
@@ -126,9 +128,11 @@ export async function GET() {
     }));
 
     // Combine and sort records by date descending
-    const allRecords = [...transactionIncomes, ...subscriptionIncomes, ...manualLedgerRecords].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    const allRecords = [
+      ...transactionIncomes,
+      ...subscriptionIncomes,
+      ...manualLedgerRecords,
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return NextResponse.json({
       records: allRecords,
@@ -137,7 +141,7 @@ export async function GET() {
     console.error("Failed to load financial records:", error);
     return NextResponse.json(
       { error: error?.message || "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

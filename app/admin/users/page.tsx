@@ -20,11 +20,10 @@ import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { getUserVerificationTier } from "@/lib/utils/verification";
 import SurveyBroadcasterModal from "@/app/components/SurveyBroadcasterModal";
 import Preloader from "@/app/components/ui/Preloader";
-import { ActivityPeakChart } from "./ActivityPeakChart"; // Import the real Recharts peak chart
+import { ActivityPeakChart } from "./ActivityPeakChart";
 import { MILESTONE_MEDALS } from "@/lib/types/streak";
 import { FaFire } from "react-icons/fa6";
 import { AppleTypewriterText } from "@/app/components/ui/AppleTypewriterText";
-import { FiCalendar } from "react-icons/fi";
 
 type TimeframeFilter = "today" | "week" | "month" | "year";
 
@@ -39,7 +38,7 @@ interface UserRecord {
   lastActiveDate?: string;
   metadata?: Record<string, any>;
 }
-// Helper to get the correct white milestone medal icon or fallback to FaFire
+
 function renderStreakMedalIcon(streak: number) {
   const sortedMedals = [...MILESTONE_MEDALS].sort(
     (a, b) => b.targetDays - a.targetDays,
@@ -88,7 +87,6 @@ export default function UserAnalyticsPage() {
     fetchAllUsers();
   }, []);
 
-  // Filter users based on global timeframe selector
   const timeframeFilteredUsers = useMemo(() => {
     const now = new Date();
     return users.filter((u) => {
@@ -116,7 +114,6 @@ export default function UserAnalyticsPage() {
     });
   }, [users, timeframe]);
 
-  // Metrics calculation
   const totalUsersCount = timeframeFilteredUsers.length;
   const activeUsersCount = useMemo(() => {
     const twoDaysAgo = new Date();
@@ -138,7 +135,6 @@ export default function UserAnalyticsPage() {
     }).length;
   }, [users]);
 
-  // Search filtered table rows
   const tableData = useMemo(() => {
     return timeframeFilteredUsers.filter(
       (u) =>
@@ -196,7 +192,6 @@ export default function UserAnalyticsPage() {
       header: "Current Streak",
       cell: (row) => (
         <span className="font-mono text-primary font-bold">
-          {/* Streak Medal & Count */}
           {row.currentStreak > 0 && (
             <span className="inline-flex items-end gap-2 text-[10px] font-medium text-neutral-300">
               {renderStreakMedalIcon(row.currentStreak)}
@@ -252,7 +247,7 @@ export default function UserAnalyticsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       <SurveyBroadcasterModal
         isOpen={isBroadcasterOpen}
         onClose={() => {
@@ -280,21 +275,22 @@ export default function UserAnalyticsPage() {
         }
       />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4  relative overflow-hidden">
-      {/* Background Red Ambient Soft Glow */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-red-600/10 rounded-full blur-[90px] pointer-events-none" />
+      {/* Page Header & Timeframe Selector */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative p-6 rounded-3xl bg-neutral-950 border border-neutral-900">
+        <div className="absolute top-0 left-0 w-64 h-64 bg-red-600/10 rounded-full blur-[90px] pointer-events-none" />
 
-      <div className="space-y-1 relative z-10">
-        <AppleTypewriterText text={"User Analytics & Activity"}
-        className="text-lg xs:text-2xl sm:text-3xl font-black tracking-tight text-white"
-        maxLength={25}
-        />
-        <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-          Here is what is happening across your devotional app today.
-        </p>
-      </div>
+        <div className="space-y-1 relative z-10">
+          <AppleTypewriterText
+            text={"User Analytics & Activity"}
+            className="text-lg xs:text-2xl sm:text-3xl font-black tracking-tight text-white"
+            maxLength={25}
+          />
+          <p className="text-xs sm:text-sm text-neutral-400 font-medium">
+            Here is what is happening across your devotional app today.
+          </p>
+        </div>
 
-      <div className="relative">
+        <div className="relative z-10">
           <button
             onClick={() => setIsTimeframeOpen(!isTimeframeOpen)}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 text-white font-bold text-xs transition-colors cursor-pointer"
@@ -329,17 +325,6 @@ export default function UserAnalyticsPage() {
             </div>
           )}
         </div>
-    </div>
-
-      {/* Top Header & Global Timeframe Selector Dropdown */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-neutral-950 border border-neutral-900">
-        <div>
-          <h1 className="text-xl font-black text-white flex items-center gap-2">
-            <FaUsers className="text-primary size-5" /> 
-          </h1>
-        </div>
-
-        
       </div>
 
       {/* KPI Stats Cards */}
@@ -390,8 +375,8 @@ export default function UserAnalyticsPage() {
         </div>
       </div>
 
-      {/* Recharts Peak Activity Flow Chart */}
-      <ActivityPeakChart users={timeframeFilteredUsers} />
+      {/* Real Visitors Peak Activity Flow Chart */}
+      <ActivityPeakChart />
 
       {/* User DataTable & Search Bar */}
       <div className="p-6 rounded-3xl bg-neutral-950 border border-neutral-900 space-y-4">
@@ -420,20 +405,11 @@ export default function UserAnalyticsPage() {
             <Preloader />
           </div>
         ) : (
-          <div
-            onClick={(e) => {
-              const rowElement = (e.target as HTMLElement).closest("tr");
-              if (rowElement && !rowElement.querySelector("button")) {
-                // Row clicked - handle deep profile inspection if desired
-              }
-            }}
-          >
-            <DataTable
-              columns={columns}
-              data={tableData}
-              emptyMessage="No users found matching current filters."
-            />
-          </div>
+          <DataTable
+            columns={columns}
+            data={tableData}
+            emptyMessage="No users found matching current filters."
+          />
         )}
       </div>
 
