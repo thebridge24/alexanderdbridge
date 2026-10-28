@@ -15,6 +15,7 @@ import { DataTable, Column } from "../components/DataTable"; // Reusing your sha
 import SubscriptionDetailsModal from "../components/SubscriptionDetailsModal";
 import AddSubscriptionModal from "../components/AddSubscriptionModal";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
+import { formatDate } from "@/lib/format-date";
 
 export interface SubscriptionRecord {
   id: string;
@@ -205,7 +206,7 @@ export default function SubscriptionsAdminPage() {
       header: "Subscription Date",
       cell: (row) => (
         <span className="font-mono text-neutral-300 flex items-center gap-1">
-          <FiCalendar size={12} className="text-neutral-500" /> {row.startDate}
+          <FiCalendar size={12} className="text-neutral-500" /> {formatDate(row.startDate)}
         </span>
       ),
     },
