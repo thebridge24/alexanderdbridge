@@ -1,32 +1,78 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { sendEmail, getDefaultFromEmail } from "@/lib/email/sendbyte";
+import {
+  getBroadcastEmailHtml,
+  getBroadcastEmailText,
+} from "@/lib/email/templates/broadcast";
+
+const SUPPORT_URL = "https://alexanderdbridge.com/support";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email, reference, planType, amount, status } = body;
+    const body = await request.json().catch(() => null);
+    const { email, reference, planType, amount, status, note } = body || {};
 
-    if (!email) {
+    if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json(
-        { error: "Recipient email is required" },
+        { error: "Valid recipient email is required" },
         { status: 400 },
       );
     }
 
-    // Optional: Log the reminder in Supabase audit logs or send via your email delivery system (e.g. SendByte / Resend / SendGrid)
-    const supabase = createSupabaseAdmin();
+    const subject = "Complete your Bridge Daily support";
 
-    // You can record that a reminder was triggered
-    console.log(
-      `[Payment Reminder] Sending email to ${email} for reference ${reference} (Status: ${status})`,
-    );
+    // Use the admin's custom message from the modal; fall back to a default.
+    const customParagraphs =
+      typeof note === "string"
+        ? note
+            .split(/\n\s*\n/)
+            .map((p) => p.trim())
+            .filter(Boolean)
+        : [];
+    const paragraphs = customParagraphs.length
+      ? customParagraphs
+      : [
+          "Thank you for being part of Bridge Daily. We noticed that your support contribution wasn't completed, so we thought to reach out and remind you.",
+          "Your support helps us keep this platform running and continue sharing God's Word with more people. If you intended to complete your contribution, you can still do so using the link below.",
+        ];
 
-    // TODO: Integrate your actual email sending service call here (e.g., SendByte API integration)
-    // const emailRes = await sendByteClient.send({ to: email, subject: "Complete your Bridge Daily support", ... });
+    const template = {
+      subject,
+      paragraphs,
+      ctaText: "Complete Your Support",
+      ctaUrl: SUPPORT_URL,
+    };
+
+    const result = await sendEmail({
+      from: getDefaultFromEmail(),
+      to: email.trim().toLowerCase(),
+      subject,
+      html: getBroadcastEmailHtml(template),
+      text: getBroadcastEmailText(template),
+      metadata: {
+        type: "payment_reminder",
+        reference,
+        planType,
+        amount,
+        status,
+      },
+    });
+
+    if (!result.success) {
+      console.error(
+        `[Payment Reminder] Failed for ${email} (ref ${reference}):`,
+        result.error,
+      );
+      return NextResponse.json(
+        { error: result.error || "Failed to send reminder email" },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
+      id: result.id,
       message: `Reminder email successfully dispatched to ${email}`,
     });
   } catch (error: any) {
