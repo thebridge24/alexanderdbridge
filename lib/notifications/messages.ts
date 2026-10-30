@@ -1,5 +1,5 @@
 export interface DevotionalNotificationPayload {
-  type: "like" | "reply" | "comment" | "reminder" | "streak" | "milestone" | "admin";
+  type: "like" | "reply" | "comment" | "mention" | "reminder" | "streak" | "milestone" | "admin";
   title: string;
   body: string;
   link: string;
@@ -62,6 +62,26 @@ export function formatDevotionalCommentMessage(
     body: `${name} commented on the devotional: "${topicSnippet}"`,
     link: `/devotional/${devotionalDateString}?comment=${commentId}`,
     dedupeKey: `comment:${commentId}`,
+    avatarUrl: actorAvatar?.trim() || undefined,
+  };
+}
+
+export function formatMentionMessage(
+  actorName: string,
+  commentText: string,
+  devotionalDateString: string,
+  commentId: string,
+  mentionedUserId: string,
+  actorAvatar?: string | null,
+): DevotionalNotificationPayload {
+  const name = actorName.trim() || "Someone";
+  const snippet = commentText.length > 60 ? `${commentText.slice(0, 57)}...` : commentText;
+  return {
+    type: "mention",
+    title: `${name} mentioned you in the devotional 📣`,
+    body: `"${snippet}"`,
+    link: `/devotional/${devotionalDateString}?comment=${commentId}`,
+    dedupeKey: `mention:${commentId}:${mentionedUserId}`,
     avatarUrl: actorAvatar?.trim() || undefined,
   };
 }

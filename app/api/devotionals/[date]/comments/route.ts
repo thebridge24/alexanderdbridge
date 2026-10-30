@@ -5,7 +5,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
 import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
 import { sendNotification } from "@/lib/notifications/sender";
-import { formatDevotionalCommentMessage } from "@/lib/notifications/messages";
+import { formatDevotionalCommentMessage, formatMentionMessage } from "@/lib/notifications/messages";
 
 /** Every registered user id (paginated). */
 async function getAllUserIds(supabase: ReturnType<typeof createSupabaseAdmin>): Promise<Set<string>> {
@@ -165,7 +165,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
   }
 
-  let body: { name?: string; text?: string; avatarUrl?: string; authorUserId?: string };
+  let body: {
+    name?: string;
+    text?: string;
+    avatarUrl?: string;
+    authorUserId?: string;
+    mentionedUserIds?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -176,6 +182,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const text = body.text?.trim();
   let avatarUrl = (body.avatarUrl || "").trim() || "";
   let authorUserId = body.authorUserId?.trim() || null;
+  const mentionedUserIds = Array.isArray(body.mentionedUserIds)
+    ? Array.from(
+        new Set(
+          body.mentionedUserIds.filter(
+            (id): id is string => typeof id === "string" && id.length > 0,
+          ),
+        ),
+      ).slice(0, 20)
+    : [];
 
   // Extract authenticated user if available
   const authorization = request.headers.get("authorization");
@@ -249,6 +264,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const commentId = data.id as string;
   after(async () => {
     try {
+      // Tagged users get a mention notification instead of the general one
+      const mentioned = mentionedUserIds.filter((id) => id !== authorUserId);
+      await Promise.all(
+        mentioned.map((userId) => {
+          const mention = formatMentionMessage(name, text, date, commentId, userId, avatarUrl);
+          return sendNotification({
+            userId,
+            type: "mention",
+            title: mention.title,
+            body: mention.body,
+            link: mention.link,
+            dedupeKey: mention.dedupeKey,
+            avatarUrl: mention.avatarUrl,
+            push: true,
+          });
+        }),
+      );
+
       const recipientIds = await getAllUserIds(supabase);
       // Make sure configured admins are included even if they have no auth listing
       (process.env.ADMIN_USER_IDS || "")
@@ -257,6 +290,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         .filter(Boolean)
         .forEach((id) => recipientIds.add(id));
       if (authorUserId) recipientIds.delete(authorUserId);
+      mentioned.forEach((id) => recipientIds.delete(id));
 
       const ids = Array.from(recipientIds);
       const BATCH_SIZE = 10;

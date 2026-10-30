@@ -29,7 +29,7 @@ interface CommentSlideUpModalProps {
   comments: Comment[];
   commentText: string;
   setCommentText: (text: string) => void;
-  onSubmitComment: (e: React.FormEvent) => void;
+  onSubmitComment: (e: React.FormEvent, mentionedUserIds: string[]) => void;
   onLikeComment: (commentId: string) => void;
   replyingToId: string | null;
   replyingToName: string | null;
@@ -94,6 +94,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const [showMentionSlider, setShowMentionSlider] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
+  const [pickedMentions, setPickedMentions] = useState<MentionUser[]>([]);
   const [selectedProfile, setSelectedProfile] =
     useState<UserProfileData | null>(null);
 
@@ -162,6 +163,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     const updatedText = `${beforeAt}@${nameToInsert} ${afterAtQuery}`;
     setCommentText(updatedText);
     setShowMentionSlider(false);
+    setPickedMentions((prev) =>
+      prev.some((u) => u.id === user.id) ? prev : [...prev, user],
+    );
 
     // Focus back to textarea and place cursor after tag
     setTimeout(() => {
@@ -367,7 +371,22 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
 
             {/* Input Section */}
             <div className="p-4 shrink-0 absolute bottom-0 z-10 left-0 w-full bg-linear-to-t from-black via-black/90 to-transparent">
-              <form onSubmit={onSubmitComment} className="flex items-end gap-3">
+              <form
+                onSubmit={(e) =>
+                  onSubmitComment(
+                    e,
+                    // Only tags still present in the text count as mentions
+                    pickedMentions
+                      .filter((u) =>
+                        commentText.includes(
+                          `@${u.name || u.email.split("@")[0]}`,
+                        ),
+                      )
+                      .map((u) => u.id),
+                  )
+                }
+                className="flex items-end gap-3"
+              >
                 {/* User Avatar / Fallback Initial */}
                 <CurrentUserAvatar
                   avatarUrl={userAvatarUrl}

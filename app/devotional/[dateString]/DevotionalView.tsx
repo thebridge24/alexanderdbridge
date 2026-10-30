@@ -501,7 +501,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent): void => {
+  const handleCommentSubmit = (
+    e: React.FormEvent,
+    mentionedUserIds: string[] = [],
+  ): void => {
     e.preventDefault();
     if (!commentText.trim() || isSubmittingComment) return;
 
@@ -510,10 +513,13 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       return;
     }
 
-    executePostComment(userName.trim());
+    executePostComment(userName.trim(), mentionedUserIds);
   };
 
-  const executePostComment = async (name: string): Promise<void> => {
+  const executePostComment = async (
+    name: string,
+    mentionedUserIds: string[] = [],
+  ): Promise<void> => {
     if (!currentDevotional) return;
     if (!user) {
       setIsAuthModalOpen(true);
@@ -626,6 +632,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               user?.user_metadata?.picture ||
               undefined,
             authorUserId: user?.id || undefined,
+            mentionedUserIds,
           }),
         });
 

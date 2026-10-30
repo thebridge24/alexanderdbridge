@@ -20,7 +20,7 @@ export interface NotificationItem {
   body: string;
   timestamp: string;
   read: boolean;
-  type: "like" | "reply" | "comment" | "reminder" | "streak" | "milestone" | "admin";
+  type: "like" | "reply" | "comment" | "mention" | "reminder" | "streak" | "milestone" | "admin";
   link?: string;
   avatarUrl?: string;
 }
