@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
-import {
-  createSupabaseAdmin,
-  isSupabaseConfigured,
-} from "@/lib/supabase/server";
+import { createSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server";
 import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
 
 export async function GET() {
@@ -44,17 +41,17 @@ export async function GET() {
 
   // 2. Fallback check for general config error
   if (configError || !isSupabaseConfigured()) {
-    const fallbackAnalytics = DEVOTIONALS_DATA.filter(
-      (d) => d.dateString <= todayDateString,
-    ).map((d) => ({
-      dateString: d.dateString,
-      topic: d.topic,
-      dayNumber: d.dayNumber,
-      displayDate: d.displayDate,
-      views: 0,
-      likes: 0,
-      comments: 0,
-    }));
+    const fallbackAnalytics = DEVOTIONALS_DATA
+      .filter((d) => d.dateString <= todayDateString)
+      .map((d) => ({
+        dateString: d.dateString,
+        topic: d.topic,
+        dayNumber: d.dayNumber,
+        displayDate: d.displayDate,
+        views: 0,
+        likes: 0,
+        comments: 0,
+      }));
 
     return NextResponse.json({
       analytics: fallbackAnalytics,
@@ -69,27 +66,23 @@ export async function GET() {
   try {
     const supabase = createSupabaseAdmin();
 
-    // 1. Fetch DB devotionals to combine with static ones
     const { data: dbDevotionals } = await supabase
       .from("devotionals")
       .select("*");
 
-    const mappedDbDevotionals: Devotional[] = (dbDevotionals || []).map(
-      (row) => ({
-        dayNumber: row.day_number,
-        dateString: row.date_string,
-        displayDate: row.display_date,
-        topic: row.topic,
-        text: row.text,
-        memoryVerse:
-          typeof row.memory_verse === "string"
-            ? JSON.parse(row.memory_verse)
-            : row.memory_verse,
-        explanation: row.explanation,
-        neededSteps: row.needed_steps,
-        prayerPoints: row.prayer_points,
-      }),
-    );
+    const mappedDbDevotionals: Devotional[] = (dbDevotionals || []).map((row) => ({
+      dayNumber: row.day_number,
+      dateString: row.date_string,
+      displayDate: row.display_date,
+      topic: row.topic,
+      text: row.text,
+      memoryVerse: typeof row.memory_verse === "string" 
+        ? JSON.parse(row.memory_verse) 
+        : row.memory_verse,
+      explanation: row.explanation,
+      neededSteps: row.needed_steps,
+      prayerPoints: row.prayer_points,
+    }));
 
     const devotionalMap = new Map<string, Devotional>();
     DEVOTIONALS_DATA.forEach((d) => devotionalMap.set(d.dateString, d));
@@ -99,7 +92,6 @@ export async function GET() {
       .filter((d) => d.dateString <= todayDateString)
       .sort((a, b) => a.dateString.localeCompare(b.dateString));
 
-    // 2. Fetch views, likes, and comments stats from Supabase
     const [viewsRes, likesRes, commentsRes] = await Promise.all([
       supabase.from("devotional_views").select("devotional_date, view_count"),
       supabase.from("devotional_likes").select("devotional_date, like_count"),
@@ -156,9 +148,6 @@ export async function GET() {
     });
   } catch (err: any) {
     console.error("Error in GET /api/admin/analytics:", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to load analytics" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: err.message || "Failed to load analytics" }, { status: 500 });
   }
 }

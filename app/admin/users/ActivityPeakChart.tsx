@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FaChartLine } from "react-icons/fa";
 import {
   ResponsiveContainer,
@@ -20,7 +20,7 @@ export function ActivityPeakChart() {
     async function fetchVisitorTraffic() {
       try {
         setLoading(true);
-        const res = await fetch("/api/admin/analytics/visitors");
+        const res = await fetch("/api/admin/analytics");
         if (res.ok) {
           const data = await res.json();
           const traffic: number[] = data.hourlyTraffic || Array(24).fill(0);
@@ -51,17 +51,12 @@ export function ActivityPeakChart() {
     fetchVisitorTraffic();
   }, []);
 
-  // Find peak hour description
-  const peakHourObj = useMemoCustomPeak(chartData);
-
-  function useMemoCustomPeak(data: typeof chartData) {
-    return React.useMemo(() => {
-      if (!data.length) return { hour: "12 PM", visits: 0 };
-      return [...data].reduce((max, current) => 
-        current.visits > max.visits ? current : max
-      , data[0]);
-    }, [data]);
-  }
+  const peakHourObj = useMemo(() => {
+    if (!chartData.length) return { hour: "12 PM", visits: 0 };
+    return [...chartData].reduce((max, current) => 
+      current.visits > max.visits ? current : max
+    , chartData[0]);
+  }, [chartData]);
 
   return (
     <div className="p-6 rounded-3xl bg-neutral-950 border border-neutral-900 space-y-4">

@@ -24,6 +24,9 @@ import { ActivityPeakChart } from "./ActivityPeakChart";
 import { MILESTONE_MEDALS } from "@/lib/types/streak";
 import { FaFire } from "react-icons/fa6";
 import { AppleTypewriterText } from "@/app/components/ui/AppleTypewriterText";
+import React from "react";
+import { FiDollarSign } from "react-icons/fi";
+import { Users } from "lucide-react";
 
 type TimeframeFilter = "today" | "week" | "month" | "year";
 
@@ -276,7 +279,7 @@ export default function UserAnalyticsPage() {
       />
 
       {/* Page Header & Timeframe Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative p-6 rounded-3xl bg-neutral-950 border border-neutral-900">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="absolute top-0 left-0 w-64 h-64 bg-red-600/10 rounded-full blur-[90px] pointer-events-none" />
 
         <div className="space-y-1 relative z-10">
@@ -329,50 +332,64 @@ export default function UserAnalyticsPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-3xl bg-neutral-950 border border-neutral-900 space-y-2">
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">
-              Filtered Users
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              Total Users
             </span>
-            <FaUsers className="text-neutral-500 size-4" />
+            <div className="p-2.5 rounded-2xl bg-emerald-950/30 text-emerald-400 border border-emerald-800/40">
+              <Users size={18} />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
-            {totalUsersCount}
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              {totalUsersCount}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              Total registered in{" "}
+              {timeframeLabels[timeframe].toLowerCase()}{" "}
+            </p>
           </div>
-          <p className="text-[11px] text-neutral-400">
-            Total registered in {timeframeLabels[timeframe].toLowerCase()}
-          </p>
         </div>
 
-        <div className="p-5 rounded-3xl bg-neutral-950 border border-neutral-900 space-y-2">
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               Active Members
             </span>
-            <FaUserCheck className="text-emerald-500 size-4" />
+            <div className="p-2.5 rounded-2xl bg-emerald-950/30 text-emerald-400 border border-emerald-800/40">
+              <FaUserCheck size={18} />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
-            {activeUsersCount}
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              {activeUsersCount}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              Active within the last 48 hours
+            </p>
           </div>
-          <p className="text-[11px] text-neutral-400">
-            Active within the last 48 hours
-          </p>
         </div>
 
-        <div className="p-5 rounded-3xl bg-neutral-950 border border-neutral-900 space-y-2">
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
               New This Month
             </span>
-            <FaTrophy className="text-amber-500 size-4" />
+            <div className="p-2.5 rounded-2xl bg-emerald-950/30 text-emerald-400 border border-emerald-800/40">
+              <FaTrophy size={18} />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
-            {newThisMonthCount}
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              {newThisMonthCount}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              Joined during current calendar month{" "}
+            </p>
           </div>
-          <p className="text-[11px] text-neutral-400">
-            Joined during current calendar month
-          </p>
         </div>
+      
       </div>
 
       {/* Real Visitors Peak Activity Flow Chart */}
