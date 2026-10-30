@@ -2,13 +2,17 @@
 "use client";
 
 import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { FaCamera, FaBirthdayCake, FaMapMarkerAlt } from "react-icons/fa";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { UserProfileSettings } from "../../types/settings";
 import { Mail } from "lucide-react";
 
 interface SettingsProfileHeaderProps {
-  profile: UserProfileSettings;
+  profile: UserProfileSettings & {
+    followingCount?: number;
+    followersCount?: number;
+  };
   onBannerChange: (file: File) => void;
   onAvatarChange: (file: File) => void;
 }
@@ -18,6 +22,7 @@ export function SettingsProfileHeader({
   onBannerChange,
   onAvatarChange,
 }: SettingsProfileHeaderProps) {
+  const router = useRouter();
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,9 +111,11 @@ export function SettingsProfileHeader({
               />
             )}
           </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-400">
-             <Mail className="size-3.5" />   {profile.email}
-            </div>
+
+          <div className="flex items-center gap-2 text-xs text-neutral-400">
+            <Mail className="size-3.5" />   {profile.email}
+          </div>
+
           <div className="flex items-center gap-4 text-xs text-neutral-400 font-mono">
             {profile.birthday && (
               <div className="flex items-center gap-1.5">
@@ -129,6 +136,31 @@ export function SettingsProfileHeader({
               {profile.bio}
             </p>
           )}
+
+          {/* Following & Followers Stats Navigation Bar */}
+          <div className="flex items-center gap-6 pt-3 text-xs">
+            <button
+              type="button"
+              onClick={() => router.push("/devotional/following")}
+              className="hover:underline flex items-center gap-1.5 cursor-pointer text-neutral-400"
+            >
+              <span className="font-bold text-white font-mono">
+                {profile.followingCount ?? 0}
+              </span>{" "}
+              <span>Following</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/devotional/followers")}
+              className="hover:underline flex items-center gap-1.5 cursor-pointer text-neutral-400"
+            >
+              <span className="font-bold text-white font-mono">
+                {profile.followersCount ?? 0}
+              </span>{" "}
+              <span>Followers</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
