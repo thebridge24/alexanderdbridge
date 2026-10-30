@@ -10,6 +10,7 @@ import { Comment, CommentItem, Reply } from "./CommentItem";
 import Preloader from "./ui/Preloader";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { getUserVerificationTier } from "@/lib/utils/verification";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   UserProfilePopup,
   type UserProfileData,
@@ -233,14 +234,56 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     setReplyingTo(null, null);
   };
 
-  const handleAvatarClick = (author: Comment | Reply) => {
+  const handleAvatarClick = async (author: Comment | Reply) => {
+    const userId = author.authorUserId ?? "";
     setSelectedProfile({
-      id: author.authorUserId ?? "",
+      id: userId,
       name: author.name,
       avatarUrl: author.avatarUrl,
       verificationTier: author.authorVerificationTier,
       currentStreak: author.streakCount ?? 0,
     });
+    if (!userId) return;
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      const res = await fetch(`/api/users/${userId}/follow`, {
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      // Only update if the same profile is still open
+      setSelectedProfile((prev) =>
+        prev?.id === userId ? { ...prev, isFollowing: !!data.isFollowing } : prev,
+      );
+    } catch (err) {
+      console.error("Failed to load follow state:", err);
+    }
+  };
+
+  const handleToggleFollow = async (userId: string) => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      if (!session?.access_token) {
+        alert("Please sign in to follow people.");
+        return;
+      }
+      const res = await fetch(`/api/users/${userId}/follow`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update follow");
+      setSelectedProfile((prev) =>
+        prev?.id === userId ? { ...prev, isFollowing: !!data.isFollowing } : prev,
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to update follow");
+    }
   };
 
   return (
@@ -447,6 +490,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             isOpen={selectedProfile !== null}
             onClose={() => setSelectedProfile(null)}
             user={selectedProfile}
+            onToggleFollow={handleToggleFollow}
           />
         </>
       )}

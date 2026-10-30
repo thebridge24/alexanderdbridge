@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import {
@@ -47,6 +47,11 @@ export function UserProfilePopup({
   const [imgError, setImgError] = useState(false);
   const [bannerError, setBannerError] = useState(false);
   const [isFollowing, setIsFollowing] = useState(user?.isFollowing || false);
+
+  // Re-sync when another profile opens or the saved follow state loads
+  useEffect(() => {
+    setIsFollowing(user?.isFollowing || false);
+  }, [user?.id, user?.isFollowing]);
 
   if (!isOpen || !user) return null;
 
