@@ -1,11 +1,13 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoChevronDown, IoCheckmark } from "react-icons/io5";
 import { FiTrendingDown } from "react-icons/fi";
 import { FormInput, FormTextarea } from "@/app/components/ui/FormInput";
+import { Dropdown } from "@/app/components/ui/Dropdown";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -13,13 +15,26 @@ interface AddExpenseModalProps {
   onSuccess: () => void;
 }
 
-export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpenseModalProps) {
+export default function AddExpenseModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: AddExpenseModalProps) {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("Operations");
   const [narration, setNarration] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+
+  // Category options
+  const categories = [
+    { label: "Operations", value: "Operations" },
+    { label: "Hosting & Infrastructure", value: "Hosting" },
+    { label: "Marketing & Ads", value: "Marketing" },
+    { label: "Software & Tools", value: "Software" },
+    { label: "Other", value: "Other" },
+  ];
 
   if (!isOpen) return null;
 
@@ -68,7 +83,7 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpen
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ type: "spring", stiffness: 380, damping: 28 }}
-          className="relative w-full max-w-md rounded-4xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl z-10 text-left space-y-5"
+          className="relative w-full max-w-xl rounded-4xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl z-10 text-left space-y-5"
         >
           <button
             type="button"
@@ -83,8 +98,12 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpen
               <FiTrendingDown className="size-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white">Record Expense</h3>
-              <p className="text-xs font-mono text-neutral-400">Server hosting, tools, operations</p>
+              <h3 className="text-base font-black text-white">
+                Record Expense
+              </h3>
+              <p className="text-xs font-mono text-neutral-400">
+                Server hosting, tools, operations
+              </p>
             </div>
           </div>
 
@@ -111,17 +130,41 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpen
                 <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-400">
                   Category
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-neutral-900 border-b border-white/15 text-sm font-semibold text-white py-2 outline-none focus:border-primary"
+
+                <Dropdown
+                  align="left"
+                  className="w-full"
+                  contentClassName="w-full min-w-0"
+                  trigger={
+                    <div className="w-full flex items-center justify-between gap-2 bg-neutral-900 border-b border-white/15 text-sm font-semibold text-white py-2 px-2 cursor-pointer hover:bg-neutral-800 transition-colors">
+                      <span>
+                        {categories.find((item) => item.value === category)?.label}
+                      </span>
+                      <IoChevronDown className="size-4 text-neutral-400 shrink-0" />
+                    </div>
+                  }
                 >
-                  <option value="Operations">Operations</option>
-                  <option value="Hosting">Hosting & Infrastructure</option>
-                  <option value="Marketing">Marketing & Ads</option>
-                  <option value="Software">Software & Tools</option>
-                  <option value="Other">Other</option>
-                </select>
+                  <div className="p-1">
+                    {categories.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setCategory(option.value)}
+                        className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors ${
+                          category === option.value
+                            ? "bg-white/10 text-white"
+                            : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span>{option.label}</span>
+
+                        {category === option.value && (
+                          <IoCheckmark className="size-4 text-red-400" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </Dropdown>
               </div>
             </div>
 
@@ -144,14 +187,15 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpen
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold text-xs transition-colors cursor-pointer"
+                className="flex-1 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold text-xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-red-950/50 transition-all cursor-pointer disabled:opacity-50"
+                className="flex-1 py-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-red-950/50 transition-all cursor-pointer disabled:opacity-50"
               >
                 <span>{loading ? "Saving..." : "Save Expense"}</span>
               </button>

@@ -39,6 +39,7 @@ import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
 import BibleStudyCard from "./BibleStudyCard";
 import Preloader from "@/app/components/ui/Preloader";
 import VerificationCelebrationModal from "@/app/components/VerificationCelebrationModal";
+import { WrappedTrigger } from "@/app/components/wrapped/WrappedTrigger";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
 
@@ -1013,6 +1014,13 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           monthTheme={MONTH_THEME}
           viewsCount={viewsCount}
           contentVariants={contentVariants}
+        />
+
+        {/* Example test on any day of the month: */}
+        <WrappedTrigger
+        userId={user?.id || ""}
+          currentDate="2026-10-30"
+          forceShow={true}
         />
         {/* 365 Bible Study Movement Integration */}
         <BibleStudyCard dateString={devotional?.dateString} />

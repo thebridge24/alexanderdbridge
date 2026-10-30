@@ -1,11 +1,13 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoChevronDown, IoCheckmark } from "react-icons/io5";
 import { FiDollarSign } from "react-icons/fi";
 import { FormInput, FormTextarea } from "@/app/components/ui/FormInput";
+import { Dropdown } from "@/app/components/ui/Dropdown";
 
 interface AddIncomeModalProps {
   isOpen: boolean;
@@ -13,13 +15,26 @@ interface AddIncomeModalProps {
   onSuccess: () => void;
 }
 
-export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncomeModalProps) {
+export default function AddIncomeModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: AddIncomeModalProps) {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("Donation");
   const [narration, setNarration] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+
+  // Category options
+  const categories = [
+    "Donation",
+    "Grant",
+    "Bank Transfer",
+    "Sponsorship",
+    "Other",
+  ];
 
   if (!isOpen) return null;
 
@@ -68,7 +83,7 @@ export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncome
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ type: "spring", stiffness: 380, damping: 28 }}
-          className="relative w-full max-w-md rounded-4xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl z-10 text-left space-y-5"
+          className="relative w-full max-w-xl rounded-4xl bg-black border border-neutral-900 p-6 shadow-2xl z-10 text-left space-y-5"
         >
           <button
             type="button"
@@ -79,12 +94,16 @@ export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncome
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="size-12 rounded-2xl bg-white/10 border border-white/20 text-emerald-400 flex items-center justify-center shrink-0">
               <FiDollarSign className="size-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white">Record Manual Income</h3>
-              <p className="text-xs font-mono text-neutral-400">Grants, donations, bank transfers</p>
+              <h3 className="text-base font-black text-white">
+                Record Manual Income
+              </h3>
+              <p className="text-xs font-mono text-neutral-400">
+                Grants, donations, bank transfers
+              </p>
             </div>
           </div>
 
@@ -102,6 +121,7 @@ export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncome
                 label="Amount (₦)"
                 type="number"
                 placeholder="50000"
+                className="w-full"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
@@ -111,17 +131,38 @@ export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncome
                 <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-400">
                   Category
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-neutral-900 border-b border-white/15 text-sm font-semibold text-white py-2 outline-none focus:border-primary"
+
+                <Dropdown
+                  align="left"
+                  className="w-full"
+                  contentClassName=""
+                  trigger={
+                    <div className="w-full flex items-center justify-between gap-2 bg-neutral-900 border-b border-white/15 text-sm font-semibold text-white py-2 px-2 cursor-pointer hover:bg-neutral-800 transition-colors">
+                      <span className="w-full">{category}</span>
+                      <IoChevronDown className="size-4 text-neutral-400 shrink-0" />
+                    </div>
+                  }
                 >
-                  <option value="Donation">Donation</option>
-                  <option value="Grant">Grant</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Sponsorship">Sponsorship</option>
-                  <option value="Other">Other</option>
-                </select>
+                  <div className="p-1">
+                    {categories.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setCategory(option)}
+                        className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors ${
+                          category === option
+                            ? "bg-white/10 text-white"
+                            : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span>{option}</span>
+                        {category === option && (
+                          <IoCheckmark className="size-4 text-emerald-400" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </Dropdown>
               </div>
             </div>
 
@@ -144,14 +185,15 @@ export default function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncome
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold text-xs transition-colors cursor-pointer"
+                className="flex-1 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold text-xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer disabled:opacity-50"
+                className="flex-1 py-3 rounded-full bg-white hover:bg-white/80 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer disabled:opacity-50"
               >
                 <span>{loading ? "Saving..." : "Save Income"}</span>
               </button>

@@ -33,7 +33,7 @@ export function FormTextarea({ label, className = "", ...props }: FormTextareaPr
       <textarea
         {...props}
         rows={3}
-        className={`w-full bg-black/40 text-sm font-semibold text-white p-3 border border-white/15 rounded-2xl focus:border-primary outline-none transition-colors resize-y min-h-20 ${className}`}
+        className={`w-full bg-black/40 text-sm font-semibold text-white p-3 border-b border-white/15 focus:border-primary outline-none transition-colors resize-y min-h-20 ${className}`}
       />
     </div>
   );

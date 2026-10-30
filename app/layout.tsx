@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import GlobalAppWrapper from "./components/layout/GlobalAppWrapper";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://alexanderdbridge.com"),
@@ -10,17 +11,15 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
 
-icons: {
-  icon: [
-    { url: "/favicon.ico", sizes: "any" },
-    { url: "/favicon.ico", type: "image/png", sizes: "32x32" },
-    { url: "/favicon.ico", type: "image/png", sizes: "16x16" },
-  ],
-  apple: [
-    { url: "/alexander_logo.png", sizes: "180x180" },
-  ],
-  shortcut: "/favicon.ico",
-},
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.ico", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/alexander_logo.png", sizes: "180x180" }],
+    shortcut: "/favicon.ico",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -112,14 +111,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className="selection:bg-neutral-800 selection:text-white"
-    >
-      <body
-        className="font-sans bg-black text-white antialiased min-h-screen tracking-tight"
-      >
-        {children}
+    <html lang="en" className="selection:bg-neutral-800 selection:text-white" suppressHydrationWarning>
+      <body className="font-sans bg-black text-white antialiased min-h-screen tracking-tight">
+        <GlobalAppWrapper>{children}</GlobalAppWrapper>{" "}
       </body>
     </html>
   );
