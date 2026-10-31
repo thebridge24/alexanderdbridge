@@ -19,6 +19,7 @@ const PLAN_MONTHLY_PRICES: Record<string, number> = {
   Sponsor: 1500,
   Partner: 2500,
   Patron: 5000,
+  Visionary: 10000,
 };
 
 const PLANS = [
@@ -36,6 +37,7 @@ const PLANS = [
     description: "Help us reach more lives through God's Word",
   },
   { name: "Patron", description: "Builds the future of Bridge Daily" },
+  { name: "Visionary", description: "Helps shape the future of Bridge Daily" },
 ];
 
 export default function AddSubscriptionModal({

@@ -7,7 +7,8 @@ export type PlanType =
   | "supporter"
   | "sponsor"
   | "patron"
-  | "partner";
+  | "partner"
+  | "visionary";
 export type BillingCycle = "monthly" | "yearly";
 
 export interface SupportPlanConfig {
@@ -126,6 +127,26 @@ export const PLAN_CONFIGS: Record<PlanType, SupportPlanConfig> = {
     verifiedIconColor: "text-yellow-600",
     imagePlaceholderPath:
       "https://res.cloudinary.com/glqzvvh2/image/upload/v1791524488/Photoroom-20261009_063401_vghz3k.png",
+    showVerifiedIcon: true,
+  },
+  visionary: {
+    id: "visionary",
+    badge: "VISIONARY",
+    badgeColor: "#10b981",
+    monthlyPrice: "₦10,000 / month",
+    yearlyPrice: "₦110,000 / year",
+    monthlyAmount: 10000,
+    yearlyAmount: 110000,
+    heading: "Shape the Future",
+    description:
+      "Help us bring the Bridge Daily mobile app and offline reading experience to life.",
+    buttonText: "Become a Visionary",
+    heroBgClass: "bg-emerald-600",
+    badgeBgClass: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    badgeTextClass: "text-emerald-700",
+    verifiedIconColor: "text-emerald-500",
+    // No illustration yet; the card hides the image when this is empty
+    imagePlaceholderPath: "",
     showVerifiedIcon: true,
   },
 };

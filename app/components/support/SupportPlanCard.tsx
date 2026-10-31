@@ -21,6 +21,7 @@ const PLANS_ARRAY: PlanType[] = [
   "sponsor",
   "partner",
   "patron",
+  "visionary",
 ];
 
 // X (Twitter) Scalloped Verified Badge Component

@@ -16,7 +16,7 @@ interface RecordPaymentTransactionInput {
   metadata?: Record<string, unknown> | null;
 }
 
-const validPlans = new Set<PlanType>(["reader", "supporter", "sponsor", "partner", "patron"]);
+const validPlans = new Set<PlanType>(["reader", "supporter", "sponsor", "partner", "patron", "visionary"]);
 
 export async function recordPaymentTransaction(input: RecordPaymentTransactionInput) {
   const reference = input.reference.trim();

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!plan || !(plan in PLAN_CONFIGS)) {
       return NextResponse.json(
-        { error: "Invalid plan specified. Choose reader, supporter, sponsor, partner, or patron." },
+        { error: "Invalid plan specified. Choose reader, supporter, sponsor, partner, patron, or visionary." },
         { status: 400 },
       );
     }

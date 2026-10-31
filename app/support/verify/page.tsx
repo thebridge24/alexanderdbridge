@@ -279,6 +279,7 @@ function VerifyForm() {
               <option value="sponsor">Sponsor (₦1,500/mo)</option>
               <option value="partner">Partner (₦2,500/mo)</option>
               <option value="patron">Patron (₦5000/mo)</option>
+              <option value="visionary">Visionary (₦10,000/mo)</option>
             </select>
           </div>
 
