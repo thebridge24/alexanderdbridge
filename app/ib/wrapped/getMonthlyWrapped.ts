@@ -53,11 +53,23 @@ export interface MonthlyWrappedData {
   }[];
 }
 
+/**
+ * Reads "YYYY-MM-DD" as a local calendar date. `new Date("2026-10-15")`
+ * is parsed as UTC, which can land on the previous month in some time zones.
+ */
+function resolveTargetDate(input?: Date | string): Date {
+  if (!input) return new Date();
+  if (input instanceof Date) return input;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Date(input);
+}
+
 export async function getMonthlyWrappedData(
   userId: string,
   targetDateInput?: Date | string
 ): Promise<MonthlyWrappedData> {
-  const targetDate = targetDateInput ? new Date(targetDateInput) : new Date();
+  const targetDate = resolveTargetDate(targetDateInput);
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth();
 
