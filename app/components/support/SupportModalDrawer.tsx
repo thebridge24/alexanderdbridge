@@ -199,7 +199,8 @@ export const SupportModalDrawer: React.FC<SupportModalDrawerProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md">
+      {/* Above the global bottom nav (z-9999), so its buttons aren't covered */}
+      <div className="fixed inset-0 z-10000 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md">
 
         {/* Modal Drawer Container */}
         <motion.div

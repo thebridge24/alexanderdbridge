@@ -173,16 +173,18 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                 </div>
 
                 {/* Illustration Bottom Bleed */}
-                <div className="relative z-10 w-full mt-auto flex items-end">
-                  <img
-                    src={plan.imagePlaceholderPath}
-                    alt={`${plan.badge} illustration`}
-                    className="w-full h-auto max-h-[28vh] sm:max-h-[32vh] object-contain object-bottom transition-transform duration-500 pointer-events-none select-none"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
-                  />
-                </div>
+                {plan.imagePlaceholderPath && (
+                  <div className="relative z-10 w-full mt-auto flex items-end">
+                    <img
+                      src={plan.imagePlaceholderPath}
+                      alt={`${plan.badge} illustration`}
+                      className="w-full h-auto max-h-[28vh] sm:max-h-[32vh] object-contain object-bottom transition-transform duration-500 pointer-events-none select-none"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
               </motion.div>
             );
           })}
