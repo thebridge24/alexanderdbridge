@@ -67,7 +67,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
   };
 
   return (
-    <div className="relative h-full min-h-dvh bg-white dark:bg-black p-3 sm:p-4 text-neutral-900 dark:text-white flex flex-col justify-between overflow-x-hidden transition-colors duration-300">
+    <div className="relative h-full max-h-[88dvh] overflow-y-auto bg-white dark:bg-black p-3 sm:p-4 text-neutral-900 dark:text-white flex flex-col justify-between overflow-x-hidden transition-colors duration-300">
       {/* Clean Glassmorphic Billing Toggle at the Top */}
       <div className="w-full flex justify-center pt-2 pb-1 relative z-30">
         <div className="inline-flex items-center p-1 bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-full shadow-sm">
@@ -98,7 +98,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
       </div>
 
       {/* Dynamic Carousel Container */}
-      <div className="relative w-full flex-1 min-h-[52vh] flex items-center justify-center my-auto">
+      <div className="relative w-full flex-1 min-h-[36vh] flex items-center justify-center my-auto">
         <div className="relative w-full h-full min-h-[50vh] flex items-center justify-center">
           {PLANS_ARRAY.map((planKey, index) => {
             const plan = PLAN_CONFIGS[planKey];
@@ -178,7 +178,7 @@ export const SupportPlanCard: React.FC<SupportPlanCardProps> = ({
                     <img
                       src={plan.imagePlaceholderPath}
                       alt={`${plan.badge} illustration`}
-                      className="w-full h-auto max-h-[28vh] sm:max-h-[32vh] object-contain object-bottom transition-transform duration-500 pointer-events-none select-none"
+                      className="w-full h-auto max-h-[20vh] sm:max-h-[24vh] object-contain object-bottom transition-transform duration-500 pointer-events-none select-none"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = "none";
                       }}
