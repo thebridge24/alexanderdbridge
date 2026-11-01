@@ -57,8 +57,18 @@ export default function SettingsPage() {
           }
         } catch {}
 
+        // Follower and following counts from the follows table
+        let followCounts = { followersCount: 0, followingCount: 0 };
+        try {
+          const res = await fetch("/api/users/me/follow-counts", {
+            headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+          });
+          if (res.ok) followCounts = await res.json();
+        } catch {}
+
         setProfile({
           id: user.id,
+          ...followCounts,
           name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
           email: user.email || "",
           avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",

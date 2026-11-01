@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { MonthlyWrappedData } from "@/app/ib/wrapped/getMonthlyWrapped";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { WrappedIntro } from "./WrappedIntro";
 import { WrappedTheme } from "./WrappedTheme";
 import { WrappedTimeline } from "./WrappedTimeline";
@@ -34,11 +35,16 @@ export function BridgeWrapped({
     async function fetchWrapped() {
       try {
         setLoading(true);
-        const dateQuery = currentDate ? `&currentDate=${encodeURIComponent(String(currentDate))}` : "";
-        const res = await fetch(`/api/devotional/wrapped?userId=${userId}${dateQuery}`);
+        // The server reads the user from the sign-in token, so the token must be sent
+        const dateQuery = currentDate ? `?currentDate=${encodeURIComponent(String(currentDate))}` : "";
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+        if (!session?.access_token) return;
+        const res = await fetch(`/api/devotional/wrapped${dateQuery}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
         if (res.ok) {
-          const json = await res.json();
-          setData(json.wrapped);
+          setData(await res.json());
         }
       } catch (err) {
         console.error("Failed to load Bridge Wrapped:", err);
