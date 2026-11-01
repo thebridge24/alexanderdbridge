@@ -66,10 +66,40 @@ export async function GET(request: NextRequest) {
   const profileMap = new Map<string, { name: string; avatarUrl: string }>();
   (profilesRes.data ?? []).forEach((p) => {
     profileMap.set(p.user_id, {
-      name: p.full_name || p.display_name || "Believer",
+      name: p.full_name || p.display_name || "",
       avatarUrl: p.avatar_url || "",
     });
   });
+
+  // Users without a profile row: fall back to their streak record, then their account
+  const missingIds = userIds.filter((id) => !profileMap.get(id)?.name);
+  if (missingIds.length > 0) {
+    const { data: streakRows } = await supabase
+      .from("user_streaks")
+      .select("user_id, display_name, avatar_url")
+      .in("user_id", missingIds);
+    (streakRows ?? []).forEach((s) => {
+      const existing = profileMap.get(s.user_id);
+      profileMap.set(s.user_id, {
+        name: existing?.name || s.display_name || "",
+        avatarUrl: existing?.avatarUrl || s.avatar_url || "",
+      });
+    });
+  }
+
+  const stillMissing = userIds.filter((id) => !profileMap.get(id)?.name);
+  await Promise.all(
+    stillMissing.map(async (id) => {
+      const { data } = await supabase.auth.admin.getUserById(id);
+      const meta = data?.user?.user_metadata ?? {};
+      const name = meta.full_name || meta.name || data?.user?.email?.split("@")[0] || "";
+      const existing = profileMap.get(id);
+      profileMap.set(id, {
+        name: name || "Believer",
+        avatarUrl: existing?.avatarUrl || meta.avatar_url || meta.picture || "",
+      });
+    }),
+  );
 
   const followerCounts = new Map<string, number>();
   (followerRowsRes.data ?? []).forEach((r) => {
@@ -92,7 +122,7 @@ export async function GET(request: NextRequest) {
       name,
       handle: `@${name.toLowerCase().replace(/\s+/g, "")}`,
       avatarUrl: profile?.avatarUrl ?? "",
-      followersCount: `${formatCount(followerCounts.get(id) ?? 0)} followers`,
+      followersCount: `${formatCount(followerCounts.get(id) ?? 0)} ${(followerCounts.get(id) ?? 0) === 1 ? "follower" : "followers"}`,
       isFollowing: iFollow.has(id),
       isFollower: followsMe.has(id),
       verificationTier: tierMap.get(id) ?? null,
