@@ -176,6 +176,17 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>("");
+  const [monthTheme, setMonthTheme] = useState<string>(MONTH_THEME);
+
+  // The theme comes from the database, so it doesn't need a code change each month
+  useEffect(() => {
+    fetch("/api/devotional/theme")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.title) setMonthTheme(data.title);
+      })
+      .catch(() => {});
+  }, []);
 
   // Modal & Reply states
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
@@ -930,7 +941,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
                   className="text-center max-w-md"
                 >
                   <span className="text-[11px] tracking-widest text-neutral-500 uppercase block mb-2 font-medium">
-                    Theme: {MONTH_THEME}
+                    Theme: {monthTheme}
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight text-neutral-100">
                     {currentDevotional.topic}
@@ -1011,7 +1022,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         {/* Reusable Component Insertion */}
         <DevotionalArticle
           devotional={currentDevotional}
-          monthTheme={MONTH_THEME}
+          monthTheme={monthTheme}
           viewsCount={viewsCount}
           contentVariants={contentVariants}
         />

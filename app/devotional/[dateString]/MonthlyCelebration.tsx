@@ -10,6 +10,16 @@ import { MONTH_THEME } from "@/app/data/devotionalData";
 export default function MonthlyCelebration() {
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState<string>("");
+  const [monthTheme, setMonthTheme] = useState<string>(MONTH_THEME);
+
+  useEffect(() => {
+    fetch("/api/devotional/theme")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.title) setMonthTheme(data.title);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const today = new Date();
@@ -93,7 +103,7 @@ export default function MonthlyCelebration() {
                   Theme of the Month
                 </span>
                 <p className="text-base font-semibold text-neutral-200">
-                  {MONTH_THEME}
+                  {monthTheme}
                 </p>
               </div>
 
