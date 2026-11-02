@@ -5,7 +5,7 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose, IoCloseCircle, IoSend } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaCrown } from "react-icons/fa6";
 import { Comment, CommentItem, Reply } from "./CommentItem";
 import Preloader from "./ui/Preloader";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
@@ -31,7 +31,9 @@ interface CommentSlideUpModalProps {
   commentText: string;
   setCommentText: (text: string) => void;
   onSubmitComment: (e: React.FormEvent, mentionedUserIds: string[]) => void;
-  onLikeComment: (commentId: string) => void;
+  onLikeComment: (commentId: string, replyId?: string) => void;
+  onEditComment?: (commentId: string, text: string, replyId?: string) => void;
+  onDeleteComment?: (commentId: string, replyId?: string) => void;
   replyingToId: string | null;
   replyingToName: string | null;
   setReplyingTo: (id: string | null, name: string | null) => void;
@@ -39,10 +41,11 @@ interface CommentSlideUpModalProps {
   userInitial?: string;
   userAvatarUrl?: string;
   userName?: string;
+  userTier?: string | null;
   highlightedCommentId?: string | null;
+  currentUserId?: string;
 }
 
-// Helper Avatar Component for the current user input bar
 const CurrentUserAvatar: React.FC<{
   avatarUrl?: string;
   initial?: string;
@@ -79,6 +82,8 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   setCommentText,
   onSubmitComment,
   onLikeComment,
+  onEditComment,
+  onDeleteComment,
   replyingToId,
   replyingToName,
   setReplyingTo,
@@ -86,20 +91,21 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   userInitial = "U",
   userAvatarUrl,
   userName = "User",
+  userTier,
   highlightedCommentId,
+  currentUserId,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // User Mention List & Filter State
   const [allUsers, setAllUsers] = useState<MentionUser[]>([]);
   const [showMentionSlider, setShowMentionSlider] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
   const [pickedMentions, setPickedMentions] = useState<MentionUser[]>([]);
-  const [selectedProfile, setSelectedProfile] =
-    useState<UserProfileData | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfileData | null>(null);
+  
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Fetch registered users for @ mentions when modal is opened
   useEffect(() => {
     async function fetchMentionUsers() {
       try {
@@ -117,19 +123,16 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     }
   }, [isOpen]);
 
-  // Detect "@" symbol input and position in text area
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     const cursorIndex = e.target.selectionStart;
     setCommentText(text);
 
-    // Look backward from cursor position to find the last @ symbol
     const textBeforeCursor = text.slice(0, cursorIndex);
     const lastAtPos = textBeforeCursor.lastIndexOf("@");
 
     if (lastAtPos !== -1) {
       const queryAfterAt = textBeforeCursor.slice(lastAtPos + 1);
-      // Ensure there are no spaces in the query string after @
       if (!queryAfterAt.includes(" ")) {
         setMentionQuery(queryAfterAt);
         setMentionMatchIndex(lastAtPos);
@@ -141,7 +144,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     setShowMentionSlider(false);
   };
 
-  // Filter users based on query after @
   const filteredMentionUsers = useMemo(() => {
     if (!mentionQuery.trim()) return allUsers;
     return allUsers.filter(
@@ -151,15 +153,12 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     );
   }, [allUsers, mentionQuery]);
 
-  // Insert tagged user name into comment textarea
   const handleSelectMentionUser = (user: MentionUser) => {
     if (mentionMatchIndex === -1) return;
 
     const nameToInsert = user.name || user.email.split("@")[0];
     const beforeAt = commentText.slice(0, mentionMatchIndex);
-    const afterAtQuery = commentText.slice(
-      mentionMatchIndex + 1 + mentionQuery.length,
-    );
+    const afterAtQuery = commentText.slice(mentionMatchIndex + 1 + mentionQuery.length);
 
     const updatedText = `${beforeAt}@${nameToInsert} ${afterAtQuery}`;
     setCommentText(updatedText);
@@ -168,7 +167,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
       prev.some((u) => u.id === user.id) ? prev : [...prev, user],
     );
 
-    // Focus back to textarea and place cursor after tag
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
@@ -178,7 +176,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     }, 50);
   };
 
-  // Auto-grow textarea height
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -187,51 +184,20 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     }
   }, [commentText]);
 
-  // Handle auto-focus and cursor positioning when selecting a reply target
-  useEffect(() => {
-    if (replyingToName && textareaRef.current) {
-      textareaRef.current.focus();
-      const length = textareaRef.current.value.length;
-      textareaRef.current.setSelectionRange(length, length);
-    }
-  }, [replyingToName, replyingToId]);
-
-  // Auto-scroll to highlighted comment when opened via deep-link
-  useEffect(() => {
-    if (isOpen && highlightedCommentId) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById(`comment-${highlightedCommentId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 350);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, highlightedCommentId]);
-
-  // Handle Escape key to close modal
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
   const handleReplySelect = (id: string, name: string) => {
     setReplyingTo(id, name);
     setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-      }
+      if (textareaRef.current) textareaRef.current.focus();
     }, 50);
   };
 
-  const handleClearReply = () => {
-    setReplyingTo(null, null);
+  const handleShareComment = (text: string) => {
+    if (navigator.share) {
+      navigator.share({ title: "Bridge Daily Comment", text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      alert("Comment copied to clipboard!");
+    }
   };
 
   const handleAvatarClick = async (author: Comment | Reply) => {
@@ -245,17 +211,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     });
     if (!userId) return;
 
-    // Banner for the popup (public, no sign-in needed)
-    fetch(`/api/users/${userId}/profile`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data?.bannerUrl) return;
-        setSelectedProfile((prev) =>
-          prev?.id === userId ? { ...prev, bannerUrl: data.bannerUrl } : prev,
-        );
-      })
-      .catch(() => {});
-
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;
@@ -266,7 +221,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
       });
       if (!res.ok) return;
       const data = await res.json();
-      // Only update if the same profile is still open
       setSelectedProfile((prev) =>
         prev?.id === userId ? { ...prev, isFollowing: !!data.isFollowing } : prev,
       );
@@ -275,33 +229,10 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     }
   };
 
-  const handleToggleFollow = async (userId: string) => {
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const session = (await supabase?.auth.getSession())?.data?.session;
-      if (!session?.access_token) {
-        alert("Please sign in to follow people.");
-        return;
-      }
-      const res = await fetch(`/api/users/${userId}/follow`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update follow");
-      setSelectedProfile((prev) =>
-        prev?.id === userId ? { ...prev, isFollowing: !!data.isFollowing } : prev,
-      );
-    } catch (err: any) {
-      alert(err.message || "Failed to update follow");
-    }
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -310,7 +241,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
           />
 
-          {/* Slide-Up Bottom Sheet Modal */}
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -318,12 +248,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto h-[75vh] max-h-162.5 bg-black border-t border-neutral-800 rounded-t-4xl z-50000 flex flex-col overflow-hidden shadow-2xl"
           >
-            {/* Top Handle Bar */}
             <div className="w-full flex flex-col items-center pt-3 pb-2 shrink-0 relative border-b border-neutral-900">
               <div className="w-12 h-1 bg-neutral-700 rounded-full mb-3" />
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Comments
-              </h3>
+              <h3 className="text-base font-bold text-white tracking-tight">Comments</h3>
               <button
                 type="button"
                 onClick={onClose}
@@ -334,7 +261,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               </button>
             </div>
 
-            {/* Scrollable Comments List */}
             <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar space-y-2 pb-32">
               {comments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -348,7 +274,13 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     <CommentItem
                       key={comment.id}
                       comment={comment}
+                      currentUserId={currentUserId}
                       onLike={onLikeComment}
+                      onEdit={onEditComment}
+                      onDelete={onDeleteComment}
+                      onShare={handleShareComment}
+                      userTier={userTier}
+                      onRequireUpgrade={() => setShowUpgradeModal(true)}
                       onReplySelect={handleReplySelect}
                       onAvatarClick={handleAvatarClick}
                       isSubmitting={isSubmitting}
@@ -361,7 +293,6 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               )}
             </div>
 
-            {/* Mentions Slider (Appears Above Input Bar) */}
             <AnimatePresence>
               {showMentionSlider && filteredMentionUsers.length > 0 && (
                 <motion.div
@@ -374,7 +305,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     Tag a Member
                   </div>
                   {filteredMentionUsers.map((user) => {
-                    const userTier = getUserVerificationTier({
+                    const userTierVal = getUserVerificationTier({
                       metadata: user.metadata,
                       email: user.email,
                       name: user.name,
@@ -403,13 +334,8 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                             <span className="text-xs font-bold text-white truncate">
                               {user.name || "Believer"}
                             </span>
-                            {userTier && (
-                              <VerifiedBadge
-                                tier={userTier}
-                                name={user.name}
-                                email={user.email}
-                                size="sm"
-                              />
+                            {userTierVal && (
+                              <VerifiedBadge tier={userTierVal} name={user.name} email={user.email} size="sm" />
                             )}
                           </div>
                           <span className="block text-[10px] text-neutral-500 font-mono truncate">
@@ -429,35 +355,23 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                 onSubmit={(e) =>
                   onSubmitComment(
                     e,
-                    // Only tags still present in the text count as mentions
                     pickedMentions
-                      .filter((u) =>
-                        commentText.includes(
-                          `@${u.name || u.email.split("@")[0]}`,
-                        ),
-                      )
+                      .filter((u) => commentText.includes(`@${u.name || u.email.split("@")[0]}`))
                       .map((u) => u.id),
                   )
                 }
                 className="flex items-end gap-3"
               >
-                {/* User Avatar / Fallback Initial */}
-                <CurrentUserAvatar
-                  avatarUrl={userAvatarUrl}
-                  initial={userInitial}
-                  name={userName}
-                />
+                <CurrentUserAvatar avatarUrl={userAvatarUrl} initial={userInitial} name={userName} />
 
-                {/* Input Container */}
                 <div className="relative flex-1 bg-black border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
-                  {/* Floating Tag (Pinned Top-Left) */}
                   {replyingToName && (
                     <div className="float-left mr-2 mb-1">
                       <span className="inline-flex items-center gap-1 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-2 py-0.5 rounded-full select-none">
                         @{replyingToName}
                         <button
                           type="button"
-                          onClick={handleClearReply}
+                          onClick={() => setReplyingTo(null, null)}
                           className="hover:text-red-400 focus:outline-none cursor-pointer"
                           aria-label="Remove mention"
                         >
@@ -471,9 +385,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName
-                        ? "Write a reply..."
-                        : "Comment... (Type @ to tag someone)"
+                      replyingToName ? "Write a reply..." : "Comment... (Type @ to tag someone)"
                     }
                     value={commentText}
                     onChange={handleTextareaChange}
@@ -497,11 +409,62 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
               </form>
             </div>
           </motion.div>
+
+          {/* Upgrade / Support Modal */}
+          <AnimatePresence>
+            {showUpgradeModal && (
+              <div className="fixed inset-0 z-60000 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="w-full max-w-sm bg-neutral-950 border border-neutral-800 rounded-3xl p-6 text-center shadow-2xl relative"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="absolute top-4 right-4 text-neutral-400 hover:text-white cursor-pointer"
+                  >
+                    <IoClose className="size-5" />
+                  </button>
+
+                  <div className="size-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-4 text-primary">
+                    <FaCrown className="size-6" />
+                  </div>
+
+                  <h3 className="text-lg font-bold text-white mb-2">Unlock Comment Actions</h3>
+                  <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
+                    Editing and deleting comments requires a Reader, Supporter, Partner, Sponsor, Patron, or Visionary membership tier. Become a supporter today to unlock full community privileges!
+                  </p>
+
+                  <div className="space-y-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUpgradeModal(false);
+                        window.location.href = "/devotional/profile-edit";
+                      }}
+                      className="w-full py-3 rounded-full bg-primary text-white font-bold text-xs hover:bg-red-600 transition-all cursor-pointer shadow-lg shadow-red-950/40"
+                    >
+                      Subscribe & Support Now
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUpgradeModal(false)}
+                      className="w-full py-2.5 rounded-full bg-neutral-900 text-neutral-300 font-bold text-xs hover:bg-neutral-800 transition-all cursor-pointer"
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           <UserProfilePopup
             isOpen={selectedProfile !== null}
             onClose={() => setSelectedProfile(null)}
             user={selectedProfile}
-            onToggleFollow={handleToggleFollow}
           />
         </>
       )}
