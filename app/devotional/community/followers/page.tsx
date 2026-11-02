@@ -1,17 +1,19 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+// DATA
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { FaChevronLeft, FaSearch } from "react-icons/fa";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import Preloader from "@/app/components/ui/Preloader";
 import { SuggestedUsersSection } from "@/app/components/SuggestedUsersSection";
+import ConnectionSkeleton from "@/app/components/skeleton/ConnectionSkeleton";
 
-interface UserItem {
+export interface UserItem {
   id: string;
   name: string;
   handle: string;
@@ -22,19 +24,47 @@ interface UserItem {
   verificationTier?: string | null;
 }
 
-/** The signed-in user's access token, or null when signed out. */
+const listContainerVariants:Variants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const listItemVariants:Variants = {
+  hidden: {
+    opacity: 0,
+    y: 12,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut" as const,
+    },
+  },
+};
+
+// ACCESS TOKEN
 async function getAccessToken(): Promise<string | null> {
   const supabase = createSupabaseBrowserClient();
   const session = (await supabase?.auth.getSession())?.data?.session;
   return session?.access_token ?? null;
 }
 
+// LOGIC
 export default function FollowersFollowingPage() {
   const router = useRouter();
   const pathname = usePathname();
 
   // Determine active tab from route path or default
   const isFollowingRoute = pathname?.includes("/following");
+
   const [activeTab, setActiveTab] = useState<"followers" | "following">(
     isFollowingRoute ? "following" : "followers",
   );
@@ -46,48 +76,72 @@ export default function FollowersFollowingPage() {
   // Load the real list for the active tab
   useEffect(() => {
     let cancelled = false;
+
     async function loadConnections() {
       setIsLoading(true);
+
       try {
         const token = await getAccessToken();
+
         if (!token) {
           if (!cancelled) setUsers([]);
           return;
         }
-        const res = await fetch(`/api/users/me/connections?tab=${activeTab}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+
+        const res = await fetch(
+          `/api/users/me/connections?tab=${activeTab}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
         const data = await res.json();
-        if (!cancelled) setUsers(res.ok ? (data.users ?? []) : []);
+
+        if (!cancelled) {
+          setUsers(res.ok ? (data.users ?? []) : []);
+        }
       } catch (err) {
         console.error("Failed to load connections:", err);
+
         if (!cancelled) setUsers([]);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
+
     loadConnections();
+
     return () => {
       cancelled = true;
     };
   }, [activeTab]);
 
+  // Follow or unfollow a user
   const toggleFollow = async (id: string) => {
     try {
       const token = await getAccessToken();
+
       if (!token) {
         alert("Please sign in to follow people.");
         return;
       }
+
       const res = await fetch(`/api/users/${id}/follow`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update follow");
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update follow");
+      }
+
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === id ? { ...user, isFollowing: !!data.isFollowing } : user,
+          user.id === id
+            ? { ...user, isFollowing: !!data.isFollowing }
+            : user,
         ),
       );
     } catch (err: any) {
@@ -95,12 +149,14 @@ export default function FollowersFollowingPage() {
     }
   };
 
+  // Filter users by name or handle
   const filteredList = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.handle.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // Switch between tabs
   const handleTabSwitch = (tab: "followers" | "following") => {
     setActiveTab(tab);
     window.history.replaceState(null, "", `/devotional/community/${tab}`);
@@ -109,6 +165,7 @@ export default function FollowersFollowingPage() {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-neutral-800 pb-20">
       <div className="max-w-5xl mx-auto">
+
         {/* Top Header Bar */}
         <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-neutral-900 px-4 pt-4 pb-0">
           <div className="flex items-center gap-4 mb-3">
@@ -143,6 +200,7 @@ export default function FollowersFollowingPage() {
               }`}
             >
               <span>Followers</span>
+
               {activeTab === "followers" && (
                 <motion.div
                   layoutId="activeTabUnderline"
@@ -162,6 +220,7 @@ export default function FollowersFollowingPage() {
               }`}
             >
               <span>Following</span>
+
               {activeTab === "following" && (
                 <motion.div
                   layoutId="activeTabUnderline"
@@ -177,6 +236,7 @@ export default function FollowersFollowingPage() {
         <div className="px-4 pt-4 pb-2">
           <div className="relative flex items-center">
             <FaSearch className="absolute left-4 text-neutral-500 size-3.5 pointer-events-none" />
+
             <input
               type="text"
               value={searchQuery}
@@ -190,9 +250,16 @@ export default function FollowersFollowingPage() {
         {/* Connections List View */}
         <main className="px-2 pt-2 divide-y divide-neutral-900/80">
           {isLoading ? (
-            <div className="py-20 text-center">
-              <Preloader />
-            </div>
+            <motion.div
+              variants={listContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="divide-y divide-neutral-900/80"
+            >
+              {Array.from({ length: 8 }).map((_, index) => (
+                <ConnectionSkeleton key={index} />
+              ))}
+            </motion.div>
           ) : filteredList.length === 0 ? (
             <div className="py-20 text-center space-y-2">
               <p className="text-xs font-mono text-neutral-500">
@@ -206,72 +273,80 @@ export default function FollowersFollowingPage() {
               </p>
             </div>
           ) : (
-            filteredList.map((user) => {
-              const isFollowing = user.isFollowing;
-              const buttonLabel = isFollowing
-                ? "Following"
-                : user.isFollower
-                  ? "Follow back"
-                  : "Follow";
+            <motion.div
+              key={activeTab}
+              variants={listContainerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {filteredList.map((user) => {
+                const isFollowing = user.isFollowing;
 
-              return (
-                <motion.div
-                  key={user.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center justify-between px-3 py-3 hover:bg-neutral-900/40 rounded-2xl transition-colors"
-                >
-                  {/* User Info */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative size-12 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0 overflow-hidden">
-                      {user.avatarUrl ? (
-                        <img
-                          src={user.avatarUrl}
-                          alt={user.name}
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-bold text-white">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+                const buttonLabel = isFollowing
+                  ? "Following"
+                  : user.isFollower
+                    ? "Follow back"
+                    : "Follow";
 
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-white leading-snug">
-                          {user.name}
-                        </span>
-                        {user.verificationTier && (
-                          <VerifiedBadge
-                            tier={user.verificationTier}
-                            name={user.name}
-                            size="sm"
+                return (
+                  <motion.div
+                    key={user.id}
+                    variants={listItemVariants}
+                    className="flex items-center justify-between px-3 py-3 hover:bg-neutral-900/40 rounded-2xl transition-colors"
+                  >
+                    {/* User Info */}
+                    <div className="flex items-center gap-3">
+                      <div className="relative size-12 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0 overflow-hidden">
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={user.name}
+                            className="size-full object-cover"
                           />
+                        ) : (
+                          <span className="text-sm font-bold text-white">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-neutral-400 font-mono">
-                        {user.followersCount}
+
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-white leading-snug">
+                            {user.name}
+                          </span>
+
+                          {user.verificationTier && (
+                            <VerifiedBadge
+                              tier={user.verificationTier}
+                              name={user.name}
+                              size="sm"
+                            />
+                          )}
+                        </div>
+
+                        <div className="text-[11px] text-neutral-400 font-mono">
+                          {user.followersCount}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Follow / Following Toggle Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleFollow(user.id)}
-                    className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-md ${
-                      isFollowing
-                        ? "bg-transparent text-white border border-neutral-700 hover:border-red-600 hover:text-red-500 hover:bg-red-950/20"
-                        : "bg-[#ff0000] text-white hover:bg-red-600 shadow-red-950/50"
-                    }`}
-                  >
-                    {buttonLabel}
-                  </button>
-                </motion.div>
-              );
-            })
+                    {/* Follow / Following Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => toggleFollow(user.id)}
+                      className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-md ${
+                        isFollowing
+                          ? "bg-transparent text-white border border-neutral-700 hover:border-red-600 hover:text-red-500 hover:bg-red-950/20"
+                          : "bg-[#ff0000] text-white hover:bg-red-600 shadow-red-950/50"
+                      }`}
+                    >
+                      {buttonLabel}
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           )}
 
           <SuggestedUsersSection />

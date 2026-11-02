@@ -1,11 +1,10 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
 // DATA
 import React, { useEffect, useState } from "react";
-import { motion, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   FaUserPlus,
   FaUserCheck,
@@ -16,6 +15,8 @@ import {
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { MILESTONE_MEDALS } from "@/lib/types/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import SuggestedUserSkeleton from "./skeleton/SuggestedUserSkeleton";
+import Preloader from "./ui/Preloader";
 
 interface SuggestedUser {
   id: string;
@@ -34,7 +35,7 @@ async function getAccessToken(): Promise<string | null> {
   const session = (await supabase?.auth.getSession())?.data?.session;
   return session?.access_token ?? null;
 }
-const skeletonContainerVariants:Variants = {
+const skeletonContainerVariants: Variants = {
   hidden: { opacity: 1 },
   visible: {
     opacity: 1,
@@ -45,77 +46,10 @@ const skeletonContainerVariants:Variants = {
   },
 };
 
-const skeletonCardVariants:Variants = {
-  hidden: {
-    opacity: 0,
-    y: 25,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease: "easeOut" as const,
-    },
-  },
-};
-
-
 function formatCount(count: number): string {
   if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}m`;
   if (count >= 1_000) return `${(count / 1_000).toFixed(1)}k`;
   return String(count);
-}
-
-
-// SKELETON CARD
-function SuggestedUserSkeleton() {
-  return (
-    <motion.div
-      variants={skeletonCardVariants}
-      className="relative bg-neutral-950 border border-neutral-800/80 rounded-3xl p-4 flex flex-col shadow-xl overflow-hidden"
-    >
-      {/* Banner */}
-      <div className="relative h-20 -mx-4 -mt-4 mb-3 bg-neutral-900 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent animate-pulse" />
-      </div>
-
-      {/* Avatar */}
-      <div className="flex items-center justify-between -mt-10 mb-3 z-10">
-        <div className="size-14 rounded-full bg-neutral-800 border-2 border-neutral-700 animate-pulse" />
-      </div>
-
-      {/* User details */}
-      <div className="mb-4 space-y-2">
-        <div className="h-3.5 w-32 rounded-full bg-neutral-800 animate-pulse" />
-        <div className="h-2.5 w-24 rounded-full bg-neutral-900 animate-pulse" />
-      </div>
-
-      {/* Streak, followers and milestone */}
-      <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-neutral-900 mb-4">
-        <div className="flex flex-col items-center gap-2">
-          <div className="size-4 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-3 w-8 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-2 w-12 rounded-full bg-neutral-900 animate-pulse" />
-        </div>
-
-        <div className="flex flex-col items-center gap-2 border-x border-neutral-900">
-          <div className="size-4 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-3 w-8 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-2 w-14 rounded-full bg-neutral-900 animate-pulse" />
-        </div>
-
-        <div className="flex flex-col items-center gap-2">
-          <div className="size-4 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-3 w-14 rounded-full bg-neutral-800 animate-pulse" />
-          <div className="h-2 w-14 rounded-full bg-neutral-900 animate-pulse" />
-        </div>
-      </div>
-
-      {/* Follow button */}
-      <div className="h-10 w-full rounded-full bg-neutral-800 animate-pulse" />
-    </motion.div>
-  );
 }
 
 // LOGIC
@@ -123,6 +57,7 @@ export function SuggestedUsersSection() {
   const [users, setUsers] = useState<SuggestedUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followingId, setFollowingId] = useState<string | null>(null);
+  const [exitingIds, setExitingIds] = useState<string[]>([]);
 
   // Load all users from the existing admin users endpoint
   useEffect(() => {
@@ -150,19 +85,17 @@ export function SuggestedUsersSection() {
           throw new Error(data.error || "Failed to load users");
         }
 
-        const formatted: SuggestedUser[] = (data.users ?? []).map(
-          (u: any) => ({
-            id: u.id,
-            name: u.name || "Bridge Believer",
-            email: u.email,
-            avatar_url: u.avatar_url || "",
-            followersCount: Number(u.followersCount ?? 0),
-            currentStreak: Number(u.currentStreak ?? 0),
-            highestStreak: Number(u.highestStreak ?? 0),
-            isFollowing: Boolean(u.isFollowing),
-            verification_tier: u.verification_tier ?? null,
-          }),
-        );
+        const formatted: SuggestedUser[] = (data.users ?? []).map((u: any) => ({
+          id: u.id,
+          name: u.name || "Bridge Believer",
+          email: u.email,
+          avatar_url: u.avatar_url || "",
+          followersCount: Number(u.followersCount ?? 0),
+          currentStreak: Number(u.currentStreak ?? 0),
+          highestStreak: Number(u.highestStreak ?? 0),
+          isFollowing: Boolean(u.isFollowing),
+          verification_tier: u.verification_tier ?? null,
+        }));
 
         if (!cancelled) {
           setUsers(formatted);
@@ -212,8 +145,30 @@ export function SuggestedUsersSection() {
       setUsers((prev) =>
         prev.map((user) => {
           if (user.id !== id) return user;
-
           const isNowFollowing = Boolean(data.isFollowing);
+
+          if (isNowFollowing) {
+            // Start the exit animation
+            setExitingIds((prev) => [...prev, id]);
+
+            // Remove the user after the animation completes
+            setTimeout(() => {
+              setUsers((prev) => prev.filter((user) => user.id !== id));
+              setExitingIds((prev) => prev.filter((userId) => userId !== id));
+            }, 350);
+          } else {
+            setUsers((prev) =>
+              prev.map((user) =>
+                user.id === id
+                  ? {
+                      ...user,
+                      isFollowing: false,
+                      followersCount: Math.max(0, user.followersCount - 1),
+                    }
+                  : user,
+              ),
+            );
+          }
 
           return {
             ...user,
@@ -231,6 +186,8 @@ export function SuggestedUsersSection() {
       setFollowingId(null);
     }
   };
+  // Only show users you haven't followed yet
+  const suggestedUsers = users.filter((user) => !user.isFollowing);
 
   // Use the same milestone definitions as UserProfilePopup
   const getMilestone = (streak: number) =>
@@ -240,7 +197,6 @@ export function SuggestedUsersSection() {
 
   return (
     <div className="mt-8 pt-6 border-t border-neutral-800 space-y-6">
-
       <div className="px-3">
         <h3 className="text-sm font-black text-white tracking-wider font-mono uppercase">
           Suggested For You
@@ -251,7 +207,7 @@ export function SuggestedUsersSection() {
       </div>
 
       {isLoading ? (
-          <motion.div
+        <motion.div
           variants={skeletonContainerVariants}
           initial="hidden"
           animate="visible"
@@ -261,124 +217,137 @@ export function SuggestedUsersSection() {
             <SuggestedUserSkeleton key={index} />
           ))}
         </motion.div>
-      ) : users.length === 0 ? (
+      ) : suggestedUsers.length === 0 ? (
         <div className="py-12 text-center text-xs text-neutral-500">
           No suggested users available right now.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
-          {users.map((user) => {
-            const milestone = getMilestone(user.currentStreak);
-            const isBusy = followingId === user.id;
+          <AnimatePresence mode="popLayout">
+            {suggestedUsers.map((user) => {
+              const milestone = getMilestone(user.currentStreak);
+              const isBusy = followingId === user.id;
 
-            return (
-              <motion.div
-                key={user.id}
-                whileHover={{ scale: 1.01 }}
-                className="relative bg-neutral-950 border border-neutral-800/80 rounded-3xl p-4 flex flex-col shadow-xl overflow-hidden"
-              >
-                {/* Banner */}
-                <div className="relative h-20 -mx-4 -mt-4 mb-3 bg-linear-to-r from-neutral-900 via-red-950/40 to-neutral-900" />
-
-                {/* Avatar */}
-                <div className="flex items-center justify-between -mt-10 mb-3 z-10">
-                  <div className="size-14 rounded-full bg-neutral-900 border-2 border-red-600 overflow-hidden flex items-center justify-center shrink-0">
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt={user.name}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-lg font-bold text-white">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* User details */}
-                <div className="mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm font-bold text-white truncate">
-                      {user.name}
-                    </h4>
-
-                    {user.verification_tier && (
-                      <VerifiedBadge
-                        tier={user.verification_tier}
-                        name={user.name}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-
-                  <p className="text-[11px] text-neutral-500">
-                    Bridge Daily Member
-                  </p>
-                </div>
-
-                {/* Streak, followers and milestone */}
-                <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-neutral-900 mb-4">
-
-                  <div className="text-center">
-                    <FaFire className="text-red-500 mx-auto mb-1 size-4" />
-                    <p className="text-sm font-bold text-white">
-                      {user.currentStreak}
-                    </p>
-                    <p className="text-[9px] text-neutral-500 uppercase">
-                      Streak
-                    </p>
-                  </div>
-
-                  <div className="text-center border-x border-neutral-900">
-                    <FaUser className="text-blue-400 mx-auto mb-1 size-4" />
-                    <p className="text-sm font-bold text-white">
-                      {formatCount(user.followersCount)}
-                    </p>
-                    <p className="text-[9px] text-neutral-500 uppercase">
-                      Followers
-                    </p>
-                  </div>
-
-                  <div className="text-center min-w-0">
-                    <FaTrophy className="text-amber-400 mx-auto mb-1 size-4" />
-                    <p className="text-[10px] font-bold text-white truncate px-1">
-                      {milestone?.name ?? "First Steps"}
-                    </p>
-                    <p className="text-[9px] text-neutral-500 uppercase">
-                      Milestone
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* Follow button */}
-                <button
-                  type="button"
-                  disabled={isBusy || followingId !== null}
-                  onClick={() => toggleFollow(user.id)}
-                  className={`w-full py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
-                    user.isFollowing
-                      ? "bg-neutral-900 text-white border border-neutral-700 hover:bg-neutral-800"
-                      : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-950/50"
-                  }`}
+              return (
+                <motion.div
+                  key={user.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={
+                    exitingIds.includes(user.id)
+                      ? {
+                          opacity: 0,
+                          scale: 0.75,
+                          y: -15,
+                          transition: { duration: 0.3, ease: "easeInOut" },
+                        }
+                      : {
+                          opacity: 1,
+                          scale: 1,
+                          y: 0,
+                        }
+                  }
+                  whileHover={{ scale: 1.01 }}
+                  className="relative bg-neutral-950 border border-neutral-800/80 rounded-3xl p-4 flex flex-col shadow-xl overflow-hidden"
                 >
-                  {user.isFollowing ? (
-                    <>
-                      <FaUserCheck className="size-3.5" />
-                      Following
-                    </>
-                  ) : (
-                    <>
-                      <FaUserPlus className="size-3.5" />
-                      {isBusy ? "Following..." : "Follow"}
-                    </>
-                  )}
-                </button>
-              </motion.div>
-            );
-          })}
+                  {/* Banner */}
+                  <div className="relative h-20 -mx-4 -mt-4 mb-3 bg-linear-to-r from-neutral-900 via-red-950/40 to-neutral-900" />
+
+                  {/* Avatar */}
+                  <div className="flex items-center justify-between -mt-10 mb-3 z-10">
+                    <div className="size-14 rounded-full bg-neutral-900 border-2 border-red-600 overflow-hidden flex items-center justify-center shrink-0">
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.name}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg font-bold text-white">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* User details */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-sm font-bold text-white truncate">
+                        {user.name}
+                      </h4>
+
+                      {user.verification_tier && (
+                        <VerifiedBadge
+                          tier={user.verification_tier}
+                          name={user.name}
+                          size="sm"
+                        />
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-neutral-500">
+                      Bridge Daily Member
+                    </p>
+                  </div>
+
+                  {/* Streak, followers and milestone */}
+                  <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-neutral-900 mb-4">
+                    <div className="text-center">
+                      <FaFire className="text-red-500 mx-auto mb-1 size-4" />
+                      <p className="text-sm font-bold text-white">
+                        {user.currentStreak}
+                      </p>
+                      <p className="text-[9px] text-neutral-500 uppercase">
+                        Streak
+                      </p>
+                    </div>
+
+                    <div className="text-center border-x border-neutral-900">
+                      <FaUser className="text-blue-400 mx-auto mb-1 size-4" />
+                      <p className="text-sm font-bold text-white">
+                        {formatCount(user.followersCount)}
+                      </p>
+                      <p className="text-[9px] text-neutral-500 uppercase">
+                        Followers
+                      </p>
+                    </div>
+
+                    <div className="text-center min-w-0">
+                      <FaTrophy className="text-amber-400 mx-auto mb-1 size-4" />
+                      <p className="text-[10px] font-bold text-white truncate px-1">
+                        {milestone?.name ?? "First Steps"}
+                      </p>
+                      <p className="text-[9px] text-neutral-500 uppercase">
+                        Milestone
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Follow button */}
+                  <button
+                    type="button"
+                    disabled={isBusy || followingId !== null}
+                    onClick={() => toggleFollow(user.id)}
+                    className={`w-full py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
+                      user.isFollowing
+                        ? "bg-neutral-900 text-white border border-neutral-700 hover:bg-neutral-800"
+                        : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-950/50"
+                    }`}
+                  >
+                    {isBusy || followingId === user.id ? (
+                      <Preloader />
+                    ) : (
+                      <>
+                        <FaUserPlus className="size-3.5" />
+                        {isBusy ? "Following..." : "Follow"}
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
     </div>
