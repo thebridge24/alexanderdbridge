@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -99,8 +98,8 @@ export function BridgeWrapped({
     // Timeline screens (Index 2 to 2 + timelinePages - 1)
     if (currentStoryIndex >= 2 && currentStoryIndex < 2 + timelinePages) {
       const pageIdx = currentStoryIndex - 2;
-      const start = pageIdx * 7;
-      const chunk = data.devotionals.slice(start, start + 7);
+      const start = pageIdx * 5;
+      const chunk = data.devotionals.slice(start, start + 5);
       return (
         <WrappedTimeline
           devotionals={chunk}

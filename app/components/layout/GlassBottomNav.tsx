@@ -45,43 +45,18 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
 
   return (
     <div className=" fixed bottom-0 z-9999 left-0 w-full flex justify-center">
-      <svg
-        className="hidden pointer-events-none absolute w-0 h-0"
-        aria-hidden="true"
-      >
-        <defs>
-          <filter
-            id="liquid-glass-distortion"
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
-          >
-            <feGaussianBlur stdDeviation="12" result="blur" />
-            <feColorMatrix
-              type="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"
-              result="goo"
-            />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-
       <div
         className={`relative z-10 md:pb-6 flex md:px-4 pointer-events-none w-full md:max-w-md ${className}`}
       >
         <motion.nav
           initial={false}
           animate={{
-            y: isMinimized ? 80 : 0,
+            y: isMinimized ? 100 : 0,
           }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full pointer-events-auto relative flex items-center justify-around px-2 py-2 pb-4 md:rounded-full bg-black/5 backdrop-saturate-200"
-          style={{ backdropFilter: "blur(20px) saturate(180%)" }}
+          className="w-full pointer-events-auto relative flex items-center justify-around px-2 py-2 pb-4 md:rounded-full bg-black border-t border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)]"
         >
-          <div className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
-
+      
           {items.map((item) => {
             // Determine route activity cleanly under the /devotional/ namespace
             const isActive = (() => {
@@ -124,7 +99,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
                 className={`relative group flex flex-col items-center justify-center h-full py-1 sm:px-4 rounded-full transition-all duration-300 cursor-pointer w-full ${
                   isActive
                     ? "bg-white/20 text-white "
-                    : "text-white hover:text-neutral-200 hover:bg-white/5"
+                    : "text-white hover:text-neutral-200 hover:bg-white/10"
                 }`}
               >
                 {isActive && (
@@ -167,7 +142,9 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
           })}
         </motion.nav>
       </div>
-            <div className="w-full absolute bottom-0 h-20 bg-linear-to-t from-black via-black/80 to-transparent pointer-events-none" />
+            <motion.div 
+               
+            className="w-full absolute bottom-0 h-12 bg-linear-to-t from-black/70 via-black/60 to-transparent pointer-events-none" />
 
     </div>
   );

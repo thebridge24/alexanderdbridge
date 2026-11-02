@@ -70,7 +70,7 @@ export default function GlobalAppWrapper({ children }: { children: React.ReactNo
       label: "Journal",
       href: "/devotional/journal",
       icon: (props) => <LuNotebookPen className={props?.className} />,
-      activeIcon: (props) => <HiPencilAlt className={props?.className} />,
+      activeIcon: (props) => <LuNotebookPen className={props?.className} />,
     },
     {
       id: "account",
@@ -83,10 +83,10 @@ export default function GlobalAppWrapper({ children }: { children: React.ReactNo
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white relative pb-28">
+    <div className="min-h-screen bg-black text-white relative pb-12">
       {children}
       {/* Global Glass Bottom Navigation */}
-      <GlassBottomNav items={navItems} className="w-[80vw]" />
+      <GlassBottomNav items={navItems} />
     </div>
   );
 }

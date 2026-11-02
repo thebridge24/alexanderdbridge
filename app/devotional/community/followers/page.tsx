@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -7,6 +8,7 @@ import { motion } from "framer-motion";
 import { FaChevronLeft, FaSearch } from "react-icons/fa";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import Preloader from "@/app/components/ui/Preloader";
 
 interface UserItem {
   id: string;
@@ -100,7 +102,7 @@ export default function FollowersFollowingPage() {
 
   const handleTabSwitch = (tab: "followers" | "following") => {
     setActiveTab(tab);
-    window.history.replaceState(null, "", `/devotional/${tab}`);
+    window.history.replaceState(null, "", `/devotional/community/${tab}`);
   };
 
   return (
@@ -184,7 +186,7 @@ export default function FollowersFollowingPage() {
       <main className="px-2 pt-2 divide-y divide-neutral-900/80">
         {isLoading ? (
           <div className="py-20 text-center">
-            <p className="text-xs font-mono text-neutral-500">Loading...</p>
+           <Preloader />
           </div>
         ) : filteredList.length === 0 ? (
           <div className="py-20 text-center space-y-2">

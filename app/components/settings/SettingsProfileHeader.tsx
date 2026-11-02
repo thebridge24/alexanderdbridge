@@ -141,7 +141,7 @@ export function SettingsProfileHeader({
           <div className="flex items-center gap-6 pt-3 text-xs">
             <button
               type="button"
-              onClick={() => router.push("/devotional/following")}
+              onClick={() => router.push("/devotional/community/following")}
               className="hover:underline flex items-center gap-1.5 cursor-pointer text-neutral-400"
             >
               <span className="font-bold text-white font-mono">
@@ -152,7 +152,7 @@ export function SettingsProfileHeader({
 
             <button
               type="button"
-              onClick={() => router.push("/devotional/followers")}
+              onClick={() => router.push("/devotional/community/followers")}
               className="hover:underline flex items-center gap-1.5 cursor-pointer text-neutral-400"
             >
               <span className="font-bold text-white font-mono">

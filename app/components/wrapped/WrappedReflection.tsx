@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { MonthlyWrappedData } from "@/app/ib/wrapped/getMonthlyWrapped";
 import { FaHeartPulse } from "react-icons/fa6";
+import { ChevronRight } from "lucide-react";
 
 interface WrappedReflectionProps {
   data: MonthlyWrappedData;
@@ -51,7 +52,7 @@ export function WrappedReflection({ data }: WrappedReflectionProps) {
           <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-snug">
             {reflectionHeading}
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-300 font-medium leading-relaxed bg-neutral-900/60 p-5 rounded-3xl border border-neutral-800">
+          <p className="text-xs sm:text-sm text-neutral-300 font-medium leading-relaxed">
             {reflectionBody}
           </p>
         </motion.div>
@@ -63,8 +64,8 @@ export function WrappedReflection({ data }: WrappedReflectionProps) {
         transition={{ duration: 0.8, delay: 0.6 }}
         className="text-center pb-6"
       >
-        <p className="text-xs font-mono text-neutral-500">
-          Tap right for your final summary →
+        <p className="text-xs font-mono text-neutral-500 flex gap-2 items-center">
+          Tap right for your final summary <ChevronRight className="size-5" />
         </p>
       </motion.div>
     </div>

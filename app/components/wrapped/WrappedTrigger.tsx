@@ -31,7 +31,7 @@ export function WrappedTrigger({
           <span>Play Your Monthly Wrapped</span>
         </button>
         <p className="text-[11px] font-mono text-neutral-500 mt-2">
-          A personalized storytelling recap of your spiritual journey this month.
+          A recap of your journey this month.
         </p>
       </div>
 

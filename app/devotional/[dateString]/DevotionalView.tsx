@@ -1027,16 +1027,14 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           contentVariants={contentVariants}
         />
 
-       
         {/* 365 Bible Study Movement Integration */}
         <BibleStudyCard dateString={devotional?.dateString} />
       </div>
- {/* Example test on any day of the month: */}
-        <WrappedTrigger
+      {/* Example test on any day of the month: */}
+      <WrappedTrigger
         userId={user?.id || ""}
-          currentDate="2026-10-30"
-          forceShow={true}
-        />
+        currentDate={currentDevotional.dateString}
+      />
       {/* Streak Side-Drawer */}
       <StreakDrawer
         isOpen={isStreakDrawerOpen}
