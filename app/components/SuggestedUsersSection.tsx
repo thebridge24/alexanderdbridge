@@ -252,9 +252,8 @@ export function SuggestedUsersSection() {
                   whileHover={{ scale: 1.01 }}
                   className="relative bg-neutral-950 border border-neutral-800/80 rounded-3xl p-4 flex flex-col shadow-xl overflow-hidden"
                 >
-                  {/* Banner */}
                   {/* Banner Section */}
-                  <div className="relative h-32 w-full bg-neutral-900 overflow-hidden">
+                  <div className="relative h-32 w-full bg-neutral-900 overflow-hidden rounded-xl ">
                     {user.bannerUrl && !bannerError ? (
                       <img
                         src={user.bannerUrl}
@@ -268,7 +267,7 @@ export function SuggestedUsersSection() {
                   </div>
 
                   {/* Avatar */}
-                  <div className="flex items-center justify-between -mt-10 mb-3 z-10">
+                  <div className="flex items-center justify-between -mt-10 mb-3 z-10 ml-8">
                     <div className="size-14 rounded-full bg-neutral-900 border-2 border-red-600 overflow-hidden flex items-center justify-center shrink-0">
                       {user.avatar_url ? (
                         <img
@@ -285,7 +284,7 @@ export function SuggestedUsersSection() {
                   </div>
 
                   {/* User details */}
-                  <div className="mb-4">
+                  <div className="mb-4 ml-6">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-sm font-bold text-white truncate">
                         {user.name}

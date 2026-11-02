@@ -177,7 +177,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           {/* Details */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1 min-w-0">
-              <h4 className="text-xs font-semibold text-neutral-400 truncate">
+              <h4 className="text-xs font-semibold text-neutral-400 truncate max-w-32">
                 {comment.name}
               </h4>
               <VerifiedBadge
@@ -278,7 +278,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   {/* Reply Details */}
                   <div className="flex-1 min-w-0 pb-2 ">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-semibold text-neutral-400 truncate">
+                      <span className="text-xs font-semibold text-neutral-400 truncate max-w-32">
                         {reply.name}
                       </span>
                       <VerifiedBadge

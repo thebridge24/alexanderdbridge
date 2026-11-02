@@ -245,7 +245,9 @@ if (!isOpen || !isVerified || hasDismissed) return null;
             </span>
 
             <h3 className="text-lg font-black text-white tracking-tight flex items-center gap-1">
-              {userName}{" "}
+              <span className="truncate max-w-24">
+                {userName}
+                </span>{" "}
               <VerifiedBadge
                 tier={userTier}
                 name={userName}

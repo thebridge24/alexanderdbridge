@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @next/next/no-img-element */
@@ -15,6 +16,7 @@ import {
 } from "./ui/UserProfilePopup";
 import { Visitor } from "../types/visitors";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import Preloader from "./ui/Preloader";
 
 interface DailyVisitorsProps {
   devotionalDate: string;
@@ -103,7 +105,7 @@ function VisitorAvatar({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-          <p className="text-xs font-semibold text-neutral-200 truncate">
+          <p className="text-xs font-semibold text-neutral-200 truncate max-w-36">
             {name}
           </p>
 
@@ -313,7 +315,7 @@ export default function DailyVisitors({
 
         {loading && visitors.length === 0 && (
           <span className="text-xs text-neutral-500">
-            Loading visitors...
+            <Preloader />
           </span>
         )}
       </button>

@@ -312,7 +312,7 @@ export default function FollowersFollowingPage() {
 
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-white leading-snug">
+                          <span className="text-xs font-bold text-white leading-snug truncate max-w-36">
                             {user.name}
                           </span>
 
