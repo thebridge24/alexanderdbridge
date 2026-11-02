@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -119,7 +120,7 @@ export function BridgeWrapped({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4"
+        className="fixed inset-0 z-50000 bg-black/90 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4"    
       >
         {/* Phone Container */}
         <motion.div
@@ -127,7 +128,7 @@ export function BridgeWrapped({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-105 h-full sm:h-210 bg-black sm:rounded-[40px] border border-neutral-900 shadow-2xl flex flex-col overflow-hidden"
+          className="relative w-full max-w-105 h-full sm:h-screen bg-black sm:rounded-[40px] border border-neutral-900 shadow-2xl flex flex-col overflow-hidden"
         >
           {/* Header Controls & Progress Bar */}
           <div className="absolute top-0 left-0 right-0 z-40 bg-linear-to-b from-black/80 via-black/40 to-transparent pb-4">

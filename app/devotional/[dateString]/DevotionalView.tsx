@@ -1016,16 +1016,16 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           contentVariants={contentVariants}
         />
 
-        {/* Example test on any day of the month: */}
+       
+        {/* 365 Bible Study Movement Integration */}
+        <BibleStudyCard dateString={devotional?.dateString} />
+      </div>
+ {/* Example test on any day of the month: */}
         <WrappedTrigger
         userId={user?.id || ""}
           currentDate="2026-10-30"
           forceShow={true}
         />
-        {/* 365 Bible Study Movement Integration */}
-        <BibleStudyCard dateString={devotional?.dateString} />
-      </div>
-
       {/* Streak Side-Drawer */}
       <StreakDrawer
         isOpen={isStreakDrawerOpen}
