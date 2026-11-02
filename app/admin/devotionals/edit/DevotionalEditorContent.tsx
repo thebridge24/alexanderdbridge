@@ -12,6 +12,7 @@ import DevotionalArticle from "../../../components/DevotionalArticle";
 import { formatDate } from "@/lib/format-date";
 import Preloader from "@/app/components/ui/Preloader";
 import { AudioRecordingStudio } from "@/app/components/audio/AudioRecordingStudio";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function DevotionalEditorPage() {
   const searchParams = useSearchParams();
@@ -26,6 +27,16 @@ export default function DevotionalEditorPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Monthly theme (saved separately from the devotional)
+  const [themeTitle, setThemeTitle] = useState("");
+  const [themeScripture, setThemeScripture] = useState("");
+  const [themeDescription, setThemeDescription] = useState("");
+  const [themeMessage, setThemeMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [themeSaving, setThemeSaving] = useState(false);
 
   // Form States
   const [dateString, setDateString] = useState(dateParam);
@@ -135,6 +146,60 @@ export default function DevotionalEditorPage() {
   const handleRemovePrayer = (index: number) => {
     if (prayerPoints.length > 1)
       setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
+  };
+
+  // Load the theme for the publish date's month, so the form shows what is saved
+  useEffect(() => {
+    const monthKey = dateString.slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(monthKey)) return;
+    let cancelled = false;
+    fetch(`/api/devotional/theme?month=${monthKey}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setThemeTitle(data.title ?? "");
+        setThemeScripture(data.scripture ?? "");
+        setThemeDescription(data.description ?? "");
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [dateString]);
+
+  const handleSaveTheme = async () => {
+    setThemeSaving(true);
+    setThemeMessage(null);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
+      if (!session?.access_token) {
+        throw new Error("Sign in as an admin to save the theme.");
+      }
+      const res = await fetch("/api/admin/monthly-theme", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          monthKey: dateString.slice(0, 7),
+          title: themeTitle,
+          scripture: themeScripture,
+          description: themeDescription,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save theme");
+      setThemeMessage({
+        type: "success",
+        text: `Theme saved for ${dateString.slice(0, 7)}.`,
+      });
+    } catch (err: any) {
+      setThemeMessage({ type: "error", text: err.message || "Failed to save theme" });
+    } finally {
+      setThemeSaving(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -277,7 +342,7 @@ export default function DevotionalEditorPage() {
               neededSteps,
               prayerPoints,
             }}
-            monthTheme="Walking in Faith"
+            monthTheme={themeTitle || "Monthly theme"}
             viewsCount={142}
           />
         </div>
@@ -345,6 +410,71 @@ export default function DevotionalEditorPage() {
               }}
             />
           </div>
+          {/* Monthly Theme: applies to the whole month of the publish date */}
+          <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-5">
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                Monthly Theme
+              </span>
+              <p className="text-[11px] text-neutral-500">
+                Shown for {dateString.slice(0, 7) || "this month"}. Months without a theme keep the last one you saved.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                Theme Title
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Abiding In Him"
+                value={themeTitle}
+                onChange={(e) => setThemeTitle(e.target.value)}
+                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                Anchor Scripture (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. John 15:5"
+                value={themeScripture}
+                onChange={(e) => setThemeScripture(e.target.value)}
+                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                rows={2}
+                value={themeDescription}
+                onChange={(e) => setThemeDescription(e.target.value)}
+                className="w-full bg-transparent text-sm text-white pb-2 border-b border-white/15 focus:border-primary outline-none transition-colors resize-none"
+              />
+            </div>
+
+            {themeMessage && (
+              <p className={`text-xs ${themeMessage.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+                {themeMessage.text}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSaveTheme}
+              disabled={themeSaving || !themeTitle.trim()}
+              className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-bold disabled:opacity-50 cursor-pointer"
+            >
+              {themeSaving ? "Saving theme..." : "Save Monthly Theme"}
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:p-6 rounded-3xl bg-black md:border border-white/15">
               <div>

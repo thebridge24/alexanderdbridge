@@ -5,7 +5,26 @@ import {
   getBroadcastEmailHtml,
   getBroadcastEmailText,
 } from "@/lib/email/templates/broadcast";
-import { sendPushToAll } from "@/lib/notifications/sender";
+import { sendPushToAll, sendPushToUser } from "@/lib/notifications/sender";
+import { computeStreaks } from "@/lib/utils/streak";
+
+// Audience ids the broadcaster sends: "streak_<days>" is a streak group
+const STREAK_RE = /^streak_(\d+)$/;
+
+/** Every account's email, keyed by user id (paginated). */
+async function loadAuthEmails(supabase: ReturnType<typeof createSupabaseAdmin>): Promise<Map<string, string>> {
+  const emails = new Map<string, string>();
+  const perPage = 1000;
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error || !data?.users?.length) break;
+    data.users.forEach((u) => {
+      if (u.email) emails.set(u.id, u.email.trim().toLowerCase());
+    });
+    if (data.users.length < perPage) break;
+  }
+  return emails;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,8 +73,46 @@ export async function POST(request: NextRequest) {
     const recipientEmails = new Set<string>();
     const recipientUserIds = new Set<string>();
 
+    // Specific audiences: a streak group, or people picked by hand
+    const streakMatch = STREAK_RE.exec(String(target));
+    let targetedUserIds: string[] | null = null;
+    if (streakMatch || target === "selected_users") {
+      const authEmails = await loadAuthEmails(supabase);
+
+      if (streakMatch) {
+        // Same streak calculation the analytics page uses, so the counts match
+        const streak = Number(streakMatch[1]);
+        const { data: streakRows } = await supabase
+          .from("user_streaks")
+          .select("user_id, attendance_history, completed_devotionals");
+        targetedUserIds = (streakRows ?? [])
+          .filter((r) => computeStreaks(r.attendance_history, r.completed_devotionals).currentStreak === streak)
+          .map((r) => r.user_id);
+      } else {
+        const picked: string[] = Array.isArray(body?.recipientEmails)
+          ? body.recipientEmails
+              .filter((e: unknown) => typeof e === "string")
+              .map((e: string) => e.trim().toLowerCase())
+          : [];
+        picked.forEach((e) => {
+          if (e.includes("@")) recipientEmails.add(e);
+        });
+        targetedUserIds = Array.from(authEmails.entries())
+          .filter(([, email]) => picked.includes(email))
+          .map(([id]) => id);
+      }
+
+      targetedUserIds.forEach((uid) => {
+        recipientUserIds.add(uid);
+        const email = authEmails.get(uid);
+        if (email) recipientEmails.add(email);
+      });
+    }
+
     // Query target recipients based on target filter
-    if (target === "survey_respondents" || target === "willing") {
+    if (targetedUserIds) {
+      // Filled in above
+    } else if (target === "survey_respondents" || target === "willing") {
       let query = supabase.from("survey_responses").select("user_email, user_id, answers");
       const { data: responses, error } = await query;
 
@@ -73,7 +130,7 @@ export async function POST(request: NextRequest) {
           }
         });
       }
-    } else {
+    } else if (target === "all_users") {
       // "all_users": collect from auth.users, notification_preferences & survey_responses
       const [authUsersRes, prefsRes, surveyRes] = await Promise.all([
         supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }).catch(() => ({ data: { users: [] } })),
@@ -100,6 +157,9 @@ export async function POST(request: NextRequest) {
           if (s.user_id) recipientUserIds.add(s.user_id);
         });
       }
+    } else {
+      // Never fall back to everyone for an audience we don't recognise
+      return NextResponse.json({ error: `Unknown audience: ${target}` }, { status: 400 });
     }
 
     const emailList = Array.from(recipientEmails);
@@ -172,10 +232,22 @@ export async function POST(request: NextRequest) {
         await supabase.from("notification_events").insert(notifInserts);
       }
 
-      // Broadcast device push to all devices via Pusher Beams
-      const pushRes = await sendPushToAll(cleanSubject, summaryText, cleanCtaUrl, "admin");
-      if (pushRes.ok) {
-        pushSentCount = userIdList.length || 1;
+      if (target === "all_users") {
+        // Everyone: one push to every subscribed device
+        const pushRes = await sendPushToAll(cleanSubject, summaryText, cleanCtaUrl, "admin");
+        if (pushRes.ok) {
+          pushSentCount = userIdList.length || 1;
+        }
+      } else {
+        // A chosen audience: push only to those users
+        for (let i = 0; i < userIdList.length; i += 10) {
+          const results = await Promise.all(
+            userIdList
+              .slice(i, i + 10)
+              .map((uid) => sendPushToUser(uid, cleanSubject, summaryText, cleanCtaUrl, "admin")),
+          );
+          pushSentCount += results.reduce((sum, n) => sum + n, 0);
+        }
       }
     }
 

@@ -8,7 +8,7 @@ import { findUserIdByEmail } from "@/lib/subscriptions/activate";
 import { getSubscriptionEmail } from "@/lib/email/templates/subscription";
 import { sendNotification } from "@/lib/notifications/sender";
 
-const VALID_PLANS = ["reader", "supporter", "sponsor", "partner", "patron"];
+const VALID_PLANS = ["reader", "supporter", "sponsor", "partner", "patron", "visionary"];
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     if (!plan || !VALID_PLANS.includes(plan)) {
       return NextResponse.json(
-        { error: "Invalid plan specified. Choose reader, supporter, sponsor, partner, or patron." },
+        { error: "Invalid plan specified. Choose reader, supporter, sponsor, partner, patron, or visionary." },
         { status: 400 },
       );
     }

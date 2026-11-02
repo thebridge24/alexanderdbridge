@@ -14,6 +14,7 @@ import {
   UserProfilePopup,
 } from "./ui/UserProfilePopup";
 import { Visitor } from "../types/visitors";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface DailyVisitorsProps {
   devotionalDate: string;
@@ -207,10 +208,59 @@ export default function DailyVisitors({
     return () => controller.abort();
   }, [devotionalDate]);
 
+  // Follow state for visitors the viewer has opened, loaded from the server
+  const [followingById, setFollowingById] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const targetId = selectedVisitor?.user_id;
+    if (!targetId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+        if (!token) return;
+        const res = await fetch(`/api/users/${targetId}/follow`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!cancelled && res.ok) {
+          setFollowingById((prev) => ({ ...prev, [targetId]: !!data.isFollowing }));
+        }
+      } catch (err) {
+        console.error("Failed to load follow state:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVisitor]);
+
+  const handleToggleFollow = async (userId: string) => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      if (!token) {
+        alert("Please sign in to follow people.");
+        return;
+      }
+      const res = await fetch(`/api/users/${userId}/follow`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update follow");
+      setFollowingById((prev) => ({ ...prev, [userId]: !!data.isFollowing }));
+    } catch (err: any) {
+      alert(err.message || "Failed to update follow");
+    }
+  };
+
   // Build the profile from the visitor currently selected.
+  const profileId = selectedVisitor ? selectedVisitor.user_id || selectedVisitor.id : "";
   const profileData: UserProfileData | null = selectedVisitor
     ? {
-        id: selectedVisitor.user_id || selectedVisitor.id,
+        id: profileId,
         name: selectedVisitor.display_name || "Believer",
         email: selectedVisitor.email,
         avatarUrl: selectedVisitor.avatar_url,
@@ -219,6 +269,7 @@ export default function DailyVisitors({
         verificationTier: selectedVisitor.verification_tier,
         currentStreak: selectedVisitor.streakCount || 0,
         mutualFriends: selectedVisitor.mutual_friends || [],
+        isFollowing: !!followingById[profileId],
       }
     : null;
 
@@ -319,10 +370,7 @@ export default function DailyVisitors({
           isOpen={Boolean(selectedVisitor)}
           onClose={handleProfileClose}
           user={profileData}
-          onToggleFollow={(userId) => {
-            // Connect your follow/unfollow API here.
-            console.log("Toggled follow for:", userId);
-          }}
+          onToggleFollow={handleToggleFollow}
           onMessage={(userId) => {
             // Connect your messaging route or conversation API here.
             console.log("Open message thread with:", userId);

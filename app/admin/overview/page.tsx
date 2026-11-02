@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { WelcomeHeader } from "../components/WelcomeHeader";
 import { OverviewStatCards } from "../components/OverviewStatCards";
+import { NotificationVolumeCard } from "../components/NotificationVolumeCard";
 import {
   DevotionalItem,
   RecentDevotionalsTable,
@@ -117,6 +118,9 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 gap-4">
         {/* 2. Top Overview Stat Cards */}
         <OverviewStatCards totals={totals} loading={loading} />
+
+        {/* Notification volume, to plan when to upgrade */}
+        <NotificationVolumeCard />
 
         {/* 3. Devotional Engagement Analytics Chart */}
         <AnalyticsSection

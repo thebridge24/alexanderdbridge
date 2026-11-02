@@ -201,6 +201,7 @@ export default function SubscriptionDetailsModal({
                     <option value="sponsor">Sponsor</option>
                     <option value="partner">Partner</option>
                     <option value="patron">Patron</option>
+                    <option value="visionary">Visionary</option>
                   </select>
                 </div>
                 <div>

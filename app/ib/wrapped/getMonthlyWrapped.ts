@@ -2,6 +2,7 @@ import { createSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server
 import { DEVOTIONALS_DATA, Devotional } from "@/app/data/devotionalData";
 import { MILESTONE_MEDALS } from "@/lib/types/streak";
 import { getCurrentStreaks } from "@/lib/utils/streak";
+import { getMonthlyTheme } from "@/lib/themes/monthlyTheme";
 
 export interface MonthlyWrappedData {
   user: {
@@ -53,11 +54,23 @@ export interface MonthlyWrappedData {
   }[];
 }
 
+/**
+ * Reads "YYYY-MM-DD" as a local calendar date. `new Date("2026-10-15")`
+ * is parsed as UTC, which can land on the previous month in some time zones.
+ */
+function resolveTargetDate(input?: Date | string): Date {
+  if (!input) return new Date();
+  if (input instanceof Date) return input;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Date(input);
+}
+
 export async function getMonthlyWrappedData(
   userId: string,
   targetDateInput?: Date | string
 ): Promise<MonthlyWrappedData> {
-  const targetDate = targetDateInput ? new Date(targetDateInput) : new Date();
+  const targetDate = resolveTargetDate(targetDateInput);
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth();
 
@@ -197,15 +210,17 @@ export async function getMonthlyWrappedData(
     earned: completedCount >= m.targetDays || longestStreak >= m.targetDays,
   }));
 
+  // Same monthly theme the devotional page shows (carried forward from the latest set theme)
+  const monthTheme = await getMonthlyTheme(supabase, `${year}-${formattedMonth}`);
   const firstDevotional = monthlyPublished[0];
-  const themeTitle = firstDevotional?.topic 
-    ? `Walking in ${firstDevotional.topic.split(" ")[0]} & Grace`
-    : `Growing in the Word`;
 
   const theme = {
-    title: `${monthName} Theme: ${themeTitle}`,
-    scripture: firstDevotional?.memoryVerse?.verse || "Psalm 119:105",
-    description: `This month, we explored what it means to live by the Word and grow in our understanding of God.`,
+    title: `${monthName} Theme: ${monthTheme.title}`,
+    scripture:
+      monthTheme.scripture || firstDevotional?.memoryVerse?.verse || "Psalm 119:105",
+    description:
+      monthTheme.description ||
+      `This month, we explored what it means to live by the Word and grow in our understanding of God.`,
   };
 
   const highlights = [];

@@ -1,11 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { FaChevronLeft, FaSearch } from "react-icons/fa";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface UserItem {
   id: string;
@@ -15,105 +16,15 @@ interface UserItem {
   followersCount: string;
   isFollowing: boolean;
   isFollower?: boolean;
-  verificationTier?: string;
+  verificationTier?: string | null;
 }
 
-const INITIAL_FOLLOWERS: UserItem[] = [
-  {
-    id: "1",
-    name: "Evans Powell",
-    handle: "@evanspowell",
-    followersCount: "13 followers",
-    isFollowing: false,
-    isFollower: true,
-  },
-  {
-    id: "2",
-    name: "Insider",
-    handle: "@insider",
-    followersCount: "121k followers",
-    isFollowing: true,
-    isFollower: true,
-    verificationTier: "supporter",
-  },
-  {
-    id: "3",
-    name: "Deadline Hollywood",
-    handle: "@deadline",
-    followersCount: "13k followers",
-    isFollowing: false,
-    isFollower: true,
-  },
-  {
-    id: "4",
-    name: "BuzzFeed",
-    handle: "@buzzfeed",
-    followersCount: "4.9m followers",
-    isFollowing: false,
-    isFollower: true,
-    verificationTier: "partner",
-  },
-  {
-    id: "5",
-    name: "CNN",
-    handle: "@cnn",
-    followersCount: "63k followers",
-    isFollowing: true,
-    isFollower: true,
-    verificationTier: "supporter",
-  },
-  {
-    id: "6",
-    name: "IMDb",
-    handle: "@imdb",
-    followersCount: "598k followers",
-    isFollowing: false,
-    isFollower: true,
-  },
-];
-
-const INITIAL_FOLLOWING: UserItem[] = [
-  {
-    id: "10",
-    name: "dinora_p0404",
-    handle: "@dinora_p0404",
-    followersCount: "45 followers",
-    isFollowing: true,
-    isFollower: false,
-  },
-  {
-    id: "11",
-    name: "Geo",
-    handle: "@geo",
-    followersCount: "320 followers",
-    isFollowing: true,
-    isFollower: false,
-  },
-  {
-    id: "12",
-    name: "Flickdatwristlzzy",
-    handle: "@flickwrist",
-    followersCount: "1.2k followers",
-    isFollowing: true,
-    isFollower: true,
-  },
-  {
-    id: "13",
-    name: "Alexaaaa",
-    handle: "@alexa",
-    followersCount: "890 followers",
-    isFollowing: true,
-    isFollower: false,
-  },
-  {
-    id: "14",
-    name: "destiny",
-    handle: "@destiny",
-    followersCount: "3.4k followers",
-    isFollowing: true,
-    isFollower: false,
-  },
-];
+/** The signed-in user's access token, or null when signed out. */
+async function getAccessToken(): Promise<string | null> {
+  const supabase = createSupabaseBrowserClient();
+  const session = (await supabase?.auth.getSession())?.data?.session;
+  return session?.access_token ?? null;
+}
 
 export default function FollowersFollowingPage() {
   const router = useRouter();
@@ -126,27 +37,62 @@ export default function FollowersFollowingPage() {
   );
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [followersList, setFollowersList] = useState<UserItem[]>(INITIAL_FOLLOWERS);
-  const [followingList, setFollowingList] = useState<UserItem[]>(INITIAL_FOLLOWING);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const toggleFollow = (id: string, currentTab: "followers" | "following") => {
-    if (currentTab === "followers") {
-      setFollowersList((prev) =>
+  // Load the real list for the active tab
+  useEffect(() => {
+    let cancelled = false;
+    async function loadConnections() {
+      setIsLoading(true);
+      try {
+        const token = await getAccessToken();
+        if (!token) {
+          if (!cancelled) setUsers([]);
+          return;
+        }
+        const res = await fetch(`/api/users/me/connections?tab=${activeTab}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!cancelled) setUsers(res.ok ? data.users ?? [] : []);
+      } catch (err) {
+        console.error("Failed to load connections:", err);
+        if (!cancelled) setUsers([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    loadConnections();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+
+  const toggleFollow = async (id: string) => {
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        alert("Please sign in to follow people.");
+        return;
+      }
+      const res = await fetch(`/api/users/${id}/follow`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update follow");
+      setUsers((prev) =>
         prev.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
+          user.id === id ? { ...user, isFollowing: !!data.isFollowing } : user
         )
       );
-    } else {
-      setFollowingList((prev) =>
-        prev.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
-        )
-      );
+    } catch (err: any) {
+      alert(err.message || "Failed to update follow");
     }
   };
 
-  const activeList = activeTab === "followers" ? followersList : followingList;
-  const filteredList = activeList.filter(
+  const filteredList = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.handle.toLowerCase().includes(searchQuery.toLowerCase())
@@ -160,7 +106,7 @@ export default function FollowersFollowingPage() {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-neutral-800 pb-20">
       <div className="max-w-5xl mx-auto">
-           {/* Top Header Bar */}
+      {/* Top Header Bar */}
       <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-neutral-900 px-4 pt-4 pb-0">
         <div className="flex items-center gap-4 mb-3">
           <button
@@ -236,10 +182,18 @@ export default function FollowersFollowingPage() {
 
       {/* Connections List View */}
       <main className="px-2 pt-2 divide-y divide-neutral-900/80">
-        {filteredList.length === 0 ? (
+        {isLoading ? (
+          <div className="py-20 text-center">
+            <p className="text-xs font-mono text-neutral-500">Loading...</p>
+          </div>
+        ) : filteredList.length === 0 ? (
           <div className="py-20 text-center space-y-2">
             <p className="text-xs font-mono text-neutral-500">
-              No users found matching &quot;{searchQuery}&quot;
+              {searchQuery
+                ? <>No users found matching &quot;{searchQuery}&quot;</>
+                : activeTab === "followers"
+                ? "No followers yet"
+                : "You are not following anyone yet"}
             </p>
           </div>
         ) : (
@@ -297,7 +251,7 @@ export default function FollowersFollowingPage() {
                 {/* Follow / Following Toggle Button */}
                 <button
                   type="button"
-                  onClick={() => toggleFollow(user.id, activeTab)}
+                  onClick={() => toggleFollow(user.id)}
                   className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-md ${
                     isFollowing
                       ? "bg-transparent text-white border border-neutral-700 hover:border-red-600 hover:text-red-500 hover:bg-red-950/20"
@@ -312,7 +266,7 @@ export default function FollowersFollowingPage() {
         )}
       </main>
       </div>
-   
+
     </div>
   );
 }
