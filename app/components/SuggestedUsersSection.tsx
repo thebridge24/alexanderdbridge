@@ -7,7 +7,6 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   FaUserPlus,
-  FaUserCheck,
   FaFire,
   FaTrophy,
   FaUser,
@@ -24,6 +23,7 @@ interface SuggestedUser {
   email?: string;
   avatar_url?: string;
   followersCount: number;
+  bannerUrl: string;
   currentStreak: number;
   highestStreak: number;
   isFollowing: boolean;
@@ -58,6 +58,7 @@ export function SuggestedUsersSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [followingId, setFollowingId] = useState<string | null>(null);
   const [exitingIds, setExitingIds] = useState<string[]>([]);
+  const [bannerError, setBannerError] = useState(false);
 
   // Load all users from the existing admin users endpoint
   useEffect(() => {
@@ -90,6 +91,7 @@ export function SuggestedUsersSection() {
           name: u.name || "Bridge Believer",
           email: u.email,
           avatar_url: u.avatar_url || "",
+          bannerUrl: u.banner_url || "",
           followersCount: Number(u.followersCount ?? 0),
           currentStreak: Number(u.currentStreak ?? 0),
           highestStreak: Number(u.highestStreak ?? 0),
@@ -251,7 +253,19 @@ export function SuggestedUsersSection() {
                   className="relative bg-neutral-950 border border-neutral-800/80 rounded-3xl p-4 flex flex-col shadow-xl overflow-hidden"
                 >
                   {/* Banner */}
-                  <div className="relative h-20 -mx-4 -mt-4 mb-3 bg-linear-to-r from-neutral-900 via-red-950/40 to-neutral-900" />
+                  {/* Banner Section */}
+                  <div className="relative h-32 w-full bg-neutral-900 overflow-hidden">
+                    {user.bannerUrl && !bannerError ? (
+                      <img
+                        src={user.bannerUrl}
+                        alt="Profile Banner"
+                        onError={() => setBannerError(true)}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <div className="size-full bg-linear-to-r from-neutral-900 via-red-950/30 to-neutral-900" />
+                    )}
+                  </div>
 
                   {/* Avatar */}
                   <div className="flex items-center justify-between -mt-10 mb-3 z-10">
