@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Read the user's existing subscription record.
     const { data: subscription, error } = await supabase
       .from("user_subscriptions")
-      .select("verification_tier, status, expires_at")
+      .select("verification_tier, plan_type, status, expires_at")
       .eq("user_id", authData.user.id)
       .maybeSingle();
 
@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tierValue = subscription?.verification_tier;
+    // Use the stored tier, or the plan name when the tier was never saved
+    const tierValue = subscription?.verification_tier || subscription?.plan_type;
     const validTier =
       typeof tierValue === "string" &&
       Object.prototype.hasOwnProperty.call(
