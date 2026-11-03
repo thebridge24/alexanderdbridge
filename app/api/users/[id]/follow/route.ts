@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { sendNotification } from "@/lib/notifications/sender";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -93,6 +94,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Tell the person they were followed (in-app and push). Failure doesn't undo the follow.
+  const { data: viewerData } = await supabase.auth.admin.getUserById(viewerId);
+  const viewerMeta = viewerData?.user?.user_metadata ?? {};
+  const followerName =
+    viewerMeta.full_name || viewerMeta.name || viewerData?.user?.email?.split("@")[0] || "Someone";
+  await sendNotification({
+    userId: targetId,
+    type: "follow",
+    title: `${followerName} just followed you`,
+    body: "Tap to see who is following you.",
+    link: "/devotional/followers",
+    dedupeKey: `follow:${viewerId}:${targetId}`,
+    avatarUrl: typeof viewerMeta.avatar_url === "string" ? viewerMeta.avatar_url : undefined,
+    push: true,
+  }).catch((err) => console.error("Follow notification failed:", err));
 
   return NextResponse.json({ isFollowing: true });
 }

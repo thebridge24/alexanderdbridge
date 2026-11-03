@@ -245,6 +245,17 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
     });
     if (!userId) return;
 
+    // Banner for the popup (public, no sign-in needed)
+    fetch(`/api/users/${userId}/profile`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.bannerUrl) return;
+        setSelectedProfile((prev) =>
+          prev?.id === userId ? { ...prev, bannerUrl: data.bannerUrl } : prev,
+        );
+      })
+      .catch(() => {});
+
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;

@@ -12,6 +12,7 @@ export type NotificationType =
   | "reply"
   | "comment"
   | "mention"
+  | "follow"
   | "reminder"
   | "streak"
   | "milestone"

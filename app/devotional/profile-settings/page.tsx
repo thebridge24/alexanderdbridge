@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/images/compressImage";
 import { SettingsProfileHeader } from "@/app/components/settings/SettingsProfileHeader";
 import { SettingsSectionList } from "@/app/components/settings/SettingsSectionList";
 import { UserProfileSettings, SettingsSection } from "../../types/settings";
@@ -97,9 +98,31 @@ export default function SettingsPage() {
   };
 
   const handleBannerUpload = async (file: File) => {
-    // Implement storage upload or update metadata here
-    const fakeUrl = URL.createObjectURL(file);
-    setProfile((prev) => ({ ...prev, bannerUrl: fakeUrl }));
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      if (!token) {
+        alert("Please sign in to change your banner.");
+        return;
+      }
+
+      // Shrink the image in the browser first so uploads stay small
+      const compressed = await compressImage(file);
+      const form = new FormData();
+      form.append("file", new File([compressed], "banner.jpg", { type: compressed.type }));
+
+      const res = await fetch("/api/users/me/banner", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Banner upload failed");
+
+      setProfile((prev) => ({ ...prev, bannerUrl: data.bannerUrl }));
+    } catch (err: any) {
+      alert(err.message || "Banner upload failed");
+    }
   };
 
   const handleAvatarUpload = async (file: File) => {

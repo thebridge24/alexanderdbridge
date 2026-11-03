@@ -212,11 +212,22 @@ export default function DailyVisitors({
 
   // Follow state for visitors the viewer has opened, loaded from the server
   const [followingById, setFollowingById] = useState<Record<string, boolean>>({});
+  const [bannerById, setBannerById] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const targetId = selectedVisitor?.user_id;
     if (!targetId) return;
     let cancelled = false;
+
+    // Banner (public)
+    fetch(`/api/users/${targetId}/profile`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.bannerUrl) {
+          setBannerById((prev) => ({ ...prev, [targetId]: data.bannerUrl }));
+        }
+      })
+      .catch(() => {});
     (async () => {
       try {
         const supabase = createSupabaseBrowserClient();
@@ -266,7 +277,7 @@ export default function DailyVisitors({
         name: selectedVisitor.display_name || "Believer",
         email: selectedVisitor.email,
         avatarUrl: selectedVisitor.avatar_url,
-        bannerUrl: selectedVisitor.banner_url,
+        bannerUrl: bannerById[profileId] || selectedVisitor.banner_url,
         bio: selectedVisitor.bio,
         verificationTier: selectedVisitor.verification_tier,
         currentStreak: selectedVisitor.streakCount || 0,
