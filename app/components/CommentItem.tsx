@@ -167,22 +167,30 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     comment.authorUserId &&
     currentUserId === comment.authorUserId,
   );
-  
-console.log("Comment ownership check:", {
-  currentUserId,
-  commentAuthorId: comment.authorUserId,
-  isCommentOwner,
-  userTier,
-});
 
-  const checkTierAndExecute = (action: () => void) => {
-    const normalizedTier = (userTier || "").toLowerCase().trim();
-    if (!ALLOWED_TIERS.includes(normalizedTier)) {
-      onRequireUpgrade();
-    } else {
-      action();
-    }
-  };
+
+
+  const ALLOWED_TIERS = [
+  "reader",
+  "supporter",
+  "partner",
+  "sponsor",
+  "patron",
+  "visionary",
+];
+
+const normalizedTier = (userTier || "").toLowerCase().trim();
+
+const hasVerification = ALLOWED_TIERS.includes(normalizedTier);
+
+const checkTierAndExecute = (action: () => void) => {
+  if (!hasVerification) {
+    onRequireUpgrade();
+    return;
+  }
+
+  action();
+};
 
   return (
     <motion.div

@@ -5,12 +5,7 @@
 // DATA
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import {
-  FaUserPlus,
-  FaFire,
-  FaTrophy,
-  FaUser,
-} from "react-icons/fa6";
+import { FaUserPlus, FaFire, FaUser } from "react-icons/fa6";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { MILESTONE_MEDALS } from "@/lib/types/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -58,8 +53,7 @@ export function SuggestedUsersSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [followingId, setFollowingId] = useState<string | null>(null);
   const [exitingIds, setExitingIds] = useState<string[]>([]);
-  const [bannerError, setBannerError] = useState(false);
-
+  const [bannerErrors, setBannerErrors] = useState<string[]>([]);
   // Load all users from the existing admin users endpoint
   useEffect(() => {
     let cancelled = false;
@@ -213,9 +207,9 @@ export function SuggestedUsersSection() {
           variants={skeletonContainerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2"
         >
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: 6 }).map((_, index) => (
             <SuggestedUserSkeleton key={index} />
           ))}
         </motion.div>
@@ -224,11 +218,16 @@ export function SuggestedUsersSection() {
           No suggested users available right now.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2">
           <AnimatePresence mode="popLayout">
             {suggestedUsers.map((user) => {
               const milestone = getMilestone(user.currentStreak);
               const isBusy = followingId === user.id;
+              const medal = [...MILESTONE_MEDALS]
+                .sort((a, b) => b.targetDays - a.targetDays)
+                .find((m) => user.currentStreak >= m.targetDays);
+
+              const MedalIcon = medal?.icon;
 
               return (
                 <motion.div
@@ -254,15 +253,23 @@ export function SuggestedUsersSection() {
                 >
                   {/* Banner Section */}
                   <div className="relative h-32 w-full bg-neutral-900 overflow-hidden rounded-xl ">
-                    {user.bannerUrl && !bannerError ? (
+                    {user.bannerUrl && !bannerErrors.includes(user.id) ? (
                       <img
                         src={user.bannerUrl}
-                        alt="Profile Banner"
-                        onError={() => setBannerError(true)}
+                        alt={`${user.name}'s profile banner`}
+                        onError={() =>
+                          setBannerErrors((prev) =>
+                            prev.includes(user.id) ? prev : [...prev, user.id],
+                          )
+                        }
                         className="size-full object-cover"
                       />
                     ) : (
-                      <div className="size-full bg-linear-to-r from-neutral-900 via-red-950/30 to-neutral-900" />
+                      <img
+                        src="https://i.pinimg.com/1200x/8e/fe/fd/8efefd248169ec558f301cdfb69836dc.jpg"
+                        alt={`${user.name}'s profile banner`}
+                        className="size-full object-cover"
+                      />
                     )}
                   </div>
 
@@ -300,40 +307,32 @@ export function SuggestedUsersSection() {
                     </div>
 
                     <p className="text-[11px] text-neutral-500">
-                      Bridge Daily Member
+                      {milestone?.name ?? "First Steps"}
                     </p>
                   </div>
 
                   {/* Streak, followers and milestone */}
-                  <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-neutral-900 mb-4">
-                    <div className="text-center">
-                      <FaFire className="text-red-500 mx-auto mb-1 size-4" />
-                      <p className="text-sm font-bold text-white">
+                  <div className="flex justify-between gap-4 py-3 border-t border-b border-neutral-900 mb-4 px-6">
+                    <div className="flex gap-1.5 items-center">
+                      <FaFire className="text-red-500 size-4" />
+                      <p className=" font-bold text-white">
                         {user.currentStreak}
                       </p>
-                      <p className="text-[9px] text-neutral-500 uppercase">
-                        Streak
-                      </p>
                     </div>
 
-                    <div className="text-center border-x border-neutral-900">
-                      <FaUser className="text-blue-400 mx-auto mb-1 size-4" />
-                      <p className="text-sm font-bold text-white">
+                    <div className="items-center gap-2 flex">
+                      <FaUser className="text-white mx-auto size-3.5" />
+                      <p className=" font-bold text-white">
                         {formatCount(user.followersCount)}
                       </p>
-                      <p className="text-[9px] text-neutral-500 uppercase">
-                        Followers
-                      </p>
                     </div>
 
-                    <div className="text-center min-w-0">
-                      <FaTrophy className="text-amber-400 mx-auto mb-1 size-4" />
-                      <p className="text-[10px] font-bold text-white truncate px-1">
-                        {milestone?.name ?? "First Steps"}
-                      </p>
-                      <p className="text-[9px] text-neutral-500 uppercase">
-                        Milestone
-                      </p>
+                    <div className=" text-neutral-200 flex items-center justify-center">
+                      {MedalIcon ? (
+                        <MedalIcon className="text-yellow-500" size={16} />
+                      ) : (
+                        "..."
+                      )}
                     </div>
                   </div>
 
@@ -349,7 +348,7 @@ export function SuggestedUsersSection() {
                     }`}
                   >
                     {isBusy || followingId === user.id ? (
-                      <Preloader />
+                      <Preloader size="sm" />
                     ) : (
                       <>
                         <FaUserPlus className="size-3.5" />

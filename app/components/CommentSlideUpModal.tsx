@@ -21,6 +21,12 @@ interface MentionUser {
   name: string;
   email: string;
   avatar_url?: string;
+  banner_url?: string;
+  currentStreak?: number;
+  highestStreak?: number;
+  followersCount?: number;
+  isFollowing?: boolean;
+  verification_tier?: string | null;
   metadata?: Record<string, any>;
 }
 
@@ -201,33 +207,48 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   };
 
   const handleAvatarClick = async (author: Comment | Reply) => {
-    const userId = author.authorUserId ?? "";
-    setSelectedProfile({
-      id: userId,
-      name: author.name,
-      avatarUrl: author.avatarUrl,
-      verificationTier: author.authorVerificationTier,
-      currentStreak: author.streakCount ?? 0,
-    });
-    if (!userId) return;
+  const userId = author.authorUserId ?? "";
+  if (!userId) return;
 
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const session = (await supabase?.auth.getSession())?.data?.session;
-      const res = await fetch(`/api/users/${userId}/follow`, {
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : undefined,
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      setSelectedProfile((prev) =>
-        prev?.id === userId ? { ...prev, isFollowing: !!data.isFollowing } : prev,
-      );
-    } catch (err) {
-      console.error("Failed to load follow state:", err);
-    }
-  };
+  // Get the selected user's complete profile from the users already fetched.
+  const profileUser = allUsers.find((user) => user.id === userId);
+
+  setSelectedProfile({
+    id: userId,
+    name: profileUser?.name || author.name,
+    avatarUrl: profileUser?.avatar_url || author.avatarUrl,
+    bannerUrl: profileUser?.banner_url || "",
+    verificationTier:
+      profileUser?.verification_tier ||
+      author.authorVerificationTier,
+    currentStreak:
+      profileUser?.currentStreak ?? author.streakCount ?? 0,
+    isFollowing: profileUser?.isFollowing ?? false,
+  });
+
+  try {
+    const supabase = createSupabaseBrowserClient();
+    const session = (await supabase?.auth.getSession())?.data?.session;
+
+    const res = await fetch(`/api/users/${userId}/follow`, {
+      headers: session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : undefined,
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    setSelectedProfile((prev) =>
+      prev?.id === userId
+        ? { ...prev, isFollowing: !!data.isFollowing }
+        : prev,
+    );
+  } catch (err) {
+    console.error("Failed to load follow state:", err);
+  }
+};
 
   return (
     <AnimatePresence>
@@ -401,9 +422,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   aria-label="Send comment"
                 >
                   {!isSubmitting ? (
-                    <IoSend className="w-4 h-4 ml-0.5" />
+                    <IoSend className="w-4 h-4" />
                   ) : (
-                    <Preloader className="w-4 h-4 ml-0.5" />
+                    <Preloader className="w-4 h-4" />
                   )}
                 </button>
               </form>
@@ -442,11 +463,11 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                       type="button"
                       onClick={() => {
                         setShowUpgradeModal(false);
-                        window.location.href = "/devotional/profile-edit";
+                        window.location.href = "/support";
                       }}
                       className="w-full py-3 rounded-full bg-primary text-white font-bold text-xs hover:bg-red-600 transition-all cursor-pointer shadow-lg shadow-red-950/40"
                     >
-                      Subscribe & Support Now
+                      Support Now
                     </button>
                     <button
                       type="button"

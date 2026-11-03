@@ -95,7 +95,9 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [userName, setUserName] = useState<string>("");
-
+  const [userVerificationTier, setUserVerificationTier] = useState<
+    string | null
+  >(null);
   // Streak state & hooks
   const [isStreakDrawerOpen, setIsStreakDrawerOpen] = useState(false);
   const {
@@ -143,6 +145,57 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
 
     return () => subscription.unsubscribe();
   }, [userName]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchUserVerificationTier() {
+      if (!user) {
+        setUserVerificationTier(null);
+        return;
+      }
+
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const session = (await supabase?.auth.getSession())?.data?.session;
+
+        if (!session?.access_token) {
+          setUserVerificationTier(null);
+          return;
+        }
+
+        const res = await fetch("/api/users/verification", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          setUserVerificationTier(null);
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setUserVerificationTier(data.verification_tier ?? null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user verification tier:", error);
+
+        if (!cancelled) {
+          setUserVerificationTier(null);
+        }
+      }
+    }
+
+    fetchUserVerificationTier();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // 1. Initial load 10s auto-hide timer
   useEffect(() => {
@@ -193,7 +246,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
   // Set while the composer is editing an existing comment or reply
-  const [editingTarget, setEditingTarget] = useState<{ commentId: string; replyId?: string } | null>(null);
+  const [editingTarget, setEditingTarget] = useState<{
+    commentId: string;
+    replyId?: string;
+  } | null>(null);
   const [highlightedCommentId, setHighlightedCommentId] = useState<
     string | null
   >(null);
@@ -410,7 +466,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
 
           // Record that this viewer saw these comments (each viewer counts once)
           const seen = [
-            ...mappedComments.map((c: { id: string }) => ({ type: "comment", id: c.id })),
+            ...mappedComments.map((c: { id: string }) => ({
+              type: "comment",
+              id: c.id,
+            })),
             ...mappedComments.flatMap((c: { replies: { id: string }[] }) =>
               c.replies.map((r) => ({ type: "reply", id: r.id })),
             ),
@@ -547,12 +606,19 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     executePostComment(userName.trim(), mentionedUserIds);
   };
 
-  const handleDeleteComment = async (commentId: string, replyId?: string): Promise<void> => {
-    if (!confirm(replyId ? "Delete this reply?" : "Delete this comment?")) return;
+  const handleDeleteComment = async (
+    commentId: string,
+    replyId?: string,
+  ): Promise<void> => {
+    if (!confirm(replyId ? "Delete this reply?" : "Delete this comment?"))
+      return;
     try {
       const supabase = createSupabaseBrowserClient();
-      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
-      const endpoint = replyId ? `/api/replies/${replyId}` : `/api/comments/${commentId}`;
+      const token = (await supabase?.auth.getSession())?.data?.session
+        ?.access_token;
+      const endpoint = replyId
+        ? `/api/replies/${replyId}`
+        : `/api/comments/${commentId}`;
       const res = await fetch(endpoint, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token ?? ""}` },
@@ -564,7 +630,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         replyId
           ? prev.map((c) =>
               c.id === commentId
-                ? { ...c, replies: (c.replies || []).filter((r) => r.id !== replyId) }
+                ? {
+                    ...c,
+                    replies: (c.replies || []).filter((r) => r.id !== replyId),
+                  }
                 : c,
             )
           : prev.filter((c) => c.id !== commentId),
@@ -591,13 +660,17 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       setIsSubmittingComment(true);
       try {
         const supabase = createSupabaseBrowserClient();
-        const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+        const token = (await supabase?.auth.getSession())?.data?.session
+          ?.access_token;
         const endpoint = editingTarget.replyId
           ? `/api/replies/${editingTarget.replyId}`
           : `/api/comments/${editingTarget.commentId}`;
         const res = await fetch(endpoint, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token ?? ""}`,
+          },
           body: JSON.stringify({ text: commentText }),
         });
         const data = await res.json();
@@ -1154,6 +1227,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           setEditingTarget(null);
         }}
         currentUserId={user?.id}
+        userTier={userVerificationTier}
         onEditComment={(commentId, text, replyId) => {
           setEditingTarget({ commentId, replyId });
           setCommentText(text);

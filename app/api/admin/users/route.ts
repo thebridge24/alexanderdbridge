@@ -71,35 +71,32 @@ export async function GET(request: NextRequest) {
       );
 
       return {
-        id: streak.user_id,
-        name:
-          streak.display_name ||
-          meta.full_name ||
-          meta.name ||
-          authUser?.email ||
-          "Anonymous User",
-        email: authUser?.email || "",
-        avatar_url:
-          streak.avatar_url || meta.avatar_url || meta.picture || "",
-        verification_tier: meta.verification_tier ?? null,
-        currentStreak: computed.currentStreak,
-        highestStreak: computed.bestStreak,
-        lastActiveDate: streak.last_visit_date || "",
-        createdAt: streak.created_at || authUser?.created_at,
-        lastSignedIn: authUser?.last_sign_in_at,
-      };
+  id: streak.user_id,
+  name:
+    streak.display_name ||
+    meta.full_name ||
+    meta.name ||
+    authUser?.email ||
+    "Anonymous User",
+  email: authUser?.email || "",
+  avatar_url: streak.avatar_url || meta.avatar_url || meta.picture || "",
+  banner_url: meta.banner_url || "",
+  verification_tier: meta.verification_tier ?? null,
+  currentStreak: computed.currentStreak,
+  highestStreak: computed.bestStreak,
+  lastActiveDate: streak.last_visit_date || "",
+  createdAt: streak.created_at || authUser?.created_at,
+  lastSignedIn: authUser?.last_sign_in_at,
+};
     });
 
     streaksMapped.sort(
       (a, b) =>
-        b.currentStreak - a.currentStreak ||
-        b.highestStreak - a.highestStreak,
+        b.currentStreak - a.currentStreak || b.highestStreak - a.highestStreak,
     );
 
     // 6. Include auth users without streak records
-    const streakUserIds = new Set(
-      (streakRows || []).map((s) => s.user_id),
-    );
+    const streakUserIds = new Set((streakRows || []).map((s) => s.user_id));
 
     const uninitiatedAuthUsers = authUsers
       .filter((u) => !streakUserIds.has(u.id))
@@ -108,14 +105,11 @@ export async function GET(request: NextRequest) {
 
         return {
           id: u.id,
-          name:
-            meta.full_name ||
-            meta.name ||
-            u.email ||
-            "Anonymous User",
+          name: meta.full_name || meta.name || u.email || "Anonymous User",
           email: u.email || "",
           avatar_url: meta.avatar_url || meta.picture || "",
           verification_tier: meta.verification_tier ?? null,
+          banner_url: u.user_metadata?.banner_url || "",
           currentStreak: 0,
           highestStreak: 0,
           lastActiveDate: "",
@@ -127,14 +121,12 @@ export async function GET(request: NextRequest) {
     const allUsers = [...streaksMapped, ...uninitiatedAuthUsers];
 
     // 7. Exclude the currently logged-in user
-    const suggestedUsers = allUsers.filter(
-      (user) => user.id !== viewerId,
-    );
+    const suggestedUsers = allUsers.filter((user) => user.id !== viewerId);
 
     // 8. Fetch follower relationships for all suggested users
     const userIds = suggestedUsers.map((user) => user.id);
 
-    let followersCountMap = new Map<string, number>();
+    const followersCountMap = new Map<string, number>();
     let followingSet = new Set<string>();
 
     if (userIds.length > 0) {

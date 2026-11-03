@@ -70,10 +70,10 @@ export const VERIFICATION_TIERS: Record<
   visionary: {
     tier: "visionary",
     label: "Visionary",
-    hexColor: "#10b981",
-    textColorClass: "text-emerald-500",
-    iconColorClass: "text-emerald-400",
-    badgeBgClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+    hexColor: "#14F300",
+    textColorClass: "text-[#14F300]",
+    iconColorClass: "ttext-[#14F300]",
+    badgeBgClass: "bg-green-500/10 text-green-400 border-green-500/30",
     description: "Helps shape the future of Bridge Daily.",
   },
 };
@@ -103,7 +103,8 @@ export function getUserVerificationTier(params?: {
 
   // 3. Check user metadata plan_type property
   if (params.metadata.plan_type) {
-    const planType = params.metadata.plan_type.toLowerCase() as VerificationTier;
+    const planType =
+      params.metadata.plan_type.toLowerCase() as VerificationTier;
     if (planType in VERIFICATION_TIERS) return planType;
   }
 
