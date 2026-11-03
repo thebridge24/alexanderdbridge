@@ -301,7 +301,7 @@ console.log("Comment ownership check:", {
               <div className="flex gap-1.5 items-center text-neutral-500">
                 <FiBarChart2 className="size-4" />
                 <span className="text-[10px] font-semibold text-neutral-400">
-                  {comment.impressions ?? 12}
+                  {comment.impressions ?? 0}
                 </span>
               </div>
 
@@ -425,7 +425,7 @@ console.log("Comment ownership check:", {
                       <div className="flex gap-1 items-center text-neutral-500">
                         <FiBarChart2 className="size-3.5" />
                         <span className="text-[10px] font-semibold text-neutral-400">
-                          {reply.impressions ?? 4}
+                          {reply.impressions ?? 0}
                         </span>
                       </div>
                     </div>

@@ -192,6 +192,8 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  // Set while the composer is editing an existing comment or reply
+  const [editingTarget, setEditingTarget] = useState<{ commentId: string; replyId?: string } | null>(null);
   const [highlightedCommentId, setHighlightedCommentId] = useState<
     string | null
   >(null);
@@ -386,6 +388,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             text: c.body,
             timestamp: formatRelativeTime(c.created_at),
             likes: c.like_count ?? 0,
+            impressions: c.impressions ?? 0,
             liked: Boolean(c.liked),
             authorUserId: c.author_user_id || undefined,
             avatarUrl: c.author_avatar || undefined,
@@ -396,6 +399,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               name: r.author_name,
               text: r.body,
               timestamp: formatRelativeTime(r.created_at),
+              impressions: r.impressions ?? 0,
               authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
               authorVerificationTier: r.author_verification_tier ?? null,
@@ -403,6 +407,21 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             })),
           }));
           setComments(mappedComments);
+
+          // Record that this viewer saw these comments (each viewer counts once)
+          const seen = [
+            ...mappedComments.map((c: { id: string }) => ({ type: "comment", id: c.id })),
+            ...mappedComments.flatMap((c: { replies: { id: string }[] }) =>
+              c.replies.map((r) => ({ type: "reply", id: r.id })),
+            ),
+          ];
+          if (seen.length > 0) {
+            fetch("/api/comments/impressions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId, items: seen }),
+            }).catch(() => {});
+          }
         }
       } catch (err) {
         console.error("Error loading comments:", err);
@@ -528,6 +547,33 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     executePostComment(userName.trim(), mentionedUserIds);
   };
 
+  const handleDeleteComment = async (commentId: string, replyId?: string): Promise<void> => {
+    if (!confirm(replyId ? "Delete this reply?" : "Delete this comment?")) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      const endpoint = replyId ? `/api/replies/${replyId}` : `/api/comments/${commentId}`;
+      const res = await fetch(endpoint, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete");
+
+      setComments((prev) =>
+        replyId
+          ? prev.map((c) =>
+              c.id === commentId
+                ? { ...c, replies: (c.replies || []).filter((r) => r.id !== replyId) }
+                : c,
+            )
+          : prev.filter((c) => c.id !== commentId),
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to delete");
+    }
+  };
+
   const executePostComment = async (
     name: string,
     mentionedUserIds: string[] = [],
@@ -539,6 +585,47 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     }
 
     const date = currentDevotional.dateString;
+
+    // Editing an existing comment or reply instead of posting a new one
+    if (editingTarget) {
+      setIsSubmittingComment(true);
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+        const endpoint = editingTarget.replyId
+          ? `/api/replies/${editingTarget.replyId}`
+          : `/api/comments/${editingTarget.commentId}`;
+        const res = await fetch(endpoint, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+          body: JSON.stringify({ text: commentText }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update comment");
+
+        const newText = commentText.trim();
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id !== editingTarget.commentId) return c;
+            if (!editingTarget.replyId) return { ...c, text: newText };
+            return {
+              ...c,
+              replies: (c.replies || []).map((r) =>
+                r.id === editingTarget.replyId ? { ...r, text: newText } : r,
+              ),
+            };
+          }),
+        );
+        setCommentText("");
+        setEditingTarget(null);
+      } catch (err: any) {
+        alert(err.message || "Failed to update comment");
+      } finally {
+        setIsSubmittingComment(false);
+      }
+      return;
+    }
+
     setIsSubmittingComment(true);
 
     try {
@@ -1064,7 +1151,15 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           setIsCommentModalOpen(false);
           setReplyingToId(null);
           setReplyingToName(null);
+          setEditingTarget(null);
         }}
+        currentUserId={user?.id}
+        onEditComment={(commentId, text, replyId) => {
+          setEditingTarget({ commentId, replyId });
+          setCommentText(text);
+          setIsCommentModalOpen(true);
+        }}
+        onDeleteComment={handleDeleteComment}
         comments={comments}
         commentText={commentText}
         setCommentText={setCommentText}

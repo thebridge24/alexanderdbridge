@@ -120,6 +120,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
   // Streaks are counted from each author's completed days
   const streakMap = await getCurrentStreaks(supabase, authorUserIds);
 
+  // Unique viewers per comment and reply
+  const replyIdList = Array.from(repliesMap.values()).flatMap((list) => list.map((r) => r.id));
+  const impressionCounts = new Map<string, number>();
+  const targetIds = [...commentIds, ...replyIdList];
+  if (targetIds.length > 0) {
+    const { data: impressionRows } = await supabase
+      .from("devotional_comment_impressions")
+      .select("target_id")
+      .in("target_id", targetIds);
+    (impressionRows ?? []).forEach((row) => {
+      impressionCounts.set(row.target_id, (impressionCounts.get(row.target_id) ?? 0) + 1);
+    });
+  }
+
   const formattedComments = comments.map((c) => ({
     id: c.id,
     devotional_date: c.devotional_date,
@@ -131,6 +145,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     body: c.body,
     created_at: c.created_at,
     like_count: c.like_count ?? 0,
+    impressions: impressionCounts.get(c.id) ?? 0,
     liked: likedSet.has(c.id),
     replies: (repliesMap.get(c.id) || []).map((r) => ({
       id: r.id,
@@ -139,6 +154,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       author_user_id: r.author_user_id,
       author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
       author_streak: r.author_user_id ? streakMap.get(r.author_user_id) || 0 : 0,
+      impressions: impressionCounts.get(r.id) ?? 0,
       body: r.body,
       created_at: r.created_at,
     })),
