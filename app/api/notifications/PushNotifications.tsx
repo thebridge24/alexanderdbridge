@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
@@ -437,7 +438,7 @@ const promptDelayMs = 20000;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="absolute -right-14 mt-3 w-[90vw] sm:w-88 rounded-3xl bg-black/15 border border-white/10 backdrop-blur-2xl p-3 shadow-2xl z-50 text-left overflow-hidden flex flex-col max-h-100"
+            className="absolute right-0 mt-3 w-[90vw] sm:w-88 rounded-3xl bg-black/15 border border-white/10 backdrop-blur-2xl p-3 shadow-2xl z-50 text-left overflow-hidden flex flex-col max-h-100"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10 shrink-0">

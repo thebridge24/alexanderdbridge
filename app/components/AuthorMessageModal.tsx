@@ -28,7 +28,7 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
   messageId,
   title,
   paragraphs = [],
-  authorImage = "https://res.cloudinary.com/glqzvvh2/image/upload/v1792043676/CHI_5085_bckskx.jpg",
+  authorImage = "https://res.cloudinary.com/annnyure/image/upload/v1792054361/20250129_130645.png",
   authorName = "Alexander D' Bridge",
   authorRole = "Author of Bridge Daily",
   delayMs = 1500,
@@ -81,73 +81,74 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
 
   if (!isVisible || paragraphs.length === 0) return null;
 
+  const isLastParagraph = currentIndex === paragraphs.length - 1;
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6 bg-black/85 backdrop-blur-md">
+      <div className="fixed inset-0 z-50000 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
         {/* Main Overlay Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative w-full max-w-md bg-black border border-neutral-800 rounded-4xl overflow-hidden shadow-2xl shadow-red-950/25 flex flex-col"
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="relative w-full max-w-sm bg-black border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl shadow-red-950/20 flex flex-col p-6 sm:p-7"
         >
-          {/* Top Close Button */}
-          <button
-            onClick={handleDismiss}
-            aria-label="Close message"
-            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 border border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {/* Subtle Red & Neutral Gradient Glows (Top Left & Right Blur Accents) */}
+          <div className="absolute -top-12 -left-12 w-32 h-32 bg-red-600/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-12 -right-12 w-32 h-32 bg-neutral-700/20 rounded-full blur-2xl pointer-events-none" />
 
-          {/* Circular Avatar Hero Section */}
-          <div className="relative pb-4 flex justify-center max-h-72">
-            <img
-              src={authorImage}
-              alt={authorName}
-              className="w-full h-full object-cover object-top -mt-16 pointer-events-none"
-            />
-          </div>
-
-          {/* Overlapping Glass Content Card */}
-          <div className="relative -mt-6 bg-black/75 backdrop-blur-md border-t border-neutral-800/80 rounded-tl-2xl sm:rounded-tl-4xl p-6 sm:p-7 flex flex-col justify-between space-y-5">
-            {/* Pagination & Message Header */}
-            <div className="space-y-3">
-              {/* Pagination Indicators (Active is wider) */}
-              <div className="flex items-center gap-1.5">
-                {paragraphs.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-1 rounded-full transition-all duration-300 ${
-                      idx === currentIndex
-                        ? "w-7 bg-primary"
-                        : "w-2 bg-neutral-800"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
-                {title}
-              </h2>
+          {/* Header Row: Pagination Indicators & Conditional Close Button */}
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            {/* Pagination Indicators */}
+            <div className="flex items-center gap-1.5">
+              {paragraphs.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    idx === currentIndex
+                      ? "w-6 bg-red-600"
+                      : "w-1.5 bg-neutral-800"
+                  }`}
+                />
+              ))}
             </div>
 
-            {/* Draggable / Swipable Paragraph Slide Container */}
+            {/* Cancel / Close Button - Visible ONLY on the last paragraph */}
+            {isLastParagraph && (
+              <button
+                onClick={handleDismiss}
+                aria-label="Close message"
+                className="p-1.5 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Title */}
+          <div className="relative z-10 mb-3">
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+              {title}
+            </h2>
+          </div>
+
+          {/* Draggable / Swipable Paragraph Slide Container */}
+          <div className="relative z-10 mb-6">
             <motion.div
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
-              className="min-h-27.5 flex items-center cursor-grab active:cursor-grabbing overflow-hidden"
+              className="min-h-20 flex items-center cursor-grab active:cursor-grabbing overflow-hidden"
             >
               <AnimatePresence mode="wait">
                 <motion.p
                   key={currentIndex}
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 15 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  exit={{ opacity: 0, x: -15 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
                   className="text-neutral-300 text-xs sm:text-sm leading-relaxed w-full select-none"
                 >
                   {paragraphs[currentIndex]}
@@ -155,26 +156,44 @@ export const AuthorMessageModal: React.FC<AuthorMessageModalProps> = ({
               </AnimatePresence>
             </motion.div>
 
-            {/* Footer Author Branding & Action Button */}
-            <div className="pt-4 border-t border-neutral-800/80 flex flex-row items-center justify-between gap-4">
-              <div className="text-left">
-                <h3 className="text-xs font-bold text-white tracking-wide">
+            {/* Tiny instruction under the paragraph */}
+            <p className="text-[10px] font-mono text-neutral-500 mt-2 select-none">
+              Swipe to next or click red button
+            </p>
+          </div>
+
+          {/* Footer: Small Author Circle Profile & Next Button */}
+          <div className="pt-4 border-t border-neutral-900 flex items-center justify-between gap-3 relative z-10">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* Small Circle Author Avatar */}
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-neutral-900 border border-neutral-800 shrink-0">
+                <img
+                  src={authorImage}
+                  alt={authorName}
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+
+              {/* Author Name and Title */}
+              <div className="min-w-0 text-left">
+                <h3 className="text-xs font-bold text-white truncate">
                   {authorName}
                 </h3>
-                <p className="text-[11px] text-neutral-400 font-mono">
+                <p className="text-[10px] text-neutral-400 font-mono truncate">
                   {authorRole}
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={handleNext}
-                aria-label="Next paragraph slide"
-                className="p-3 bg-red-600 hover:bg-primary active:scale-95 text-white font-medium text-xs rounded-full shadow-lg shadow-red-950/40 transition-all duration-150 cursor-pointer flex items-center justify-center"
-              >
-                <ChevronRight strokeWidth={3} className="w-4 h-4" />
-              </button>
             </div>
+
+            {/* Next Button */}
+            <button
+              type="button"
+              onClick={handleNext}
+              aria-label="Next slide"
+              className="p-2.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white rounded-full shadow-md shadow-red-950/40 transition-all cursor-pointer flex items-center justify-center shrink-0"
+            >
+              <ChevronRight strokeWidth={2.5} className="w-3.5 h-3.5" />
+            </button>
           </div>
         </motion.div>
       </div>

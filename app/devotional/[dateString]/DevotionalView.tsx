@@ -18,7 +18,7 @@ import { formatRelativeTime } from "@/lib/utils/date";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-import { Comment } from "@/app/components/CommentItem";
+import { Comment, Reply } from "@/app/components/CommentItem";
 import { CommentSlideUpModal } from "@/app/components/CommentSlideUpModal";
 import YesterdayPromptCallout from "@/app/components/YesterdayPromptCallout";
 import StreakFooterBanner from "@/app/components/StreakFooterBanner";
@@ -456,6 +456,11 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               text: r.body,
               timestamp: formatRelativeTime(r.created_at),
               impressions: r.impressions ?? 0,
+
+              // Reply likes
+              likes: r.like_count ?? 0,
+              liked: r.liked ?? false,
+
               authorUserId: r.author_user_id || undefined,
               avatarUrl: r.author_avatar || undefined,
               authorVerificationTier: r.author_verification_tier ?? null,
@@ -756,22 +761,27 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
 
         if (res.ok) {
           const data = await res.json();
-          const newReply = {
-            id: data.reply.id,
-            name: data.reply.author_name,
-            text: data.reply.body,
-            timestamp: "Just now",
-            avatarUrl:
-              user?.user_metadata?.avatar_url ||
-              user?.user_metadata?.picture ||
-              undefined,
-            authorUserId: user?.id || undefined,
-            authorVerificationTier:
-              data.reply.author_verification_tier ?? verificationTier,
-            streakCount:
-              data.reply.author_streak ?? streakData?.currentStreak ?? 0,
-          };
+     const newReply: Reply = {
+  id: data.reply.id,
+  name: data.reply.author_name,
+  text: data.reply.body,
+  timestamp: "Just now",
 
+  // Reply engagement defaults
+  impressions: 0,
+  likes: 0,
+  liked: false,
+
+  avatarUrl:
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    undefined,
+  authorUserId: user?.id || undefined,
+  authorVerificationTier:
+    data.reply.author_verification_tier ?? verificationTier,
+  streakCount:
+    data.reply.author_streak ?? streakData?.currentStreak ?? 0,
+};
           setComments((prev) =>
             prev.map((c) => {
               if (c.id === replyingToId) {
@@ -830,7 +840,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           };
 
           setComments((prev) => [newComment, ...prev]);
-          setComments([newComment, ...comments]);
           setCommentText("");
         } else {
           const data = await res.json();
@@ -844,72 +853,119 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     }
   };
 
-  const handleCommentLike = async (commentId: string) => {
+  const handleCommentLike = async (commentId: string, replyId?: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
 
     const sessionId = getSessionId();
+    const isReply = Boolean(replyId);
 
+    // Optimistically update only the selected item.
     setComments((prev) =>
-      prev.map((c) => {
-        if (c.id === commentId) {
-          const isLiked = c.liked;
+      prev.map((comment) => {
+        if (comment.id !== commentId) return comment;
+
+        if (isReply) {
           return {
-            ...c,
-            liked: !isLiked,
-            likes: isLiked ? Math.max(c.likes - 1, 0) : c.likes + 1,
+            ...comment,
+            replies: (comment.replies || []).map((reply) => {
+              if (reply.id !== replyId) return reply;
+
+              const wasLiked = reply.liked;
+
+              return {
+                ...reply,
+                liked: !wasLiked,
+                likes: wasLiked
+                  ? Math.max((reply.likes ?? 0) - 1, 0)
+                  : (reply.likes ?? 0) + 1,
+              };
+            }),
           };
         }
-        return c;
+
+        const wasLiked = comment.liked;
+
+        return {
+          ...comment,
+          liked: !wasLiked,
+          likes: wasLiked ? Math.max(comment.likes - 1, 0) : comment.likes + 1,
+        };
       }),
     );
 
     try {
       const supabase = createSupabaseBrowserClient();
       const session = (await supabase?.auth.getSession())?.data?.session;
+
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
+
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
 
-      const res = await fetch(`/api/comments/${commentId}/like`, {
+      const endpoint = isReply
+        ? `/api/replies/${replyId}/like`
+        : `/api/comments/${commentId}/like`;
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers,
         body: JSON.stringify({
           sessionId,
-          actorUserId: user?.id || undefined,
-          actorName: user?.user_metadata?.full_name || userName || undefined,
+          actorUserId: user.id,
+          actorName: user.user_metadata?.full_name || userName || undefined,
           actorAvatar:
-            user?.user_metadata?.avatar_url ||
-            user?.user_metadata?.picture ||
+            user.user_metadata?.avatar_url ||
+            user.user_metadata?.picture ||
             undefined,
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setComments((prev) =>
-          prev.map((c) => {
-            if (c.id === commentId) {
-              return {
-                ...c,
-                likes: data.likeCount,
-                liked: data.liked,
-              };
-            }
-            return c;
-          }),
-        );
+      if (!res.ok) {
+        throw new Error("Unable to update like");
       }
+
+      const data = await res.json();
+
+      // Update the selected item with the confirmed server result.
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment.id !== commentId) return comment;
+
+          if (isReply) {
+            return {
+              ...comment,
+             replies: (comment.replies || []).map((reply) =>
+                reply.id === replyId
+                  ? {
+                      ...reply,
+                      likes: data.likeCount,
+                      liked: data.liked,
+                    }
+                  : reply,
+              ),
+            };
+          }
+
+          return {
+            ...comment,
+            likes: data.likeCount,
+            liked: data.liked,
+          };
+        }),
+      );
     } catch (err) {
-      console.error("Error toggling comment like:", err);
+      console.error("Error toggling like:", err);
+
+      // Reload server state so the UI doesn't retain a failed optimistic update.
+      // Use your existing comments refresh function here if available.
     }
   };
-
   const isFutureDate = (dateStr: string) => {
     if (!todayDateString) return false;
     return dateStr > todayDateString;
@@ -1012,10 +1068,12 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         </div>
 
         {/* Floating Comment Button & Counter */}
-        <div className="flex flex-col items-center gap-1 z-40 relative">
+        <div
+          onClick={() => setIsCommentModalOpen(true)}
+          className="flex flex-col items-center gap-1 z-40 relative"
+        >
           <button
             type="button"
-            onClick={() => setIsCommentModalOpen(true)}
             className="p-1 rounded-full text-neutral-300 hover:text-white active:scale-75 transition-all flex items-center justify-center"
             aria-label="Open Comments"
           >
@@ -1057,7 +1115,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             key="preloader-overlay"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.6 } }}
-            className="fixed inset-0 z-9999 bg-black flex flex-col items-center justify-center px-6 h-screen"
+            className="fixed inset-0 z-99999 bg-black flex flex-col items-center justify-center px-6 h-screen"
           >
             <AnimatePresence mode="wait">
               {introStage === "logo" && (
@@ -1258,15 +1316,27 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         isAlreadyCompleted={todayCompleted}
         onMarkAsRead={markTodayComplete}
       />
-      <AuthorMessageModal
-        messageId="v1.2_october_invite"
-        delayMs={2000}
-        title="Keep Growing With Us ❤️"
-        paragraphs={[
-          "Hey, I'm glad you're part of Bridge Daily. ❤️ Keep showing up, keep studying God's Word, and keep growing in your walk with Him. Every day counts, even the small ones.",
-          "Also, think of one person who could benefit from this journey and invite them to join us. Let's help more people stay consistent with God, one person at a time. We're building this together!",
-        ]}
-      />
+
+      {/* Dynamic Survey Conditional Render (Shows only if completed count >= 5) */}
+      {(() => {
+        const history = streakData?.attendanceHistory || {};
+        const completedCount = Object.values(history).filter(
+          (record: any) => record?.completed === true,
+        ).length;
+
+        return completedCount >= 2 ? (
+          <AuthorMessageModal
+            messageId="v1.5_november_prayer_reminder"
+            delayMs={2000}
+            title="Hope you are praying? ❤️"
+            paragraphs={[
+              "Hey, thank you for being part of Bridge Daily. I'm glad we're growing together in God's Word. Keep showing up and keep growing!",
+              "I hope you're actually praying and not just reading through the prayer points. God is so intentional about our lives, and we must not become too familiar with these prayers. They are not just there to be read; they are there to be prayed earnestly. Please, take your time, engage your heart, and pray. Don't rush through them. ❤️",
+            ]}
+          />
+        ) : null;
+      })()}
+
       {/* Dynamic Survey Conditional Render (Shows only if completed count >= 5) */}
       {(() => {
         const history = streakData?.attendanceHistory || {};

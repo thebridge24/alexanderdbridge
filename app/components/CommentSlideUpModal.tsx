@@ -108,8 +108,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
   const [pickedMentions, setPickedMentions] = useState<MentionUser[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<UserProfileData | null>(null);
-  
+  const [selectedProfile, setSelectedProfile] =
+    useState<UserProfileData | null>(null);
+
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
@@ -164,7 +165,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
 
     const nameToInsert = user.name || user.email.split("@")[0];
     const beforeAt = commentText.slice(0, mentionMatchIndex);
-    const afterAtQuery = commentText.slice(mentionMatchIndex + 1 + mentionQuery.length);
+    const afterAtQuery = commentText.slice(
+      mentionMatchIndex + 1 + mentionQuery.length,
+    );
 
     const updatedText = `${beforeAt}@${nameToInsert} ${afterAtQuery}`;
     setCommentText(updatedText);
@@ -207,48 +210,51 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   };
 
   const handleAvatarClick = async (author: Comment | Reply) => {
-  const userId = author.authorUserId ?? "";
-  if (!userId) return;
+    const userId = author.authorUserId ?? "";
+    if (!userId) return;
 
-  // Get the selected user's complete profile from the users already fetched.
-  const profileUser = allUsers.find((user) => user.id === userId);
+    // Get the selected user's complete profile from the users already fetched.
+    const profileUser = allUsers.find((user) => user.id === userId);
 
-  setSelectedProfile({
-    id: userId,
-    name: profileUser?.name || author.name,
-    avatarUrl: profileUser?.avatar_url || author.avatarUrl,
-    bannerUrl: profileUser?.banner_url || "",
-    verificationTier:
-      profileUser?.verification_tier ||
-      author.authorVerificationTier,
-    currentStreak:
-      profileUser?.currentStreak ?? author.streakCount ?? 0,
-    isFollowing: profileUser?.isFollowing ?? false,
-  });
-
-  try {
-    const supabase = createSupabaseBrowserClient();
-    const session = (await supabase?.auth.getSession())?.data?.session;
-
-    const res = await fetch(`/api/users/${userId}/follow`, {
-      headers: session?.access_token
-        ? { Authorization: `Bearer ${session.access_token}` }
-        : undefined,
+    setSelectedProfile({
+      id: userId,
+      name: profileUser?.name || author.name,
+      avatarUrl: profileUser?.avatar_url || author.avatarUrl,
+      bannerUrl: profileUser?.banner_url || "",
+      verificationTier:
+        profileUser?.verification_tier || author.authorVerificationTier,
+      currentStreak: profileUser?.currentStreak ?? author.streakCount ?? 0,
+      isFollowing: profileUser?.isFollowing ?? false,
     });
 
-    if (!res.ok) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const session = (await supabase?.auth.getSession())?.data?.session;
 
-    const data = await res.json();
+      const res = await fetch(`/api/users/${userId}/follow`, {
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      });
 
-    setSelectedProfile((prev) =>
-      prev?.id === userId
-        ? { ...prev, isFollowing: !!data.isFollowing }
-        : prev,
-    );
-  } catch (err) {
-    console.error("Failed to load follow state:", err);
-  }
-};
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setSelectedProfile((prev) => {
+        if (!prev || prev.id !== userId) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          isFollowing: Boolean(data.isFollowing),
+        };
+      });
+    } catch (err) {
+      console.error("Failed to load follow state:", err);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -271,7 +277,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
           >
             <div className="w-full flex flex-col items-center pt-3 pb-2 shrink-0 relative border-b border-neutral-900">
               <div className="w-12 h-1 bg-neutral-700 rounded-full mb-3" />
-              <h3 className="text-base font-bold text-white tracking-tight">Comments</h3>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Comments
+              </h3>
               <button
                 type="button"
                 onClick={onClose}
@@ -356,7 +364,12 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                               {user.name || "Believer"}
                             </span>
                             {userTierVal && (
-                              <VerifiedBadge tier={userTierVal} name={user.name} email={user.email} size="sm" />
+                              <VerifiedBadge
+                                tier={userTierVal}
+                                name={user.name}
+                                email={user.email}
+                                size="sm"
+                              />
                             )}
                           </div>
                           <span className="block text-[10px] text-neutral-500 font-mono truncate">
@@ -377,13 +390,21 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   onSubmitComment(
                     e,
                     pickedMentions
-                      .filter((u) => commentText.includes(`@${u.name || u.email.split("@")[0]}`))
+                      .filter((u) =>
+                        commentText.includes(
+                          `@${u.name || u.email.split("@")[0]}`,
+                        ),
+                      )
                       .map((u) => u.id),
                   )
                 }
                 className="flex items-end gap-3"
               >
-                <CurrentUserAvatar avatarUrl={userAvatarUrl} initial={userInitial} name={userName} />
+                <CurrentUserAvatar
+                  avatarUrl={userAvatarUrl}
+                  initial={userInitial}
+                  name={userName}
+                />
 
                 <div className="relative flex-1 bg-black border border-neutral-800 rounded-3xl p-2.5 focus-within:border-neutral-700 transition-colors">
                   {replyingToName && (
@@ -406,7 +427,9 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     ref={textareaRef}
                     rows={1}
                     placeholder={
-                      replyingToName ? "Write a reply..." : "Comment... (Type @ to tag someone)"
+                      replyingToName
+                        ? "Write a reply..."
+                        : "Comment... (Type @ to tag someone)"
                     }
                     value={commentText}
                     onChange={handleTextareaChange}
@@ -453,9 +476,14 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     <FaCrown className="size-6" />
                   </div>
 
-                  <h3 className="text-lg font-bold text-white mb-2">Unlock Comment Actions</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    Unlock Comment Actions
+                  </h3>
                   <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
-                    Editing and deleting comments requires a Reader, Supporter, Partner, Sponsor, Patron, or Visionary membership tier. Become a supporter today to unlock full community privileges!
+                    Editing and deleting comments requires a Reader, Supporter,
+                    Partner, Sponsor, Patron, or Visionary membership tier.
+                    Become a supporter today to unlock full community
+                    privileges!
                   </p>
 
                   <div className="space-y-2.5">

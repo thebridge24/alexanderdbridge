@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,10 +7,9 @@ import { IoArrowBack } from "react-icons/io5";
 import { FiHeart } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import PushNotifications from "../api/notifications/PushNotifications";
-import AuthButton from "@/app/auth/AuthButton";
-import FloatingVideoPlayer from "./FloatingVideoPlayer";
+// import FloatingVideoPlayer from "./FloatingVideoPlayer";
 import { SUPPORT_MESSAGES } from "@/lib/utils/support-messages";
-import { useStreakTracker } from "@/app/hooks/useStreakTracker";
+// import { useStreakTracker } from "@/app/hooks/useStreakTracker";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -38,7 +37,7 @@ export default function Header() {
   }, []);
 
   // Use the streak tracker hook with the authenticated user ID
-  const { streakData } = useStreakTracker(user?.id);
+  // const { streakData } = useStreakTracker(user?.id);
 
   // Random slide down & hide loop for support messages
   useEffect(() => {
@@ -56,18 +55,18 @@ export default function Header() {
   }, []);
 
   // Compute completed attendance count from streak data history
-  const completedAttendanceCount = (() => {
-    const history = streakData?.attendanceHistory || {};
-    return Object.values(history).filter(
-      (record: any) => record?.completed === true,
-    ).length;
-  })();
+  // const completedAttendanceCount = (() => {
+  //   const history = streakData?.attendanceHistory || {};
+  //   return Object.values(history).filter(
+  //     (record: any) => record?.completed === true,
+  //   ).length;
+  // })();
 
   // Show video only if completed attendance history is 7 days or more
-  const showVideoPlayer = completedAttendanceCount >= 7;
+  // const showVideoPlayer = completedAttendanceCount >= 7;
 
   return (
-    <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-100 pointer-events-none">
+    <header className="fixed top-4 left-0 right-0 max-w-2xl mx-auto px-6 flex items-center justify-between z-60 pointer-events-none">
       {/* Back Button */}
       <div className="pointer-events-auto">
         <div className="p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-neutral-800/80 shadow-2xl">
@@ -110,11 +109,10 @@ export default function Header() {
         </div>
 
         <PushNotifications />
-        <AuthButton />
       </div>
 
       {/* Floating Video Component (Conditional: Shown only when completed attendance >= 7 days) */}
-      {showVideoPlayer && (
+      {/* {showVideoPlayer && (
         <FloatingVideoPlayer
           videos={[
             {
@@ -124,7 +122,7 @@ export default function Header() {
             },
           ]}
         />
-      )}
+      )} */}
     </header>
   );
 }

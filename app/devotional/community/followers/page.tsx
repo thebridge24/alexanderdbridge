@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
@@ -7,11 +6,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, Variants } from "framer-motion";
-import { FaChevronLeft, FaSearch } from "react-icons/fa";
+import { FaChevronLeft } from "react-icons/fa";
 import { VerifiedBadge } from "@/app/components/VerifiedBadge";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SuggestedUsersSection } from "@/app/components/SuggestedUsersSection";
 import ConnectionSkeleton from "@/app/components/skeleton/ConnectionSkeleton";
+import { UserSearchSlideOver } from "@/app/components/UserSearchSlideOver";
+import { Search } from "lucide-react";
 
 export interface UserItem {
   id: string;
@@ -24,7 +25,7 @@ export interface UserItem {
   verificationTier?: string | null;
 }
 
-const listContainerVariants:Variants = {
+const listContainerVariants: Variants = {
   hidden: { opacity: 1 },
   visible: {
     opacity: 1,
@@ -35,7 +36,7 @@ const listContainerVariants:Variants = {
   },
 };
 
-const listItemVariants:Variants = {
+const listItemVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 12,
@@ -68,8 +69,9 @@ export default function FollowersFollowingPage() {
   const [activeTab, setActiveTab] = useState<"followers" | "following">(
     isFollowingRoute ? "following" : "followers",
   );
+  const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
+    const [searchQuery, ] = useState("");
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<UserItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -88,12 +90,9 @@ export default function FollowersFollowingPage() {
           return;
         }
 
-        const res = await fetch(
-          `/api/users/me/connections?tab=${activeTab}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const res = await fetch(`/api/users/me/connections?tab=${activeTab}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const data = await res.json();
 
@@ -165,28 +164,36 @@ export default function FollowersFollowingPage() {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-neutral-800 pb-20">
       <div className="max-w-5xl mx-auto">
-
         {/* Top Header Bar */}
         <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-neutral-900 px-4 pt-4 pb-0">
-          <div className="flex items-center gap-4 mb-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="p-2.5 rounded-full hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-              aria-label="Go Back"
-            >
-              <FaChevronLeft size={16} />
-            </button>
+         <div className="flex items-center gap-4 mb-3">
+  <button
+    type="button"
+    onClick={() => router.back()}
+    className="p-2.5 rounded-full hover:bg-neutral-900 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+    aria-label="Go Back"
+  >
+    <FaChevronLeft size={16} />
+  </button>
 
-            <div>
-              <h1 className="text-lg font-bold text-white tracking-tight leading-tight">
-                Connections
-              </h1>
-              <p className="text-[11px] font-mono text-neutral-500">
-                Manage your community
-              </p>
-            </div>
-          </div>
+  <div className="flex-1">
+    <h1 className="text-lg font-bold text-white tracking-tight leading-tight">
+      Connections
+    </h1>
+    <p className="text-[11px] font-mono text-neutral-500">
+      Manage your community
+    </p>
+  </div>
+
+  <button
+    type="button"
+    onClick={() => setIsUserSearchOpen(true)}
+    className="size-10 flex items-center border rounded-full border-neutral-800 justify-center text-neutral-300 hover:text-white transition-all"
+    aria-label="Discover users"
+  >
+    <Search size={15} />
+  </button>
+</div>
 
           {/* Tab Switcher with Animated Sliding Underline */}
           <div className="flex items-center relative border-t border-neutral-900/60">
@@ -232,21 +239,6 @@ export default function FollowersFollowingPage() {
           </div>
         </header>
 
-        {/* Search Input Bar */}
-        <div className="px-4 pt-4 pb-2">
-          <div className="relative flex items-center">
-            <FaSearch className="absolute left-4 text-neutral-500 size-3.5 pointer-events-none" />
-
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${activeTab}...`}
-              className="w-full bg-neutral-900/90 border border-neutral-800 rounded-full py-2.5 pl-10 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
-            />
-          </div>
-        </div>
-
         {/* Connections List View */}
         <main className="px-2 pt-2 divide-y divide-neutral-900/80">
           {isLoading ? (
@@ -260,18 +252,6 @@ export default function FollowersFollowingPage() {
                 <ConnectionSkeleton key={index} />
               ))}
             </motion.div>
-          ) : filteredList.length === 0 ? (
-            <div className="py-20 text-center space-y-2">
-              <p className="text-xs font-mono text-neutral-500">
-                {searchQuery ? (
-                  <>No users found matching &quot;{searchQuery}&quot;</>
-                ) : activeTab === "followers" ? (
-                  "No followers yet"
-                ) : (
-                  "You are not following anyone yet"
-                )}
-              </p>
-            </div>
           ) : (
             <motion.div
               key={activeTab}
@@ -352,6 +332,10 @@ export default function FollowersFollowingPage() {
           <SuggestedUsersSection />
         </main>
       </div>
+      <UserSearchSlideOver
+  isOpen={isUserSearchOpen}
+  onClose={() => setIsUserSearchOpen(false)}
+/>
     </div>
   );
 }

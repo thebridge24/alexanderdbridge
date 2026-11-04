@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse, after } from "next/server";
 import { getCurrentStreaks } from "@/lib/utils/streak";
 import { assertSupabaseConfigured } from "@/lib/api/responses";
@@ -5,14 +6,22 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { isValidDevotionalDate } from "@/lib/utils/date";
 import { DEVOTIONALS_DATA } from "@/app/data/devotionalData";
 import { sendNotification } from "@/lib/notifications/sender";
-import { formatDevotionalCommentMessage, formatMentionMessage } from "@/lib/notifications/messages";
+import {
+  formatDevotionalCommentMessage,
+  formatMentionMessage,
+} from "@/lib/notifications/messages";
 
 /** Every registered user id (paginated). */
-async function getAllUserIds(supabase: ReturnType<typeof createSupabaseAdmin>): Promise<Set<string>> {
+async function getAllUserIds(
+  supabase: ReturnType<typeof createSupabaseAdmin>,
+): Promise<Set<string>> {
   const ids = new Set<string>();
   const perPage = 1000;
   for (let page = 1; page <= 20; page++) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
     if (error || !data?.users?.length) break;
     data.users.forEach((u) => ids.add(u.id));
     if (data.users.length < perPage) break;
@@ -32,15 +41,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const { date } = await context.params;
   if (!isValidDevotionalDate(date)) {
-    return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid devotional date" },
+      { status: 400 },
+    );
   }
 
   const sessionId = request.nextUrl.searchParams.get("sessionId")?.trim();
   const supabase = createSupabaseAdmin();
-  
+
   const { data: rawComments, error } = await supabase
     .from("devotional_comments")
-    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count")
+    .select(
+      "id, devotional_date, author_name, author_avatar, author_user_id, body, created_at, like_count",
+    )
     .eq("devotional_date", date)
     .order("created_at", { ascending: false });
 
@@ -52,8 +66,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const commentIds = comments.map((c) => c.id);
 
   let likedSet = new Set<string>();
-  const repliesMap = new Map<string, any[]>();
+  let likedReplySet = new Set<string>();
 
+  const repliesMap = new Map<string, any[]>();
   if (commentIds.length > 0) {
     const [likedSessionsRes, repliesRes] = await Promise.all([
       sessionId
@@ -65,10 +80,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
         : Promise.resolve({ data: null, error: null }),
       supabase
         .from("devotional_comment_replies")
-        .select("id, comment_id, author_name, author_avatar, author_user_id, body, created_at")
+        .select(
+          "id, comment_id, author_name, author_avatar, author_user_id, body, created_at, like_count",
+        )
         .in("comment_id", commentIds)
         .order("created_at", { ascending: true }),
     ]);
+    if (sessionId && repliesRes.data?.length) {
+      const replyIds = repliesRes.data.map((r) => r.id);
+
+      const { data: likedReplies } = await supabase
+        .from("devotional_comment_reply_like_sessions")
+        .select("reply_id")
+        .eq("session_id", sessionId)
+        .in("reply_id", replyIds);
+
+      likedReplySet = new Set((likedReplies ?? []).map((r) => r.reply_id));
+    }
 
     if (likedSessionsRes.data) {
       likedSet = new Set(likedSessionsRes.data.map((s) => s.comment_id));
@@ -84,6 +112,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           author_user_id: r.author_user_id,
           body: r.body,
           created_at: r.created_at,
+          like_count: r.like_count ?? 0,
         });
         repliesMap.set(r.comment_id, currentList);
       });
@@ -95,7 +124,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     new Set(
       [
         ...comments.map((c) => c.author_user_id),
-        ...Array.from(repliesMap.values()).flatMap((list) => list.map((r) => r.author_user_id)),
+        ...Array.from(repliesMap.values()).flatMap((list) =>
+          list.map((r) => r.author_user_id),
+        ),
       ].filter(Boolean) as string[],
     ),
   );
@@ -121,7 +152,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const streakMap = await getCurrentStreaks(supabase, authorUserIds);
 
   // Unique viewers per comment and reply
-  const replyIdList = Array.from(repliesMap.values()).flatMap((list) => list.map((r) => r.id));
+  const replyIdList = Array.from(repliesMap.values()).flatMap((list) =>
+    list.map((r) => r.id),
+  );
   const impressionCounts = new Map<string, number>();
   const targetIds = [...commentIds, ...replyIdList];
   if (targetIds.length > 0) {
@@ -130,7 +163,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .select("target_id")
       .in("target_id", targetIds);
     (impressionRows ?? []).forEach((row) => {
-      impressionCounts.set(row.target_id, (impressionCounts.get(row.target_id) ?? 0) + 1);
+      impressionCounts.set(
+        row.target_id,
+        (impressionCounts.get(row.target_id) ?? 0) + 1,
+      );
     });
   }
 
@@ -140,7 +176,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     author_name: c.author_name,
     author_avatar: c.author_avatar,
     author_user_id: c.author_user_id,
-    author_verification_tier: c.author_user_id ? verificationMap.get(c.author_user_id) || null : null,
+    author_verification_tier: c.author_user_id
+      ? verificationMap.get(c.author_user_id) || null
+      : null,
     author_streak: c.author_user_id ? streakMap.get(c.author_user_id) || 0 : 0,
     body: c.body,
     created_at: c.created_at,
@@ -152,9 +190,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
       author_name: r.author_name,
       author_avatar: r.author_avatar,
       author_user_id: r.author_user_id,
-      author_verification_tier: r.author_user_id ? verificationMap.get(r.author_user_id) || null : null,
-      author_streak: r.author_user_id ? streakMap.get(r.author_user_id) || 0 : 0,
+      author_verification_tier: r.author_user_id
+        ? verificationMap.get(r.author_user_id) || null
+        : null,
+      author_streak: r.author_user_id
+        ? streakMap.get(r.author_user_id) || 0
+        : 0,
       impressions: impressionCounts.get(r.id) ?? 0,
+      like_count: r.like_count ?? 0,
+      liked: likedReplySet.has(r.id),
       body: r.body,
       created_at: r.created_at,
     })),
@@ -164,9 +208,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     { comments: formattedComments },
     {
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
       },
-    }
+    },
   );
 }
 
@@ -178,7 +223,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const { date } = await context.params;
   if (!isValidDevotionalDate(date)) {
-    return NextResponse.json({ error: "Invalid devotional date" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid devotional date" },
+      { status: 400 },
+    );
   }
 
   let body: {
@@ -254,7 +302,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       author_user_id: authorUserId,
       body: text,
     })
-    .select("id, devotional_date, author_name, author_avatar, author_user_id, body, created_at")
+    .select(
+      "id, devotional_date, author_name, author_avatar, author_user_id, body, created_at",
+    )
     .single();
 
   if (error) {
@@ -276,7 +326,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   // Notify everyone that someone commented. Runs after the response is sent so posting stays fast.
-  const notif = formatDevotionalCommentMessage(name, topic, date, data.id, avatarUrl);
+  const notif = formatDevotionalCommentMessage(
+    name,
+    topic,
+    date,
+    data.id,
+    avatarUrl,
+  );
   const commentId = data.id as string;
   after(async () => {
     try {
@@ -284,7 +340,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       const mentioned = mentionedUserIds.filter((id) => id !== authorUserId);
       await Promise.all(
         mentioned.map((userId) => {
-          const mention = formatMentionMessage(name, text, date, commentId, userId, avatarUrl);
+          const mention = formatMentionMessage(
+            name,
+            text,
+            date,
+            commentId,
+            userId,
+            avatarUrl,
+          );
           return sendNotification({
             userId,
             type: "mention",

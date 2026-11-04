@@ -171,7 +171,7 @@ export function UserProfilePopup({
                   )}
                 </div>
                 <p className="text-xs text-neutral-400 font-medium">
-                  {user.email || "@member"}
+                @{user.name.replaceAll(" ", "").toLowerCase()}
                 </p>
               </div>
 

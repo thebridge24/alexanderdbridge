@@ -19,11 +19,11 @@ export interface Reply {
   name: string;
   text: string;
   timestamp: string;
-  likes?: number;
-  liked?: boolean;
-  impressions?: number;
-  avatarUrl?: string;
+  impressions: number;
+  likes: number;
+  liked: boolean;
   authorUserId?: string;
+  avatarUrl?: string;
   authorVerificationTier?: string | null;
   streakCount?: number;
 }
@@ -168,29 +168,27 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     currentUserId === comment.authorUserId,
   );
 
-
-
   const ALLOWED_TIERS = [
-  "reader",
-  "supporter",
-  "partner",
-  "sponsor",
-  "patron",
-  "visionary",
-];
+    "reader",
+    "supporter",
+    "partner",
+    "sponsor",
+    "patron",
+    "visionary",
+  ];
 
-const normalizedTier = (userTier || "").toLowerCase().trim();
+  const normalizedTier = (userTier || "").toLowerCase().trim();
 
-const hasVerification = ALLOWED_TIERS.includes(normalizedTier);
+  const hasVerification = ALLOWED_TIERS.includes(normalizedTier);
 
-const checkTierAndExecute = (action: () => void) => {
-  if (!hasVerification) {
-    onRequireUpgrade();
-    return;
-  }
+  const checkTierAndExecute = (action: () => void) => {
+    if (!hasVerification) {
+      onRequireUpgrade();
+      return;
+    }
 
-  action();
-};
+    action();
+  };
 
   return (
     <motion.div
@@ -268,7 +266,7 @@ const checkTierAndExecute = (action: () => void) => {
 
             {/* Interaction Bar */}
             <div
-              className={`flex items-center gap-4 mt-3 pb-3 ${
+              className={`flex items-center justify-between gap-4 mt-3 pb-3 ${
                 hasReplies ? "border-b border-white/15" : ""
               } text-[11px] text-neutral-500 font-medium flex-wrap`}
             >
@@ -313,7 +311,7 @@ const checkTierAndExecute = (action: () => void) => {
                 </span>
               </div>
 
-              <span className="ml-auto text-[10px]">{comment.timestamp}</span>
+              <span className=" text-[10px]">{comment.timestamp}</span>
             </div>
           </div>
         </div>
@@ -365,9 +363,6 @@ const checkTierAndExecute = (action: () => void) => {
                           showLabel
                         />
                         <StreakBadge count={reply.streakCount} />
-                        <span className="text-[10px] text-neutral-500">
-                          • {reply.timestamp}
-                        </span>
                       </div>
 
                       {/* Three dots for reply author */}
@@ -395,7 +390,7 @@ const checkTierAndExecute = (action: () => void) => {
                     </p>
 
                     {/* Reply Interaction Bar */}
-                    <div className="flex items-center gap-4 mt-2 text-[11px] text-neutral-500 font-medium">
+                    <div className="flex items-center justify-between gap-4 mt-2 text-[11px] text-neutral-500 font-medium">
                       <button
                         type="button"
                         disabled={isSubmitting}
@@ -436,6 +431,9 @@ const checkTierAndExecute = (action: () => void) => {
                           {reply.impressions ?? 0}
                         </span>
                       </div>
+                      <span className="text-[10px] text-neutral-500">
+                        {reply.timestamp}
+                      </span>
                     </div>
                   </div>
                 </motion.div>
