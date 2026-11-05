@@ -44,7 +44,14 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
   });
 
   return (
-    <div className=" fixed bottom-0 z-9999 left-0 w-full flex justify-center">
+    <motion.div
+      initial={false}
+      animate={{
+        y: isMinimized ? 100 : 0,
+      }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className=" fixed bottom-0 z-9999 left-0 w-full flex justify-center"
+    >
       <div
         className={`relative z-10 md:pb-6 flex md:px-4 pointer-events-none w-full md:max-w-md ${className}`}
       >
@@ -56,7 +63,6 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="w-full pointer-events-auto relative flex items-center justify-around px-2 py-2 pb-4 md:rounded-full bg-black border-t border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.8)]"
         >
-      
           {items.map((item) => {
             // Determine route activity cleanly under the /devotional/ namespace
             const isActive = (() => {
@@ -142,10 +148,7 @@ export function GlassBottomNav({ items, className = "" }: GlassBottomNavProps) {
           })}
         </motion.nav>
       </div>
-            <motion.div 
-               
-            className="w-full absolute bottom-0 h-12 bg-linear-to-t from-black/70 via-black/60 to-transparent pointer-events-none" />
-
-    </div>
+      <motion.div className="w-full absolute bottom-0 h-12 bg-linear-to-t from-black/70 via-black/60 to-transparent pointer-events-none" />
+    </motion.div>
   );
 }

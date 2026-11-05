@@ -1,11 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoClose, IoMic, IoPause, IoPlay, IoSquare, IoTrash, IoCheckmark } from "react-icons/io5";
+import {
+  IoClose,
+  IoMic,
+  IoPause,
+  IoPlay,
+  IoSquare,
+  IoTrash,
+  IoCheckmark,
+} from "react-icons/io5";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { useAudioRecorder } from "@/app/hooks/useAudioRecorder";
-import { useTeleprompter, TeleprompterFontSize } from "@/app/hooks/useTeleprompter";
+import {
+  useTeleprompter,
+  TeleprompterFontSize,
+} from "@/app/hooks/useTeleprompter";
 import { AudioSpectrum } from "./AudioSpectrum";
 import { Check, Pencil } from "lucide-react";
 import { formatDate } from "@/lib/format-date";
@@ -33,7 +44,7 @@ export function AudioRecordingStudio({
     audioBlob,
     audioUrl,
     error,
-    analyserNode,
+    mediaStream,
     startRecording,
     pauseRecording,
     resumeRecording,
@@ -103,10 +114,14 @@ export function AudioRecordingStudio({
 
   const getFontSizeClass = (size: TeleprompterFontSize) => {
     switch (size) {
-      case "sm": return "text-sm";
-      case "md": return "text-base";
-      case "lg": return "text-lg";
-      case "xl": return "text-2xl font-bold";
+      case "sm":
+        return "text-sm";
+      case "md":
+        return "text-base";
+      case "lg":
+        return "text-lg";
+      case "xl":
+        return "text-2xl font-bold";
     }
   };
 
@@ -125,7 +140,9 @@ export function AudioRecordingStudio({
             <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 block">
               Recording Studio
             </span>
-            <h2 className="text-sm font-bold text-neutral-200">{formatDate(dateString)}</h2>
+            <h2 className="text-sm font-bold text-neutral-200">
+              {formatDate(dateString)}
+            </h2>
           </div>
 
           <button
@@ -145,7 +162,7 @@ export function AudioRecordingStudio({
         <div className="flex-1 my-4 flex flex-col min-h-0 bg-neutral-950 rounded-3xl border border-neutral-900 p-4 relative">
           <div className="flex flex-col mb-2 pb-2 border-b border-neutral-900 gap-2">
             <span className=" font-bold text-neutral-200">Teleprompter</span>
-            
+
             <div className="flex items-center gap-2">
               {/* Slower/Faster Speed Controls */}
               <div className="flex items-center bg-neutral-900 px-2 py-1 rounded-lg border border-neutral-800 gap-1.5">
@@ -157,7 +174,9 @@ export function AudioRecordingStudio({
                 >
                   <FaMinus className="size-2.5" />
                 </button>
-                <span className="text-[10px] font-mono text-red-500 font-bold min-w-8 text-center">{scrollSpeed}x</span>
+                <span className="text-[10px] font-mono text-red-500 font-bold min-w-8 text-center">
+                  {scrollSpeed}x
+                </span>
                 <button
                   type="button"
                   onClick={() => cycleSpeed("up")}
@@ -183,7 +202,12 @@ export function AudioRecordingStudio({
                 onClick={() => setIsEditingScript(!isEditingScript)}
                 className="flex items-center gap-1 text-xs font-bold text-red-500 hover:underline ml-1 bg-neutral-900 px-2 p-1 rounded-lg border border-neutral-700"
               >
-                {isEditingScript ? <Check className="size-3" /> : <Pencil className="size-3" />} {isEditingScript ? "Done": "Edit"}
+                {isEditingScript ? (
+                  <Check className="size-3" />
+                ) : (
+                  <Pencil className="size-3" />
+                )}{" "}
+                {isEditingScript ? "Done" : "Edit"}
               </button>
             </div>
           </div>
@@ -199,14 +223,15 @@ export function AudioRecordingStudio({
             <div
               ref={containerRef}
               className={`w-full flex-1 overflow-y-auto no-scrollbar font-medium leading-relaxed text-neutral-300 space-y-4 pr-2 ${getFontSizeClass(
-                fontSize
+                fontSize,
               )}`}
             >
               {scriptText ? (
                 <p>{scriptText}</p>
               ) : (
                 <p className="text-sm text-neutral-600 italic">
-                  No script loaded. Click edit above to paste your devotional text.
+                  No script loaded. Click edit above to paste your devotional
+                  text.
                 </p>
               )}
             </div>
@@ -217,18 +242,30 @@ export function AudioRecordingStudio({
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between px-2">
             <span className="text-sm font-bold text-neutral-400">
-              <span className="text-white text-lg">{formatTimer(duration)}</span> / {formatTimer(maxDuration)}
+              <span className="text-white text-lg">
+                {formatTimer(duration)}
+              </span>{" "}
+              / {formatTimer(maxDuration)}
             </span>
             {state === "recording" && (
               <span className="flex items-center gap-1.5 text-xs text-red-500 font-bold animate-pulse">
-                <span className="size-2 rounded-full bg-red-500" /> Recording Live
+                <span className="size-2 rounded-full bg-red-500" /> Recording
+                Live
               </span>
             )}
           </div>
 
-          <AudioSpectrum analyserNode={analyserNode} isRecording={state === "recording"} />
+          <AudioSpectrum
+            mediaStream={mediaStream}
+            isRecording={state === "recording"}
+            isPaused={state === "paused"}
+          />
 
-          {error && <p className="text-xs text-red-400 text-center font-semibold">{error}</p>}
+          {error && (
+            <p className="text-xs text-red-400 text-center font-semibold">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* Preview Audio (if stopped) */}

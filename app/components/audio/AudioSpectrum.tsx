@@ -1,61 +1,96 @@
+
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import WaveSurfer from "wavesurfer.js";
+import RecordPlugin from "wavesurfer.js/dist/plugins/record.esm.js";
 
 interface AudioSpectrumProps {
-  analyserNode?: AnalyserNode | null;
+  mediaStream?: MediaStream | null;
   isRecording?: boolean;
+  isPaused?: boolean;
   className?: string;
 }
 
-export function AudioSpectrum({ analyserNode, isRecording, className = "" }: AudioSpectrumProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+export function AudioSpectrum({
+  mediaStream,
+  isRecording = false,
+  isPaused = false,
+  className = "",
+}: AudioSpectrumProps) {
+  // Data
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
+  const recordPluginRef = useRef<RecordPlugin | null>(null);
+  const micRendererRef = useRef<{ onDestroy: () => void; onEnd: () => void } | null>(null);
 
+  // Logic
   useEffect(() => {
-    if (!canvasRef.current || !analyserNode) return;
+    const container = containerRef.current;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!container || !mediaStream) return;
 
-    let animationId: number;
-    const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+    const recordPlugin = RecordPlugin.create({
+      renderRecordedAudio: false,
+      scrollingWaveform: true,
+      scrollingWaveformWindow: 8,
+    });
 
-    const draw = () => {
-      animationId = requestAnimationFrame(draw);
-      analyserNode.getByteFrequencyData(dataArray);
+    const wavesurfer = WaveSurfer.create({
+      container,
+      height: 100,
+      waveColor: "#ef4444",
+      progressColor: "#dc2626",
+      cursorWidth: 0,
+      barWidth: 3,
+      barGap: 2,
+      barRadius: 4,
+      normalize: true,
+      interact: false,
+      hideScrollbar: true,
+      plugins: [recordPlugin],
+    });
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    wavesurferRef.current = wavesurfer;
+    recordPluginRef.current = recordPlugin;
 
-      const barWidth = Math.max(1, (canvas.width / bufferLength) * 0.8);
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const percent = dataArray[i] / 255;
-        const barHeight = Math.max(4, percent * canvas.height * (isRecording ? 1 : 0.2));
-
-        ctx.fillStyle = isRecording ? "#ef4444" : "rgba(239, 68, 68, 0.4)";
-        ctx.fillRect(x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
-        x += barWidth + 1;
-      }
-    };
-
-    draw();
+    const micRenderer = recordPlugin.renderMicStream(mediaStream);
+    micRendererRef.current = micRenderer;
 
     return () => {
-      cancelAnimationFrame(animationId);
+      micRenderer.onDestroy();
+      wavesurfer.destroy();
+
+      micRendererRef.current = null;
+      wavesurferRef.current = null;
+      recordPluginRef.current = null;
     };
-  }, [analyserNode, isRecording]);
+  }, [mediaStream]);
+
+  useEffect(() => {
+    if (isPaused) {
+      recordPluginRef.current?.pauseRecording();
+    } else if (isRecording) {
+      recordPluginRef.current?.resumeRecording();
+    }
+  }, [isRecording, isPaused]);
 
   return (
-    <div className={`w-full h-24 flex items-center justify-center bg-neutral-900/80 rounded-2xl border border-neutral-800 p-2 overflow-hidden ${className}`}>
-      <canvas
-        ref={canvasRef}
-        width={600}
-        height={80}
-        className="w-full h-full object-contain"
+    <div
+      className={`w-full h-28 flex items-center justify-center overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/80 px-3 ${className}`}
+    >
+      <div
+        ref={containerRef}
+        className="w-full"
+        aria-label="Live microphone waveform"
+        role="img"
       />
+
+      {!mediaStream && (
+        <span className="absolute text-xs text-neutral-500">
+          Your waveform will appear here
+        </span>
+      )}
     </div>
   );
 }
