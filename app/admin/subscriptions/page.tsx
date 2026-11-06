@@ -13,6 +13,7 @@ import {
   FiCalendar,
   FiChevronDown,
   FiFilter,
+  FiTrendingUp,
 } from "react-icons/fi";
 import { DataTable, Column } from "../components/DataTable";
 import SubscriptionDetailsModal from "../components/SubscriptionDetailsModal";
@@ -177,6 +178,18 @@ export default function SubscriptionsAdminPage() {
   const activeCount = filteredSubscriptions.filter(
     (s) => s.status === "Active" || s.status === "Complimentary",
   ).length;
+
+  // Recurring Revenue Calculations (MRR and ARR)
+  // For yearly subs, if they paid for 11 months due to a 1-month discount, we split/normalize over 12 months or compute accordingly.
+  const totalMRR = activePaidSubs.reduce((acc, s) => {
+    if (s.billingCycle === "yearly") {
+      // Split yearly amount across 12 months (accounting for the 11-month equivalent pricing structure if applicable)
+      return acc + (s.amount || 0) / 12;
+    }
+    return acc + (s.amount || 0);
+  }, 0);
+
+  const totalARR = totalMRR * 12;
 
   // Subscribed Ratio percentage
   const uniqueSubscribedUsers = new Set(
@@ -389,9 +402,9 @@ export default function SubscriptionsAdminPage() {
           >
             <span> <RefreshCcw className={`${  syncing ? "animate-spin": ""}`} /></span>
           </button>
-           
+
           </div>
-       
+
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-600 hover:bg-primary active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all cursor-pointer w-full md:w-fit"
@@ -428,7 +441,7 @@ export default function SubscriptionsAdminPage() {
       )}
 
       {/* Subscription Overview Cards (Dynamically computed from filtered results) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Card A: Total Revenue */}
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
@@ -445,6 +458,46 @@ export default function SubscriptionsAdminPage() {
             </div>
             <p className="text-[11px] text-neutral-500 mt-1">
               From recorded successful subscription payments
+            </p>
+          </div>
+        </div>
+
+        {/* Card D: Monthly Recurring Revenue (MRR) */}
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              MRR (Monthly Recurring)
+            </span>
+            <div className="p-2.5 rounded-2xl bg-indigo-950/30 text-indigo-400 border border-indigo-800/40">
+              <FiTrendingUp size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              ₦{Math.round(totalMRR).toLocaleString()}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              Normalized monthly subscription value
+            </p>
+          </div>
+        </div>
+
+        {/* Card E: Annual Recurring Revenue (ARR) */}
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              ARR (Annual Recurring)
+            </span>
+            <div className="p-2.5 rounded-2xl bg-violet-950/30 text-violet-400 border border-violet-800/40">
+              <FiTrendingUp size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              ₦{Math.round(totalARR).toLocaleString()}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              Projected yearly recurring revenue
             </p>
           </div>
         </div>
