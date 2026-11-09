@@ -281,78 +281,101 @@ export async function sendMultipleEmails(
   },
 ): Promise<BulkSendResult> {
   const sender = options.from || getDefaultFromEmail();
+
   const failedDetails: EmailFailureDetail[] = [];
   const validEmails: string[] = [];
   const seen = new Set<string>();
 
-  // 1. Validate every recipient and record invalid email formats
-  for (const raw of recipients) {
-    const cleaned = typeof raw === "string" ? raw.trim().toLowerCase() : "";
-    if (!cleaned || !cleaned.includes("@")) {
-      const detail: EmailFailureDetail = {
-        email: raw || "(empty)",
-        error: "Invalid email format (missing '@' or empty address)",
-        timestamp: new Date().toISOString(),
-      };
-      failedDetails.push(detail);
+  const DELAY_BETWEEN_EMAILS = 1000;
+  const MAX_RETRIES = 4;
 
-      // Log immediately
-      logEmailDelivery({
-        recipient: detail.email,
-        sender,
-        subject: options.subject,
-        status: "failed",
-        errorMessage: detail.error,
-        metadata: options.metadata,
-      }).catch(() => {});
-    } else if (!seen.has(cleaned)) {
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Validate and deduplicate recipients
+  for (const raw of recipients) {
+    const cleaned =
+      typeof raw === "string" ? raw.trim().toLowerCase() : "";
+
+    if (!cleaned || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) {
+      failedDetails.push({
+        email: raw || "(empty)",
+        error: "Invalid email address",
+        timestamp: new Date().toISOString(),
+      });
+      continue;
+    }
+
+    if (!seen.has(cleaned)) {
       seen.add(cleaned);
       validEmails.push(cleaned);
     }
   }
 
-  const batchSize = options.batchSize || 5;
   let sentCount = 0;
 
-  // 2. Dispatch batches
-  for (let i = 0; i < validEmails.length; i += batchSize) {
-    const batch = validEmails.slice(i, i + batchSize);
-    await Promise.all(
-      batch.map(async (email) => {
-        const result = await sendEmail({
-          from: sender,
-          to: email,
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
-          metadata: options.metadata,
-        });
+  // 2. Sequential delivery with retry protection
+  for (const email of validEmails) {
+    let delivered = false;
+    let lastError = "Unknown delivery error";
+    let lastStatusCode: number | undefined;
 
-        if (result.success) {
-          sentCount++;
-        } else {
-          failedDetails.push({
-            email,
-            error: result.error || "Unknown SendByte error",
-            statusCode: result.statusCode,
-            timestamp: new Date().toISOString(),
-          });
-        }
-      }),
-    );
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const result = await sendEmail({
+        from: sender,
+        to: email,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        metadata: options.metadata,
+      });
+
+      if (result.success) {
+        sentCount++;
+        delivered = true;
+        break;
+      }
+
+      lastError = result.error || "Unknown SendByte error";
+      lastStatusCode = result.statusCode;
+
+      const retryable =
+        !result.statusCode ||
+        result.statusCode === 429 ||
+        result.statusCode >= 500;
+
+      if (!retryable || attempt === MAX_RETRIES) {
+        break;
+      }
+
+      const retryDelay = Math.min(
+        2000 * Math.pow(2, attempt),
+        30000,
+      );
+
+      console.warn(
+        `[SendByte RETRY] ${email} | Attempt ${attempt + 1} | Waiting ${retryDelay}ms`,
+      );
+
+      await sleep(retryDelay);
+    }
+
+    if (!delivered) {
+      failedDetails.push({
+        email,
+        error: lastError,
+        statusCode: lastStatusCode,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 3. Control request frequency
+    await sleep(DELAY_BETWEEN_EMAILS);
   }
 
-  // 3. Log bulk summary
-  if (failedDetails.length > 0) {
-    console.error(
-      `[SendByte BATCH COMPLETED WITH FAILURES] Total: ${recipients.length} | Sent: ${sentCount} | Failed: ${failedDetails.length}\n` +
-        failedDetails.map((f) => `  ❌ ${f.email} -> ${f.error}`).join("\n"),
-    );
-  } else {
-    console.log(
-      `[SendByte BATCH COMPLETED SUCCESSFULLY] Total: ${recipients.length} | All ${sentCount} emails delivered.`,
-    );
-  }
+  console.log(
+    `[SendByte BROADCAST COMPLETED] Total: ${validEmails.length} | Sent: ${sentCount} | Failed: ${failedDetails.length}`,
+  );
 
   return {
     totalTargeted: recipients.length,
@@ -362,6 +385,7 @@ export async function sendMultipleEmails(
     errors: failedDetails,
   };
 }
+
 
 /**
  * Welcome Email Trigger sent to newly registered believers.
