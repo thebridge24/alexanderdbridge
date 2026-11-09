@@ -1,6 +1,6 @@
 import { sendPushToAll } from "@/lib/notifications/sender";
 
-type ReminderSlot = "morning" | "evening";
+type ReminderSlot = "morning" | "afternoon" | "evening";
 
 const MESSAGES: Record<
   ReminderSlot,
@@ -35,7 +35,36 @@ const MESSAGES: Record<
       title: "Your Daily Reminder",
       body: "You don't need hours to begin. Start with a few quiet minutes in God's Word today.",
     },
-  ],
+  ],afternoon: [
+  {
+    title: "A Moment with God",
+    body: "The day is moving, but don't let your responsibilities take away your time with God. Have you read today's devotional?",
+  },
+  {
+    title: "How Is Your Day Going?",
+    body: "In the middle of everything you're doing today, remember to make room for God's Word. Your devotional is waiting.",
+  },
+  {
+    title: "Don't Forget Your Devotional",
+    body: "You have made time for many things today. Take a few minutes to nourish your spirit too.",
+  },
+  {
+    title: "Pause and Hear God",
+    body: "Before the day gets any further, take a moment to read, reflect and listen to what God is saying.",
+  },
+  {
+    title: "Your Afternoon Reminder",
+    body: "Don't allow the busyness of life to push your fellowship with God aside. Today's Word is ready.",
+  },
+  {
+    title: "Stay Consistent",
+    body: "Your walk with God is built through daily fellowship. If you haven't read today's devotional, there's still time.",
+  },
+  {
+    title: "A Little Time for Eternity",
+    body: "So much of your day is spent on temporary things. Take a moment to invest in your spiritual growth.",
+  },
+],
   evening: [
     {
       title: "Before You Sleep",
