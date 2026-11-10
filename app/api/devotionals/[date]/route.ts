@@ -112,10 +112,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const supabase = createSupabaseAdmin();
     const parsedDayNumber = parseInt(dayNumber, 10);
+    // The publish date can change; the row is still found by its original date
+    const newDate =
+      typeof body.dateString === "string" && isValidDevotionalDate(body.dateString)
+        ? body.dateString
+        : date;
     const { data, error } = await supabase
       .from("devotionals")
       .update({
-        date_string: date,
+        date_string: newDate,
         day_number: isNaN(parsedDayNumber) ? undefined : parsedDayNumber,
         display_date: displayDate.trim(),
         topic: topic.trim(),
@@ -127,11 +132,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       })
       .eq("date_string", date)
       .select("*")
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Supabase update error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // No row at this date yet: the caller should create it instead
+    if (!data) {
+      return NextResponse.json({ error: "Devotional not found" }, { status: 404 });
     }
 
     return NextResponse.json({ devotional: data });

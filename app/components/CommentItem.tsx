@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { haptic } from "@/lib/haptics";
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -286,7 +288,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
               <button
                 type="button"
-                onClick={() => onLike(comment.id)}
+                onClick={() => {
+                  haptic(10);
+                  onLike(comment.id);
+                }}
                 className={`flex gap-1.5 items-center rounded-full transition-transform active:scale-95 cursor-pointer ${
                   comment.liked
                     ? "text-primary"
@@ -407,7 +412,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => onLike(comment.id, reply.id)}
+                        onClick={() => {
+                          haptic(10);
+                          onLike(comment.id, reply.id);
+                        }}
                         className={`flex gap-1.5 items-center rounded-full transition-transform active:scale-95 cursor-pointer ${
                           reply.liked
                             ? "text-primary"

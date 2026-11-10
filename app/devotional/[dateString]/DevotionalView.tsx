@@ -39,6 +39,7 @@ import { PwaInstallButton } from "@/app/components/PwaInstallBtn";
 import BibleStudyCard from "./BibleStudyCard";
 import Preloader from "@/app/components/ui/Preloader";
 import VerificationCelebrationModal from "@/app/components/VerificationCelebrationModal";
+import { haptic } from "@/lib/haptics";
 import { WrappedTrigger } from "@/app/components/wrapped/WrappedTrigger";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
@@ -245,6 +246,8 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  // Bumped to put the cursor back in the comment box (used when an edit starts)
+  const [composerFocusToken, setComposerFocusToken] = useState(0);
   // Set while the composer is editing an existing comment or reply
   const [editingTarget, setEditingTarget] = useState<{
     commentId: string;
@@ -600,6 +603,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     e: React.FormEvent,
     mentionedUserIds: string[] = [],
   ): void => {
+    haptic(15);
     e.preventDefault();
     if (!commentText.trim() || isSubmittingComment) return;
 
@@ -615,6 +619,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     commentId: string,
     replyId?: string,
   ): Promise<void> => {
+    haptic(15);
     if (!confirm(replyId ? "Delete this reply?" : "Delete this comment?"))
       return;
     try {
@@ -1287,10 +1292,13 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         currentUserId={user?.id}
         userTier={userVerificationTier}
         onEditComment={(commentId, text, replyId) => {
+          haptic(10);
           setEditingTarget({ commentId, replyId });
           setCommentText(text);
           setIsCommentModalOpen(true);
+          setComposerFocusToken((t) => t + 1);
         }}
+        focusToken={composerFocusToken}
         onDeleteComment={handleDeleteComment}
         comments={comments}
         commentText={commentText}

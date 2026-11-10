@@ -37,6 +37,8 @@ export default function DevotionalEditorPage() {
     text: string;
   } | null>(null);
   const [themeSaving, setThemeSaving] = useState(false);
+  // The date this devotional was loaded under; null for a devotional that doesn't exist yet
+  const [existingDate, setExistingDate] = useState<string | null>(null);
 
   // Form States
   const [dateString, setDateString] = useState(dateParam);
@@ -86,6 +88,7 @@ export default function DevotionalEditorPage() {
           const data = await res.json();
           if (data.devotional) {
             const d = data.devotional;
+            setExistingDate(dateParam);
             setDayNumber(String(d.dayNumber || 1));
             setTopic(d.topic || "");
             setText(d.text || "");
@@ -220,27 +223,23 @@ export default function DevotionalEditorPage() {
     };
 
     try {
-      const response = await fetch(
-        `/api/devotionals/${encodeURIComponent(dateString)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      // If PUT fails because it doesn't exist yet, try POST
-      let res = response;
-      if (!response.ok) {
-        res = await fetch("/api/devotionals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
+      // An existing devotional is updated in place (even if its date changed).
+      // Only a devotional that doesn't exist yet is created.
+      const res = existingDate
+        ? await fetch(`/api/devotionals/${encodeURIComponent(existingDate)}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        : await fetch("/api/devotionals", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save devotional");
+      setExistingDate(dateString);
 
       setMessage({
         type: "success",

@@ -32,6 +32,8 @@ interface MentionUser {
 
 interface CommentSlideUpModalProps {
   isOpen: boolean;
+  /** Changes whenever the box should take focus again (e.g. when an edit starts) */
+  focusToken?: number;
   onClose: () => void;
   comments: Comment[];
   commentText: string;
@@ -82,6 +84,7 @@ const CurrentUserAvatar: React.FC<{
 
 export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   isOpen,
+  focusToken,
   onClose,
   comments,
   commentText,
@@ -129,6 +132,14 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
       fetchMentionUsers();
     }
   }, [isOpen]);
+
+  // Put the cursor in the comment box when it opens and when an edit starts.
+  // The short delay waits for the slide-up animation to finish.
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setTimeout(() => textareaRef.current?.focus(), 350);
+    return () => clearTimeout(timer);
+  }, [isOpen, focusToken]);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
