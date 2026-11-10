@@ -13,6 +13,7 @@ import { formatDate } from "@/lib/format-date";
 import Preloader from "@/app/components/ui/Preloader";
 import { AudioRecordingStudio } from "@/app/components/audio/AudioRecordingStudio";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { saveLocalRecording, getLocalRecording } from "@/lib/audio/localAudio";
 
 export default function DevotionalEditorPage() {
   const searchParams = useSearchParams();
@@ -150,6 +151,34 @@ export default function DevotionalEditorPage() {
     if (prayerPoints.length > 1)
       setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
   };
+
+  // Load the saved recording; if the server has none, show the copy kept on this phone
+  useEffect(() => {
+    let previewUrl: string | null = null;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/devotionals/${encodeURIComponent(dateParam)}/audio`);
+        const data = res.ok ? await res.json() : null;
+        if (cancelled) return;
+        if (data?.audioUrl) {
+          setExistingAudioUrl(data.audioUrl);
+          return;
+        }
+        const local = await getLocalRecording(dateParam);
+        if (local && !cancelled) {
+          previewUrl = URL.createObjectURL(local);
+          setExistingAudioUrl(previewUrl);
+        }
+      } catch (err) {
+        console.error("Could not load recording:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [dateParam]);
 
   // Load the theme for the publish date's month, so the form shows what is saved
   useEffect(() => {
@@ -382,30 +411,30 @@ export default function DevotionalEditorPage() {
               dateString={dateString}
               initialScript={explanation || topic}
               onSaveAudio={async (blob, duration) => {
-                try {
-                  // Temporary local preview, until backend upload is connected.
-                  const previewUrl = URL.createObjectURL(blob);
+                // Keep a copy on this phone first, so the recording survives a failed upload
+                await saveLocalRecording(dateString, blob).catch((err) =>
+                  console.error("Could not keep a copy on this phone:", err),
+                );
 
-                  setExistingAudioUrl((previousUrl) => {
-                    if (previousUrl?.startsWith("blob:")) {
-                      URL.revokeObjectURL(previousUrl);
-                    }
+                const supabase = createSupabaseBrowserClient();
+                const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+                const form = new FormData();
+                form.append("file", blob, `${dateString}.webm`);
+                form.append("durationSeconds", String(Math.round(duration)));
 
-                    return previewUrl;
-                  });
-
-                  setIsStudioOpen(false);
-
-                  console.log("Audio recording ready:", {
-                    dateString,
-                    duration,
-                    size: blob.size,
-                    type: blob.type,
-                  });
-                } catch (error) {
-                  console.error("Could not prepare audio preview:", error);
-                  throw error;
+                const res = await fetch(
+                  `/api/admin/devotionals/${encodeURIComponent(dateString)}/audio`,
+                  { method: "POST", headers: { Authorization: `Bearer ${token ?? ""}` }, body: form },
+                );
+                const data = await res.json();
+                if (!res.ok) {
+                  throw new Error(
+                    `${data.error || "Upload failed"}. The recording is saved on this phone.`,
+                  );
                 }
+
+                setExistingAudioUrl(data.audioUrl);
+                setIsStudioOpen(false);
               }}
             />
           </div>

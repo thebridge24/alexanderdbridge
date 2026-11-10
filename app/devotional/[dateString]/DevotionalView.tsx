@@ -40,6 +40,7 @@ import BibleStudyCard from "./BibleStudyCard";
 import Preloader from "@/app/components/ui/Preloader";
 import VerificationCelebrationModal from "@/app/components/VerificationCelebrationModal";
 import { haptic } from "@/lib/haptics";
+import { DevotionalAudioPlayer } from "@/app/components/audio/DevotionalAudioPlayer";
 import { WrappedTrigger } from "@/app/components/wrapped/WrappedTrigger";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
@@ -246,6 +247,48 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  // The recording for this devotional, if one has been uploaded
+  const [devotionalAudio, setDevotionalAudio] = useState<{ audioUrl: string; durationSeconds: number } | null>(null);
+
+  useEffect(() => {
+    const date = currentDevotional?.dateString;
+    if (!date) return;
+    let cancelled = false;
+    fetch(`/api/devotionals/${date}/audio`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setDevotionalAudio(data?.audioUrl ? data : null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [currentDevotional?.dateString]);
+
+  // Asks the server before each new play. Free listeners get a few plays, then a subscribe prompt.
+  const handleAudioPlayRequest = async (): Promise<boolean> => {
+    const date = currentDevotional?.dateString;
+    if (!date) return false;
+    const supabase = createSupabaseBrowserClient();
+    const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+    if (!token) {
+      setIsAuthModalOpen(true);
+      return false;
+    }
+    const res = await fetch(`/api/devotionals/${date}/audio/play`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return true;
+    if (data.limitReached) {
+      if (confirm(`${data.error}\n\nOpen subscriptions now?`)) router.push("/support");
+    } else {
+      alert(data.error || "Could not play this recording");
+    }
+    return false;
+  };
+
   // Bumped to put the cursor back in the comment box (used when an edit starts)
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   // Set while the composer is editing an existing comment or reply
@@ -1241,6 +1284,15 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             </div>
           </div>
         </div>
+
+        {/* Voice recording, with a limited number of free plays */}
+        {devotionalAudio?.audioUrl && (
+          <DevotionalAudioPlayer
+            audioUrl={devotionalAudio.audioUrl}
+            durationSeconds={devotionalAudio.durationSeconds}
+            onPlayRequest={handleAudioPlayRequest}
+          />
+        )}
 
         {/* Reusable Component Insertion */}
         <DevotionalArticle

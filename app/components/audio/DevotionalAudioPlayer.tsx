@@ -7,12 +7,15 @@ interface DevotionalAudioPlayerProps {
   audioUrl: string;
   durationSeconds?: number;
   onAudioComplete?: () => void;
+  /** Called before a new play starts. Resolve to false to block it (e.g. plays used up). */
+  onPlayRequest?: () => Promise<boolean>;
 }
 
 export function DevotionalAudioPlayer({
   audioUrl,
   durationSeconds = 0,
   onAudioComplete,
+  onPlayRequest,
 }: DevotionalAudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -20,14 +23,17 @@ export function DevotionalAudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasTriggeredStreak = useRef(false);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+      setIsPlaying(false);
+      return;
     }
-    setIsPlaying(!isPlaying);
+    // Each time playback starts from paused counts as one play
+    if (onPlayRequest && !(await onPlayRequest())) return;
+    audioRef.current?.play();
+    setIsPlaying(true);
   };
 
   const handleTimeUpdate = () => {
