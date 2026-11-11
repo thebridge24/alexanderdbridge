@@ -40,7 +40,7 @@ import BibleStudyCard from "./BibleStudyCard";
 import Preloader from "@/app/components/ui/Preloader";
 import VerificationCelebrationModal from "@/app/components/VerificationCelebrationModal";
 import { haptic } from "@/lib/haptics";
-import { DevotionalAudioPlayer } from "@/app/components/audio/DevotionalAudioPlayer";
+import { AudioDevotionalScreen } from "@/app/components/audio/AudioDevotionalScreen";
 import { WrappedTrigger } from "@/app/components/wrapped/WrappedTrigger";
 
 type IntroStage = "logo" | "day" | "theme" | "done";
@@ -247,6 +247,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [audioScreenOpen, setAudioScreenOpen] = useState(false);
   // The recording for this devotional, if one has been uploaded
   const [devotionalAudio, setDevotionalAudio] = useState<{ audioUrl: string; durationSeconds: number } | null>(null);
 
@@ -1285,11 +1286,47 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           </div>
         </div>
 
-        {/* Voice recording, with a limited number of free plays */}
+        {/* Text / Audio switch. Audio opens the full-screen audio devotional. */}
         {devotionalAudio?.audioUrl && (
-          <DevotionalAudioPlayer
+          <div className="flex justify-center my-4">
+            <div className="inline-flex p-1 rounded-full bg-neutral-900 border border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setAudioScreenOpen(false)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer ${
+                  !audioScreenOpen ? "bg-white text-black" : "text-neutral-400"
+                }`}
+              >
+                Text
+              </button>
+              <button
+                type="button"
+                onClick={() => setAudioScreenOpen(true)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer ${
+                  audioScreenOpen ? "bg-white text-black" : "text-neutral-400"
+                }`}
+              >
+                Audio
+              </button>
+            </div>
+          </div>
+        )}
+
+        {devotionalAudio?.audioUrl && currentDevotional && (
+          <AudioDevotionalScreen
+            isOpen={audioScreenOpen}
+            onClose={() => setAudioScreenOpen(false)}
+            title={currentDevotional.topic}
+            coverUrl="/devotional.png"
             audioUrl={devotionalAudio.audioUrl}
             durationSeconds={devotionalAudio.durationSeconds}
+            liked={liked}
+            likeCount={likeCount}
+            onLike={handleLikeToggle}
+            onComment={() => {
+              setAudioScreenOpen(false);
+              setIsCommentModalOpen(true);
+            }}
             onPlayRequest={handleAudioPlayRequest}
           />
         )}
