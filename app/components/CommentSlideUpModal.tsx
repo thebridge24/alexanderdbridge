@@ -19,7 +19,7 @@ import {
 interface MentionUser {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   avatar_url?: string;
   banner_url?: string;
   currentStreak?: number;
@@ -107,6 +107,8 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [allUsers, setAllUsers] = useState<MentionUser[]>([]);
+  const [mentionLoading, setMentionLoading] = useState(false);
+  const [mentionError, setMentionError] = useState<string | null>(null);
   const [showMentionSlider, setShowMentionSlider] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionMatchIndex, setMentionMatchIndex] = useState<number>(-1);
@@ -117,20 +119,29 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchMentionUsers() {
+      setMentionLoading(true);
+      setMentionError(null);
+      setAllUsers([]);
       try {
-        const res = await fetch("/api/admin/users");
-        if (res.ok) {
-          const data = await res.json();
-          setAllUsers(data.users || []);
-        }
+        const session = (await createSupabaseBrowserClient()?.auth.getSession())?.data?.session;
+        if (!session) throw new Error("Sign in to tag a member.");
+        const res = await fetch("/api/users/mentions", { headers: { Authorization: `Bearer ${session.access_token}` } });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not load members.");
+        if (!cancelled) setAllUsers(data.users || []);
       } catch (err) {
         console.error("Failed to load users for mention slider:", err);
+        if (!cancelled) setMentionError(err instanceof Error ? err.message : "Could not load members.");
+      } finally {
+        if (!cancelled) setMentionLoading(false);
       }
     }
     if (isOpen) {
       fetchMentionUsers();
     }
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   // Put the cursor in the comment box when it opens and when an edit starts.
@@ -174,7 +185,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
   const handleSelectMentionUser = (user: MentionUser) => {
     if (mentionMatchIndex === -1) return;
 
-    const nameToInsert = user.name || user.email.split("@")[0];
+    const nameToInsert = user.name || user.email?.split("@")[0] || "Believer";
     const beforeAt = commentText.slice(0, mentionMatchIndex);
     const afterAtQuery = commentText.slice(
       mentionMatchIndex + 1 + mentionQuery.length,
@@ -334,7 +345,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
             </div>
 
             <AnimatePresence>
-              {showMentionSlider && filteredMentionUsers.length > 0 && (
+              {showMentionSlider && (
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -344,18 +355,25 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                   <div className="px-3 py-1.5 text-[10px] font-mono text-neutral-500 uppercase tracking-wider">
                     Tag a Member
                   </div>
+                  {(mentionLoading || mentionError || filteredMentionUsers.length === 0) && (
+                    <p role="status" className="px-3 py-2 text-xs text-neutral-400">
+                      {mentionLoading ? "Loading members…" : mentionError || "No members found."}
+                    </p>
+                  )}
                   {filteredMentionUsers.map((user) => {
-                    const userTierVal = getUserVerificationTier({
+                    const userTierVal = user.verification_tier || getUserVerificationTier({
                       metadata: user.metadata,
                       email: user.email,
                       name: user.name,
                     });
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={user.id}
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => handleSelectMentionUser(user)}
-                        className="flex items-center gap-3 p-2 hover:bg-neutral-900/80 cursor-pointer transition-colors"
+                        className="w-full text-left flex items-center gap-3 p-2 hover:bg-neutral-900/80 cursor-pointer transition-colors"
                       >
                         {user.avatar_url ? (
                           <img
@@ -387,7 +405,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                             {user.email}
                           </span>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </motion.div>
@@ -403,7 +421,7 @@ export const CommentSlideUpModal: React.FC<CommentSlideUpModalProps> = ({
                     pickedMentions
                       .filter((u) =>
                         commentText.includes(
-                          `@${u.name || u.email.split("@")[0]}`,
+                        `@${u.name || u.email?.split("@")[0] || "Believer"}`,
                         ),
                       )
                       .map((u) => u.id),

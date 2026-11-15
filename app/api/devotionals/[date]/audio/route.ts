@@ -14,14 +14,19 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ da
   }
 
   const supabase = createSupabaseAdmin();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("devotional_audio")
     .select("audio_url, duration_seconds")
     .eq("date_string", date)
     .maybeSingle();
 
+  if (error) {
+    console.error("Could not load devotional audio:", error);
+    return NextResponse.json({ error: "Could not load the recording. Please try again." }, { status: 500 });
+  }
+
   return NextResponse.json(
     { audioUrl: data?.audio_url ?? null, durationSeconds: data?.duration_seconds ?? 0 },
-    { headers: { "Cache-Control": "public, max-age=60" } },
+    { headers: { "Cache-Control": "no-store" } },
   );
 }

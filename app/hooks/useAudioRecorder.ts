@@ -3,6 +3,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AudioRecorderState } from "../types/audioDevotional";
+import { fixWebmDuration } from "@fix-webm-duration/fix";
 
 // ============================================================
 // DATA
@@ -255,18 +256,27 @@ export function useAudioRecorder() {
         }
       };
 
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, {
+      recorder.onstop = async () => {
+        let blob = new Blob(audioChunksRef.current, {
           type: recorder.mimeType || "audio/webm",
         });
+        const recordedDuration = durationRef.current;
+        stopStream();
+        if (blob.type.includes("webm") && recordedDuration > 0) {
+          try {
+            blob = await fixWebmDuration(blob, recordedDuration * 1000, { logger: false });
+          } catch (err) {
+            console.error("Could not add audio duration metadata:", err);
+          }
+        }
+        // Discard/reset may have happened while the metadata was being written.
+        if (!mountedRef.current || mediaRecorderRef.current !== recorder) return;
 
         const url = URL.createObjectURL(blob);
 
         revokeAudioUrl();
 
         audioUrlRef.current = url;
-
-        stopStream();
 
         if (mountedRef.current) {
           setMediaRecorder(null);
@@ -276,7 +286,7 @@ export function useAudioRecorder() {
             state: "stopped",
             audioBlob: blob,
             audioUrl: url,
-            duration: durationRef.current,
+            duration: recordedDuration,
           }));
         }
 

@@ -15,24 +15,35 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
-export async function saveLocalRecording(dateString: string, blob: Blob): Promise<void> {
+export interface LocalRecording {
+  blob: Blob;
+  savedAt: number;
+  durationSeconds?: number;
+  uploaded?: boolean;
+}
+
+export async function saveLocalRecording(dateString: string, blob: Blob, durationSeconds = 0, uploaded = false): Promise<void> {
   const db = await openDb();
   await new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).put({ blob, savedAt: Date.now() }, dateString);
+    tx.objectStore(STORE).put({ blob, savedAt: Date.now(), durationSeconds, uploaded }, dateString);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
   db.close();
 }
 
-export async function getLocalRecording(dateString: string): Promise<Blob | null> {
+export async function getLocalRecordingData(dateString: string): Promise<LocalRecording | null> {
   const db = await openDb();
-  const record = await new Promise<{ blob: Blob } | undefined>((resolve, reject) => {
+  const record = await new Promise<LocalRecording | undefined>((resolve, reject) => {
     const request = db.transaction(STORE, "readonly").objectStore(STORE).get(dateString);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
   db.close();
-  return record?.blob ?? null;
+  return record ?? null;
+}
+
+export async function getLocalRecording(dateString: string): Promise<Blob | null> {
+  return (await getLocalRecordingData(dateString))?.blob ?? null;
 }

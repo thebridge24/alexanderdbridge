@@ -94,8 +94,17 @@ export function AudioDevotionalScreen({
       <audio
         ref={audioRef}
         src={audioUrl}
+        onEmptied={() => {
+          setDuration(durationSeconds);
+          setCurrentTime(0);
+          setIsPlaying(false);
+        }}
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          if (Number.isFinite(e.currentTarget.duration) && e.currentTarget.duration > 0) {
+            setDuration(e.currentTarget.duration);
+          }
+        }}
         onEnded={() => setIsPlaying(false)}
       />
 

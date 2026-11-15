@@ -67,6 +67,7 @@ export function AudioRecordingStudio({
   } = useTeleprompter(initialScript);
 
   const [isUploading, setIsUploading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isEditingScript, setIsEditingScript] = useState(false);
 
   if (!isOpen) return null;
@@ -86,12 +87,14 @@ export function AudioRecordingStudio({
     if (!audioBlob) return;
     try {
       setIsUploading(true);
+      setSaveError(null);
       await onSaveAudio(audioBlob, duration);
       resetRecording();
       resetScroll();
       onClose();
     } catch (err) {
       console.error("Failed to save audio:", err);
+      setSaveError(err instanceof Error ? err.message : "Could not upload the recording. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -132,7 +135,7 @@ export function AudioRecordingStudio({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed inset-0 z-9999 bg-black text-white flex flex-col justify-between p-6 overflow-hidden"
+        className="fixed inset-0 z-50000 bg-black text-white flex flex-col justify-between p-6 overflow-y-auto"
       >
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-neutral-900">
@@ -261,9 +264,9 @@ export function AudioRecordingStudio({
             isPaused={state === "paused"}
           />
 
-          {error && (
-            <p className="text-xs text-red-400 text-center font-semibold">
-              {error}
+          {(error || saveError) && (
+            <p role="alert" className="text-xs text-red-400 text-center font-semibold">
+              {saveError || error}
             </p>
           )}
         </div>
@@ -272,6 +275,7 @@ export function AudioRecordingStudio({
         {state === "stopped" && audioUrl && (
           <div className="mb-4 p-3 rounded-2xl bg-neutral-950 border border-neutral-800">
             <audio src={audioUrl} controls className="w-full h-8" />
+            <p className="mt-2 text-xs text-neutral-400">Duration: {formatTimer(duration)}</p>
           </div>
         )}
 

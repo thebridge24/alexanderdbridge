@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSupabaseConfigured, createSupabaseAdmin } from "@/lib/supabase/server";
 import { computeStreaks } from "@/lib/utils/streak";
+import { MILESTONE_MEDALS } from "@/lib/types/streak";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userIdParam = searchParams.get("userId")?.trim();
     const todayParam = searchParams.get("today")?.trim();
-    const today = todayParam && /^d{4}-d{2}-d{2}$/.test(todayParam) ? todayParam : undefined;
+    const today = todayParam && /^\d{4}-\d{2}-\d{2}$/.test(todayParam) ? todayParam : undefined;
 
     // Check optional bearer token
     const authorization = request.headers.get("authorization");
@@ -67,9 +68,10 @@ export async function GET(request: NextRequest) {
         currentStreak: computed.currentStreak,
         bestStreak: computed.bestStreak,
         lastVisitDate: data.last_visit_date ?? "",
-        unlockedMedalIds: Array.isArray(data.unlocked_medal_ids)
-          ? data.unlocked_medal_ids
-          : [],
+        unlockedMedalIds: Array.from(new Set([
+          ...(Array.isArray(data.unlocked_medal_ids) ? data.unlocked_medal_ids : []),
+          ...MILESTONE_MEDALS.filter((medal) => medal.targetDays <= computed.currentStreak).map((medal) => medal.id),
+        ])),
         // Days only present in completed_devotionals are folded in so clients count the same days
         attendanceHistory: {
           ...Object.fromEntries(
@@ -147,12 +149,13 @@ export async function POST(request: NextRequest) {
       .eq("user_id", targetUserId)
       .maybeSingle();
 
-    const incomingHistory: Record<string, any> =
+    type HistoryEntry = { completed?: boolean; date?: string; durationSeconds?: number };
+    const incomingHistory: Record<string, HistoryEntry> =
       streakData.attendanceHistory && typeof streakData.attendanceHistory === "object"
         ? streakData.attendanceHistory
         : {};
-    const storedHistory: Record<string, any> = existing?.attendance_history ?? {};
-    const mergedHistory: Record<string, any> = { ...storedHistory, ...incomingHistory };
+    const storedHistory: Record<string, HistoryEntry> = existing?.attendance_history ?? {};
+    const mergedHistory: Record<string, HistoryEntry> = { ...storedHistory, ...incomingHistory };
     for (const date of Object.keys(mergedHistory)) {
       // A day completed on either side stays completed
       if (storedHistory[date]?.completed || incomingHistory[date]?.completed) {
@@ -185,6 +188,9 @@ export async function POST(request: NextRequest) {
 
     // Counted from the merged days; the incoming numbers are ignored
     const computed = computeStreaks(mergedHistory, mergedCompleted);
+    for (const medal of MILESTONE_MEDALS) {
+      if (medal.targetDays <= computed.currentStreak && !mergedMedals.includes(medal.id)) mergedMedals.push(medal.id);
+    }
 
     const upsertPayload: Record<string, unknown> = {
       user_id: targetUserId,

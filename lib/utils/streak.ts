@@ -40,33 +40,18 @@ export function getCompletedDates(
 /**
  * Single source of truth for streaks. Nothing stores a streak number: it is always counted
  * from the completed days.
- * - bestStreak: longest run of consecutive completed days.
- * - currentStreak: the run that ends today or yesterday (today may still be unread);
- *   0 once a full day has been missed.
+ * Completed-day progress carries forward across missed days. Missing a day leaves
+ * a gap in attendance, but does not erase earlier completions or earned medals.
  */
 export function computeStreaks(
   attendanceHistory?: Record<string, { completed?: boolean }> | null,
   completedDevotionals?: unknown,
   today: string = formatLocalDate(),
 ): ComputedStreaks {
-  const completedDates = getCompletedDates(attendanceHistory, completedDevotionals);
-  if (completedDates.length === 0) {
-    return { currentStreak: 0, bestStreak: 0, completedDates };
-  }
-
-  const days = completedDates.map(toDayNumber);
-  let best = 1;
-  let run = 1;
-  for (let i = 1; i < days.length; i++) {
-    run = days[i] === days[i - 1] + 1 ? run + 1 : 1;
-    if (run > best) best = run;
-  }
-
-  // `run` is now the length of the run ending at the latest completed day
-  const gap = toDayNumber(today) - days[days.length - 1];
-  const currentStreak = gap <= 1 ? run : 0;
-
-  return { currentStreak, bestStreak: best, completedDates };
+  const completedDates = getCompletedDates(attendanceHistory, completedDevotionals)
+    .filter((date) => toDayNumber(date) <= toDayNumber(today));
+  const progress = completedDates.length;
+  return { currentStreak: progress, bestStreak: progress, completedDates };
 }
 
 /** Current streak for many users at once (comments, visitors, likes...). */

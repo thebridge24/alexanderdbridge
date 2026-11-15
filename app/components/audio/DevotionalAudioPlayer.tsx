@@ -39,7 +39,8 @@ export function DevotionalAudioPlayer({
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
     const current = audioRef.current.currentTime;
-    const total = audioRef.current.duration || duration;
+    const total = Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0
+      ? audioRef.current.duration : duration;
 
     setCurrentTime(current);
 
@@ -53,7 +54,7 @@ export function DevotionalAudioPlayer({
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current) {
+    if (audioRef.current && Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
       setDuration(audioRef.current.duration);
     }
   };
@@ -81,6 +82,11 @@ export function DevotionalAudioPlayer({
       <audio
         ref={audioRef}
         src={audioUrl}
+        onEmptied={() => {
+          setDuration(durationSeconds);
+          setCurrentTime(0);
+          setIsPlaying(false);
+        }}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => {

@@ -13,7 +13,9 @@ import { formatDate } from "@/lib/format-date";
 import Preloader from "@/app/components/ui/Preloader";
 import { AudioRecordingStudio } from "@/app/components/audio/AudioRecordingStudio";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { saveLocalRecording, getLocalRecording } from "@/lib/audio/localAudio";
+import { saveLocalRecording, getLocalRecordingData } from "@/lib/audio/localAudio";
+import type { LocalRecording } from "@/lib/audio/localAudio";
+import { prepareRecording } from "@/lib/audio/prepareRecording";
 
 export default function DevotionalEditorPage() {
   const searchParams = useSearchParams();
@@ -55,6 +57,10 @@ export default function DevotionalEditorPage() {
   // Devotional audio studio
   const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [existingAudioUrl, setExistingAudioUrl] = useState<string | null>(null);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [pendingRecording, setPendingRecording] = useState<LocalRecording | null>(null);
+  const [audioSaving, setAudioSaving] = useState(false);
+  const [audioMessage, setAudioMessage] = useState<string | null>(null);
 
   // Auto-generate display date when dateString changes
   useEffect(() => {
@@ -152,33 +158,114 @@ export default function DevotionalEditorPage() {
       setPrayerPoints(prayerPoints.filter((_, i) => i !== index));
   };
 
-  // Load the saved recording; if the server has none, show the copy kept on this phone
+  // A local draft and a published recording are different states. Never hide a failed upload.
   useEffect(() => {
     let previewUrl: string | null = null;
     let cancelled = false;
     (async () => {
+      setExistingAudioUrl(null);
+      setAudioDuration(0);
+      setPendingRecording(null);
+      setAudioMessage(null);
       try {
-        const res = await fetch(`/api/devotionals/${encodeURIComponent(dateParam)}/audio`);
+        const local = await getLocalRecordingData(dateString).catch(() => null);
+        if (cancelled) return;
+        if (local && !local.uploaded) {
+          previewUrl = URL.createObjectURL(local.blob);
+          setExistingAudioUrl(previewUrl);
+          setAudioDuration(local.durationSeconds ?? 0);
+          setPendingRecording(local);
+          setAudioMessage("Saved on this device only. Upload this recording to make it available to listeners.");
+          return;
+        }
+        const res = await fetch(`/api/devotionals/${encodeURIComponent(dateString)}/audio`, { cache: "no-store" });
         const data = res.ok ? await res.json() : null;
         if (cancelled) return;
         if (data?.audioUrl) {
           setExistingAudioUrl(data.audioUrl);
+          setAudioDuration(data.durationSeconds ?? 0);
+          setAudioMessage("Recording uploaded and available to listeners.");
           return;
         }
-        const local = await getLocalRecording(dateParam);
         if (local && !cancelled) {
-          previewUrl = URL.createObjectURL(local);
+          previewUrl = URL.createObjectURL(local.blob);
           setExistingAudioUrl(previewUrl);
+          setAudioDuration(local.durationSeconds ?? 0);
+          setPendingRecording(local);
+          setAudioMessage("Showing the device copy. Upload it again to restore the recording online.");
         }
+        if (!res.ok) throw new Error("Could not check the published recording. Please try again.");
       } catch (err) {
         console.error("Could not load recording:", err);
+        if (!cancelled) setAudioMessage(err instanceof Error ? err.message : "Could not load recording.");
       }
     })();
     return () => {
       cancelled = true;
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
-  }, [dateParam]);
+  }, [dateString]);
+
+  useEffect(() => {
+    if (!pendingRecording) return;
+    const url = URL.createObjectURL(pendingRecording.blob);
+    setExistingAudioUrl(url);
+    setAudioDuration(pendingRecording.durationSeconds ?? 0);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingRecording]);
+
+  const uploadRecording = async (blob: Blob, duration: number) => {
+    setAudioSaving(true);
+    setAudioMessage(null);
+    let keptOnDevice = false;
+    try {
+      await saveLocalRecording(dateString, blob, duration);
+      keptOnDevice = true;
+    } catch (err) {
+      console.error("Could not keep a copy on this device:", err);
+    }
+    setPendingRecording({ blob, durationSeconds: duration, savedAt: Date.now(), uploaded: false });
+    try {
+      // Legacy phone drafts did not save their length or WebM timing metadata.
+      const preparedRecording = await prepareRecording(blob, duration);
+      blob = preparedRecording.blob;
+      duration = preparedRecording.durationSeconds;
+      if (keptOnDevice) await saveLocalRecording(dateString, blob, duration).catch(console.error);
+      setPendingRecording({ blob, durationSeconds: duration, savedAt: Date.now(), uploaded: false });
+      const supabase = createSupabaseBrowserClient();
+      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+      if (!token) throw new Error("Sign in with your admin account before uploading.");
+      const endpoint = `/api/admin/devotionals/${encodeURIComponent(dateString)}/audio`;
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      const prepared = await fetch(endpoint, {
+        method: "POST", headers, body: JSON.stringify({ contentType: blob.type, size: blob.size }),
+      });
+      const target = await prepared.json().catch(() => null);
+      if (!prepared.ok) throw new Error(target?.error || `Upload could not start (${prepared.status}).`);
+      const { error: uploadError } = await supabase!.storage.from(target.bucket)
+        .uploadToSignedUrl(target.storagePath, target.uploadToken, blob, { contentType: blob.type });
+      if (uploadError) throw new Error(uploadError.message);
+      const res = await fetch(endpoint, {
+        method: "PUT", headers,
+        body: JSON.stringify({ storagePath: target.storagePath, durationSeconds: Math.round(duration) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || `Upload failed (${res.status}). Please try again.`);
+      if (!data?.audioUrl) throw new Error("The server did not confirm the upload. Please try again.");
+      await saveLocalRecording(dateString, blob, duration, true).catch(console.error);
+      setExistingAudioUrl(data.audioUrl);
+      setAudioDuration(data.durationSeconds ?? duration);
+      setPendingRecording(null);
+      setAudioMessage(keptOnDevice ? "Saved on this device and uploaded for listeners." : "Uploaded for listeners. This browser could not keep a device copy.");
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Upload failed.";
+      const error = new Error(`${detail} ${keptOnDevice ? "Your recording is saved on this device; use Retry upload." : "Keep this page open and retry; the device copy could not be saved."}`);
+      setAudioMessage(error.message);
+      throw error;
+    } finally {
+      setAudioSaving(false);
+    }
+  };
 
   // Load the theme for the publish date's month, so the form shows what is saved
   useEffect(() => {
@@ -252,6 +339,8 @@ export default function DevotionalEditorPage() {
     };
 
     try {
+      // Publishing must not silently leave the current recording only on this phone.
+      if (pendingRecording) await uploadRecording(pendingRecording.blob, pendingRecording.durationSeconds ?? 0);
       // An existing devotional is updated in place (even if its date changed).
       // Only a devotional that doesn't exist yet is created.
       const res = existingDate
@@ -402,40 +491,27 @@ export default function DevotionalEditorPage() {
             {existingAudioUrl && (
               <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
                 <audio src={existingAudioUrl} controls className="w-full h-8" />
+                {audioDuration > 0 && <p className="mt-2 text-xs text-neutral-400">Duration: {Math.floor(audioDuration / 60)}:{String(Math.floor(audioDuration % 60)).padStart(2, "0")}</p>}
               </div>
             )}
 
+            {audioMessage && <p role="status" className="text-xs text-neutral-300">{audioMessage}</p>}
+            {pendingRecording && (
+              <button
+                type="button"
+                disabled={audioSaving || loading}
+                onClick={() => void uploadRecording(pendingRecording.blob, pendingRecording.durationSeconds ?? 0).catch(() => {})}
+                className="rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+              >
+                {audioSaving ? "Uploading recording…" : "Retry upload"}
+              </button>
+            )}
             <AudioRecordingStudio
               isOpen={isStudioOpen}
               onClose={() => setIsStudioOpen(false)}
               dateString={dateString}
               initialScript={explanation || topic}
-              onSaveAudio={async (blob, duration) => {
-                // Keep a copy on this phone first, so the recording survives a failed upload
-                await saveLocalRecording(dateString, blob).catch((err) =>
-                  console.error("Could not keep a copy on this phone:", err),
-                );
-
-                const supabase = createSupabaseBrowserClient();
-                const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
-                const form = new FormData();
-                form.append("file", blob, `${dateString}.webm`);
-                form.append("durationSeconds", String(Math.round(duration)));
-
-                const res = await fetch(
-                  `/api/admin/devotionals/${encodeURIComponent(dateString)}/audio`,
-                  { method: "POST", headers: { Authorization: `Bearer ${token ?? ""}` }, body: form },
-                );
-                const data = await res.json();
-                if (!res.ok) {
-                  throw new Error(
-                    `${data.error || "Upload failed"}. The recording is saved on this phone.`,
-                  );
-                }
-
-                setExistingAudioUrl(data.audioUrl);
-                setIsStudioOpen(false);
-              }}
+              onSaveAudio={uploadRecording}
             />
           </div>
           {/* Monthly Theme: applies to the whole month of the publish date */}
@@ -711,7 +787,7 @@ export default function DevotionalEditorPage() {
               </Link>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || audioSaving}
                 className="w-full md:w-auto px-8 py-3 rounded-full bg-red-600 hover:bg-primary text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <FiCheck size={16} />
