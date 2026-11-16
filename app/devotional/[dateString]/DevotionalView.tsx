@@ -1086,6 +1086,29 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
         yesterdayTopic={yesterdayTopic}
         isYesterdayRead={isYesterdayRead}
       />
+        {devotionalAudio?.audioUrl && currentDevotional && (
+          <AudioDevotionalScreen
+            isOpen={audioScreenOpen}
+            onClose={() => setAudioScreenOpen(false)}
+            title={currentDevotional.topic}
+            coverUrl="https://res.cloudinary.com/annnyure/image/upload/v1792054361/20250129_130645.png"
+            audioUrl={devotionalAudio.audioUrl}
+            durationSeconds={devotionalAudio.durationSeconds}
+            scripture={currentDevotional.memoryVerse}
+            liked={liked}
+            likeCount={likeCount}
+            plays={devotionalAudio.totalPlays ?? 0}
+            commentCount={comments.length}
+            onLike={handleLikeToggle}
+            onComment={() => {
+              setAudioScreenOpen(false);
+              setIsCommentModalOpen(true);
+            }}
+            onPlayRequest={handleAudioPlayRequest}
+          />
+        )}
+
+
       {/* Floating Right Side Action Column */}
       <motion.div
         initial={{ x: 0, opacity: 1 }}
@@ -1292,12 +1315,12 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
 
         {/* Text / Audio switch. Audio opens the full-screen audio devotional. */}
         {devotionalAudio?.audioUrl && (
-          <div className="flex justify-center my-4">
-            <div className="inline-flex p-1 rounded-full bg-neutral-900 border border-neutral-800">
+          <div className="flex justify-center my-4 w-full">
+            <div className="inline-flex p-1 rounded-full bg-neutral-900 border border-neutral-800 w-full">
               <button
                 type="button"
                 onClick={() => setAudioScreenOpen(false)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer w-full text-center ${
                   !audioScreenOpen ? "bg-white text-black" : "text-neutral-400"
                 }`}
               >
@@ -1306,7 +1329,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               <button
                 type="button"
                 onClick={() => setAudioScreenOpen(true)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer w-full text-center {
                   audioScreenOpen ? "bg-white text-black" : "text-neutral-400"
                 }`}
               >
@@ -1314,28 +1337,6 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
               </button>
             </div>
           </div>
-        )}
-
-        {devotionalAudio?.audioUrl && currentDevotional && (
-          <AudioDevotionalScreen
-            isOpen={audioScreenOpen}
-            onClose={() => setAudioScreenOpen(false)}
-            title={currentDevotional.topic}
-            coverUrl="/devotional.png"
-            audioUrl={devotionalAudio.audioUrl}
-            durationSeconds={devotionalAudio.durationSeconds}
-            scripture={currentDevotional.memoryVerse}
-            liked={liked}
-            likeCount={likeCount}
-            plays={devotionalAudio.totalPlays ?? 0}
-            commentCount={comments.length}
-            onLike={handleLikeToggle}
-            onComment={() => {
-              setAudioScreenOpen(false);
-              setIsCommentModalOpen(true);
-            }}
-            onPlayRequest={handleAudioPlayRequest}
-          />
         )}
 
         {/* Reusable Component Insertion */}
