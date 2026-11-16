@@ -100,7 +100,7 @@ export function AudioDevotionalScreen({
 
   return (
     // Very high so the player sits above the header, the nav bar and the sheets
-    <div className="fixed inset-0 z-[9999999] bg-black text-white overflow-hidden">
+    <div className="fixed inset-0 z-9999999 bg-black text-white overflow-hidden">
       {/* Blurred cover behind everything */}
       <img
         src={coverUrl}
@@ -131,7 +131,7 @@ export function AudioDevotionalScreen({
       {showScripture && scripture && (
         <div className="absolute inset-x-0 bottom-0 z-10 bg-neutral-950 border-t border-neutral-800 rounded-t-3xl p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono uppercase text-sky-400">{scripture.reference}</span>
+            <span className="text-xs font-mono uppercase text-white">{scripture.reference}</span>
             <button
               type="button"
               onClick={() => setShowScripture(false)}
@@ -146,7 +146,7 @@ export function AudioDevotionalScreen({
       )}
 
       <div className="relative h-full flex flex-col items-center justify-between px-6 py-8 max-w-md mx-auto">
-        {/* Top bar: back, logo, Support and notifications (same as the page header) */}
+        {/* Top bar: back,Support and notifications (same as the page header) */}
         <div className="w-full flex items-center justify-between gap-2">
           <button
             type="button"
@@ -156,8 +156,6 @@ export function AudioDevotionalScreen({
           >
             <IoArrowBack className="size-5" />
           </button>
-
-          <img src={coverUrl} alt="Bridge logo" className="size-10 rounded-full object-cover bg-white" />
 
           <div className="flex items-center gap-2">
             <Link
@@ -205,15 +203,15 @@ export function AudioDevotionalScreen({
 
         {/* Controls */}
         <div className="w-full space-y-8">
-          <div className="flex items-start justify-center gap-5 text-[11px] font-mono">
+          <div className="flex items-start justify-center gap-6 text-[11px] font-mono">
             {/* Bible: the devotional's anchor scripture (blue) */}
             <button
               type="button"
               onClick={() => setShowScripture(true)}
               aria-label="Bible text"
-              className="flex flex-col items-center gap-1 text-sky-400 cursor-pointer active:scale-90 transition-transform"
+              className="flex flex-col items-center gap-1 cursor-pointer active:scale-90 transition-transform"
             >
-              <FaBookOpen className="size-5" />
+              <FaBookOpen className="size-6" />
               <span>Bible</span>
             </button>
 
@@ -225,13 +223,13 @@ export function AudioDevotionalScreen({
                 liked ? "text-[#ff0000]" : "text-neutral-300"
               }`}
             >
-              {liked ? <FaHeart className="size-5" /> : <FaRegHeart className="size-5" />}
+              {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-6" />}
               <span>{likeCount}</span>
             </button>
 
             {/* Plays: headset icon with the number of plays (green) */}
-            <div className="flex flex-col items-center gap-1 text-emerald-400" aria-label="Plays">
-              <FiHeadphones className="size-5" />
+            <div className="flex flex-col items-center gap-1 text-neutral-300" aria-label="Plays">
+              <FiHeadphones className="size-6" />
               <span>{plays}</span>
             </div>
 
@@ -242,7 +240,7 @@ export function AudioDevotionalScreen({
               aria-label="Comments"
               className="flex flex-col items-center gap-1 text-pink-400 cursor-pointer active:scale-90 transition-transform"
             >
-              <FaRegComment className="size-5" />
+              <FaRegComment className="size-6" />
               <span>{commentCount > 0 ? commentCount : "comments"}</span>
             </button>
 
@@ -255,7 +253,7 @@ export function AudioDevotionalScreen({
                 repeat ? "text-red-500" : "text-neutral-300"
               }`}
             >
-              <FaRedoAlt className="size-4" />
+              <FaRedoAlt className="size-5" />
               <span>{repeat ? "On" : "Repeat"}</span>
             </button>
           </div>
