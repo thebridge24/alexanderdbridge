@@ -374,6 +374,46 @@ export default function DevotionalEditorPage() {
     }
   };
 
+// Complete devotional recording script for the teleprompter
+const recordingScript = [
+  topic.trim()
+    ? `Today's Topic: ${topic.trim()}`
+    : "",
+
+  text.trim()
+    ? `Bible Text:\n${text.trim()}`
+    : "",
+
+  memoryVerse.verse.trim() || memoryVerse.reference.trim()
+    ? `Memory Verse:\n${memoryVerse.verse.trim()}${
+        memoryVerse.reference.trim()
+          ? `\n${memoryVerse.reference.trim()}`
+          : ""
+      }`
+    : "",
+
+  explanation.trim()
+    ? `Explanation:\n${explanation.trim()}`
+    : "",
+
+  neededSteps.some((step) => step.trim())
+    ? `Needed Steps:\n${neededSteps
+        .filter((step) => step.trim())
+        .map((step, index) => `${index + 1}. ${step.trim()}`)
+        .join("\n\n")}`
+    : "",
+
+  prayerPoints.some((prayer) => prayer.trim())
+    ? `Prayer Points:\n${prayerPoints
+        .filter((prayer) => prayer.trim())
+        .map((prayer, index) => `${index + 1}. ${prayer.trim()}`)
+        .join("\n\n")}`
+    : "",
+]
+  .filter(Boolean)
+  .join("\n\n\n");
+
+
   return (
     <div className="w-full pb-8 space-y-8">
       {/* Top Header & Switcher */}
@@ -506,13 +546,13 @@ export default function DevotionalEditorPage() {
                 {audioSaving ? "Uploading recording…" : "Retry upload"}
               </button>
             )}
-            <AudioRecordingStudio
-              isOpen={isStudioOpen}
-              onClose={() => setIsStudioOpen(false)}
-              dateString={dateString}
-              initialScript={explanation || topic}
-              onSaveAudio={uploadRecording}
-            />
+           <AudioRecordingStudio
+  isOpen={isStudioOpen}
+  onClose={() => setIsStudioOpen(false)}
+  dateString={dateString}
+  initialScript={recordingScript}
+  onSaveAudio={uploadRecording}
+/>
           </div>
           {/* Monthly Theme: applies to the whole month of the publish date */}
           <div className="md:p-6 rounded-3xl bg-black md:border border-white/15 space-y-5">
