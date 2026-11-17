@@ -2,8 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useRef, useState } from "react";
-import { FaHeart, FaRegHeart, FaRegComment, FaRedoAlt } from "react-icons/fa";
-import { IoClose, IoPlay, IoPause } from "react-icons/io5";
+import { FaHeart, FaRegHeart, FaRegComment, FaRedoAlt, FaBookOpen } from "react-icons/fa";
+import { IoPlay, IoPause, IoArrowBack, IoClose } from "react-icons/io5";
+import { FiHeadphones, FiHeart as FiSupportHeart } from "react-icons/fi";
+import Link from "next/link";
+import PushNotifications from "@/app/api/notifications/PushNotifications";
 
 interface AudioDevotionalScreenProps {
   isOpen: boolean;
@@ -12,8 +15,13 @@ interface AudioDevotionalScreenProps {
   coverUrl: string;
   audioUrl: string;
   durationSeconds?: number;
+  /** Anchor scripture for the devotional, shown by the Bible button */
+  scripture?: { reference: string; verse: string };
   liked: boolean;
   likeCount: number;
+  /** Total plays by everyone so far */
+  plays: number;
+  commentCount: number;
   onLike: () => void;
   onComment: () => void;
   /** Resolve to false to block a new play (plays used up, or not signed in) */
@@ -33,8 +41,11 @@ export function AudioDevotionalScreen({
   coverUrl,
   audioUrl,
   durationSeconds = 0,
+  scripture,
   liked,
   likeCount,
+  plays: initialPlays,
+  commentCount,
   onLike,
   onComment,
   onPlayRequest,
@@ -44,6 +55,12 @@ export function AudioDevotionalScreen({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationSeconds);
   const [repeat, setRepeat] = useState(false);
+  const [plays, setPlays] = useState(initialPlays);
+  const [showScripture, setShowScripture] = useState(false);
+
+  useEffect(() => {
+    setPlays(initialPlays);
+  }, [initialPlays]);
 
   // Keep the repeat setting on the audio element
   useEffect(() => {
@@ -72,6 +89,7 @@ export function AudioDevotionalScreen({
     if (!(await onPlayRequest())) return;
     audio.play();
     setIsPlaying(true);
+    setPlays((p) => p + 1);
   };
 
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +99,8 @@ export function AudioDevotionalScreen({
   };
 
   return (
-    <div className="fixed inset-0 z-10000 bg-black text-white overflow-hidden">
+    // Very high so the player sits above the header, the nav bar and the sheets
+    <div className="fixed inset-0 z-[9999999] bg-black text-white overflow-hidden">
       {/* Blurred cover behind everything */}
       <img
         src={coverUrl}
@@ -108,16 +127,48 @@ export function AudioDevotionalScreen({
         onEnded={() => setIsPlaying(false)}
       />
 
+      {/* Bible text sheet */}
+      {showScripture && scripture && (
+        <div className="absolute inset-x-0 bottom-0 z-10 bg-neutral-950 border-t border-neutral-800 rounded-t-3xl p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono uppercase text-sky-400">{scripture.reference}</span>
+            <button
+              type="button"
+              onClick={() => setShowScripture(false)}
+              aria-label="Close Bible text"
+              className="size-8 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"
+            >
+              <IoClose className="size-4" />
+            </button>
+          </div>
+          <p className="text-base leading-relaxed text-neutral-100">{scripture.verse}</p>
+        </div>
+      )}
+
       <div className="relative h-full flex flex-col items-center justify-between px-6 py-8 max-w-md mx-auto">
-        <div className="w-full flex justify-start">
+        {/* Top bar: back, logo, Support and notifications (same as the page header) */}
+        <div className="w-full flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close audio devotional"
-            className="size-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer"
+            aria-label="Go back"
+            className="size-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer"
           >
-            <IoClose className="size-5" />
+            <IoArrowBack className="size-5" />
           </button>
+
+          <img src={coverUrl} alt="Bridge logo" className="size-10 rounded-full object-cover bg-white" />
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/support"
+              className="flex items-center gap-1.5 px-3 h-11 rounded-full bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-950/50"
+            >
+              <FiSupportHeart className="size-3.5 fill-current" />
+              <span>Support</span>
+            </Link>
+            <PushNotifications />
+          </div>
         </div>
 
         {/* Spinning cover */}
@@ -154,7 +205,18 @@ export function AudioDevotionalScreen({
 
         {/* Controls */}
         <div className="w-full space-y-8">
-          <div className="flex items-center justify-center gap-10">
+          <div className="flex items-start justify-center gap-5 text-[11px] font-mono">
+            {/* Bible: the devotional's anchor scripture (blue) */}
+            <button
+              type="button"
+              onClick={() => setShowScripture(true)}
+              aria-label="Bible text"
+              className="flex flex-col items-center gap-1 text-sky-400 cursor-pointer active:scale-90 transition-transform"
+            >
+              <FaBookOpen className="size-5" />
+              <span>Bible</span>
+            </button>
+
             <button
               type="button"
               onClick={onLike}
@@ -163,18 +225,25 @@ export function AudioDevotionalScreen({
                 liked ? "text-[#ff0000]" : "text-neutral-300"
               }`}
             >
-              {liked ? <FaHeart className="size-6" /> : <FaRegHeart className="size-6" />}
-              <span className="text-[11px] font-mono">{likeCount}</span>
+              {liked ? <FaHeart className="size-5" /> : <FaRegHeart className="size-5" />}
+              <span>{likeCount}</span>
             </button>
 
+            {/* Plays: headset icon with the number of plays (green) */}
+            <div className="flex flex-col items-center gap-1 text-emerald-400" aria-label="Plays">
+              <FiHeadphones className="size-5" />
+              <span>{plays}</span>
+            </div>
+
+            {/* Comments: count, or the word when there are none (pink) */}
             <button
               type="button"
               onClick={onComment}
               aria-label="Comments"
-              className="flex flex-col items-center gap-1 text-neutral-300 cursor-pointer active:scale-90 transition-transform"
+              className="flex flex-col items-center gap-1 text-pink-400 cursor-pointer active:scale-90 transition-transform"
             >
-              <FaRegComment className="size-6" />
-              <span className="text-[11px] font-mono">Comment</span>
+              <FaRegComment className="size-5" />
+              <span>{commentCount > 0 ? commentCount : "comments"}</span>
             </button>
 
             <button
@@ -186,8 +255,8 @@ export function AudioDevotionalScreen({
                 repeat ? "text-red-500" : "text-neutral-300"
               }`}
             >
-              <FaRedoAlt className="size-5" />
-              <span className="text-[11px] font-mono">{repeat ? "On" : "Repeat"}</span>
+              <FaRedoAlt className="size-4" />
+              <span>{repeat ? "On" : "Repeat"}</span>
             </button>
           </div>
 

@@ -25,8 +25,15 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ da
     return NextResponse.json({ error: "Could not load the recording. Please try again." }, { status: 500 });
   }
 
+  // Total plays across everyone (a person's repeat plays count each time)
+  const { data: playRows } = await supabase
+    .from("devotional_audio_plays")
+    .select("play_count")
+    .eq("date_string", date);
+  const totalPlays = (playRows ?? []).reduce((sum, row) => sum + (row.play_count ?? 0), 0);
+
   return NextResponse.json(
-    { audioUrl: data?.audio_url ?? null, durationSeconds: data?.duration_seconds ?? 0 },
+    { audioUrl: data?.audio_url ?? null, durationSeconds: data?.duration_seconds ?? 0, totalPlays },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

@@ -249,7 +249,11 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   const [replyingToName, setReplyingToName] = useState<string | null>(null);
   const [audioScreenOpen, setAudioScreenOpen] = useState(false);
   // The recording for this devotional, if one has been uploaded
-  const [devotionalAudio, setDevotionalAudio] = useState<{ audioUrl: string; durationSeconds: number } | null>(null);
+  const [devotionalAudio, setDevotionalAudio] = useState<{
+    audioUrl: string;
+    durationSeconds: number;
+    totalPlays?: number;
+  } | null>(null);
 
   useEffect(() => {
     const date = currentDevotional?.dateString;
@@ -1320,8 +1324,11 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
             coverUrl="/devotional.png"
             audioUrl={devotionalAudio.audioUrl}
             durationSeconds={devotionalAudio.durationSeconds}
+            scripture={currentDevotional.memoryVerse}
             liked={liked}
             likeCount={likeCount}
+            plays={devotionalAudio.totalPlays ?? 0}
+            commentCount={comments.length}
             onLike={handleLikeToggle}
             onComment={() => {
               setAudioScreenOpen(false);
