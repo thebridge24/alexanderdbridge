@@ -43,8 +43,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="relative w-full max-w-sm rounded-3xl bg-neutral-950/90 border border-white/10 backdrop-blur-2xl p-6 shadow-2xl z-10 text-center overflow-hidden space-y-5"
           >
-
-
             {/* Fire Icon */}
             <div className="mx-auto size-12 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-white shadow-lg shadow-red-600/5">
               <FaFire className="size-5" />
@@ -60,16 +58,29 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </p>
             </div>
 
-            {/* Google OAuth Trigger */}
-            <button
-              type="button"
-              disabled={isAuthenticating}
-              onClick={handleSignIn}
-              className="w-full h-11 px-4 rounded-full border border-neutral-700 bg-white text-black text-xs font-bold hover:bg-neutral-200 active:scale-95 transition-all shadow-xl cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50"
-            >
-              <FaGoogle className="size-3.5 text-neutral-700" />
-              <span>{isAuthenticating ? "Connecting..." : "Continue with Google"}</span>
-            </button>
+            {/* Actions */}
+            <div className="space-y-2.5">
+              {/* Google OAuth Trigger */}
+              <button
+                type="button"
+                disabled={isAuthenticating}
+                onClick={handleSignIn}
+                className="w-full h-11 px-4 rounded-full border border-neutral-700 bg-white text-black text-xs font-bold hover:bg-neutral-200 active:scale-95 transition-all shadow-xl cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50"
+              >
+                <FaGoogle className="size-3.5 text-neutral-700" />
+                <span>{isAuthenticating ? "Connecting..." : "Continue with Google"}</span>
+              </button>
+
+              {/* Skip for now */}
+              <button
+                type="button"
+                disabled={isAuthenticating}
+                onClick={onClose}
+                className="w-full h-10 px-4 rounded-full text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              >
+                Skip for now
+              </button>
+            </div>
           </motion.div>
         </div>
       )}
