@@ -14,6 +14,7 @@ import {
   FiChevronDown,
   FiFilter,
   FiTrendingUp,
+  FiClock,
 } from "react-icons/fi";
 import { DataTable, Column } from "../components/DataTable";
 import SubscriptionDetailsModal from "../components/SubscriptionDetailsModal";
@@ -179,6 +180,11 @@ export default function SubscriptionsAdminPage() {
     (s) => s.status === "Active" || s.status === "Complimentary",
   ).length;
 
+  // Expired Subscriptions count & unique expired users
+  const expiredSubs = filteredSubscriptions.filter((s) => s.status === "Expired");
+  const expiredCount = expiredSubs.length;
+  const uniqueExpiredUsers = new Set(expiredSubs.map((s) => s.userId)).size;
+
   // Recurring Revenue Calculations (MRR and ARR)
   // For yearly subs, if they paid for 11 months due to a 1-month discount, we split/normalize over 12 months or compute accordingly.
   const totalMRR = activePaidSubs.reduce((acc, s) => {
@@ -292,10 +298,11 @@ export default function SubscriptionsAdminPage() {
       ),
     },
     {
-      header: "Payment Method",
+      header: "Expiry Date",
       cell: (row) => (
-        <span className="text-xs font-mono text-neutral-300 bg-neutral-900 px-2.5 py-1 rounded-lg border border-neutral-800">
-          {row.paymentMethod}
+        <span className="font-mono text-neutral-300 flex items-center gap-1">
+          <FiCalendar size={12} className="text-neutral-500" />{" "}
+          {row.expiryDate ? formatDate(row.expiryDate) : "—"}
         </span>
       ),
     },
@@ -336,73 +343,74 @@ export default function SubscriptionsAdminPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center justify-between gap-2 w-full md:w-auto">
-              {/* Reusable Custom Dropdown Selector Filter */}
-          <Dropdown
-          className=""
-            trigger={
-              <button
-                type="button"
-                className="flex items-center gap-2 px-4 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer w-full"
-              >
-                <FiFilter className="text-primary size-3.5" />
-                <span>{getTimeFilterLabel()}</span>
-                <FiChevronDown className="size-3.5 text-neutral-400 ml-1" />
-              </button>
-            }
-          >
-            <div className="p-2 space-y-1 w-52">
-              <button
-                onClick={() => setTimeFilter("all")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "all" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                All Time
-              </button>
-              <button
-                onClick={() => setTimeFilter("week")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "week" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Week (Sun - Sat)
-              </button>
-              <button
-                onClick={() => setTimeFilter("month")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "month" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Month
-              </button>
-              <button
-                onClick={() => setTimeFilter("year")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "year" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                This Year
-              </button>
-              <button
-                onClick={() => setTimeFilter("custom")}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                  timeFilter === "custom" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
-                }`}
-              >
-                Custom Range
-              </button>
-            </div>
-          </Dropdown>
+            {/* Reusable Custom Dropdown Selector Filter */}
+            <Dropdown
+              className=""
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-2 px-4 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer w-full"
+                >
+                  <FiFilter className="text-primary size-3.5" />
+                  <span>{getTimeFilterLabel()}</span>
+                  <FiChevronDown className="size-3.5 text-neutral-400 ml-1" />
+                </button>
+              }
+            >
+              <div className="p-2 space-y-1 w-52">
+                <button
+                  onClick={() => setTimeFilter("all")}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                    timeFilter === "all" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
+                  }`}
+                >
+                  All Time
+                </button>
+                <button
+                  onClick={() => setTimeFilter("week")}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                    timeFilter === "week" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
+                  }`}
+                >
+                  This Week (Sun - Sat)
+                </button>
+                <button
+                  onClick={() => setTimeFilter("month")}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                    timeFilter === "month" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
+                  }`}
+                >
+                  This Month
+                </button>
+                <button
+                  onClick={() => setTimeFilter("year")}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                    timeFilter === "year" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
+                  }`}
+                >
+                  This Year
+                </button>
+                <button
+                  onClick={() => setTimeFilter("custom")}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                    timeFilter === "custom" ? "bg-red-600 text-white" : "text-neutral-300 hover:bg-neutral-900"
+                  }`}
+                >
+                  Custom Range
+                </button>
+              </div>
+            </Dropdown>
 
-          <button
-            onClick={handleSyncPayments}
-            disabled={syncing}
-            title="Adds subscriptions for successful payments that were never linked to an account"
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer w-fit disabled:opacity-50"
-          >
-            <span> <RefreshCcw className={`${  syncing ? "animate-spin": ""}`} /></span>
-          </button>
-
+            <button
+              onClick={handleSyncPayments}
+              disabled={syncing}
+              title="Adds subscriptions for successful payments that were never linked to an account"
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer w-fit disabled:opacity-50"
+            >
+              <span>
+                <RefreshCcw className={`${syncing ? "animate-spin" : ""}`} />
+              </span>
+            </button>
           </div>
 
           <button
@@ -441,7 +449,7 @@ export default function SubscriptionsAdminPage() {
       )}
 
       {/* Subscription Overview Cards (Dynamically computed from filtered results) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Card A: Total Revenue */}
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
@@ -539,6 +547,26 @@ export default function SubscriptionsAdminPage() {
             </div>
             <p className="text-[11px] text-neutral-500 mt-1">
               Active subscribers / registered users
+            </p>
+          </div>
+        </div>
+
+        {/* Card F: Expired Subscriptions */}
+        <div className="p-6 rounded-3xl bg-neutral-950 border border-white/15 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+              Expired Subscriptions
+            </span>
+            <div className="p-2.5 rounded-2xl bg-amber-950/30 text-amber-400 border border-amber-800/40">
+              <FiClock size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-black text-white font-mono">
+              {expiredCount}
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-1">
+              {uniqueExpiredUsers} {uniqueExpiredUsers === 1 ? "person" : "people"} with expired subscriptions
             </p>
           </div>
         </div>
