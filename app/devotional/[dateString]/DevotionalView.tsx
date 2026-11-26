@@ -1057,8 +1057,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     return Boolean(record && record.completed);
   })();
 
-  const [, setIsAuthModalOpen] = useState(false);
-  const requiresAuthPrompt = !isAuthLoading && !user;
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   if (!currentDevotional) {
     return (
@@ -1248,8 +1247,10 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
       </AnimatePresence>
 
       {/* Sign-in prompt for protected actions */}
+      {/* Shown only when a signed-out visitor tries something that needs an account.
+          Reading the devotional does not require signing in. */}
       <AuthModal
-        isOpen={requiresAuthPrompt}
+        isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
 
