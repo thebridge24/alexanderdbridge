@@ -9,9 +9,11 @@ import { FaGoogle, FaFire } from "react-icons/fa";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** When true, the card stays until the person signs in: no skip, no dismiss */
+  required?: boolean;
 }
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, required = false }: AuthModalProps) {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const handleSignIn = async () => {
@@ -31,7 +33,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={required ? undefined : onClose}
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
           />
 
@@ -71,15 +73,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <span>{isAuthenticating ? "Connecting..." : "Continue with Google"}</span>
               </button>
 
-              {/* Skip for now */}
-              <button
-                type="button"
-                disabled={isAuthenticating}
-                onClick={onClose}
-                className="w-full h-10 px-4 rounded-full text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-              >
-                Skip for now
-              </button>
+              {/* Skip for now (not shown when sign-in is required) */}
+              {!required && (
+                <button
+                  type="button"
+                  disabled={isAuthenticating}
+                  onClick={onClose}
+                  className="w-full h-10 px-4 rounded-full text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Skip for now
+                </button>
+              )}
             </div>
           </motion.div>
         </div>

@@ -277,7 +277,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     const supabase = createSupabaseBrowserClient();
     const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
     if (!token) {
-      setIsAuthModalOpen(true);
+      requireSignIn();
       return false;
     }
     const res = await fetch(`/api/devotionals/${date}/audio/play`, {
@@ -591,7 +591,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     if (!currentDevotional) return;
 
     if (!user) {
-      setIsAuthModalOpen(true);
+      requireSignIn();
       return;
     }
 
@@ -656,7 +656,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
     if (!commentText.trim() || isSubmittingComment) return;
 
     if (!user) {
-      setIsAuthModalOpen(true);
+      requireSignIn();
       return;
     }
 
@@ -707,7 +707,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   ): Promise<void> => {
     if (!currentDevotional) return;
     if (!user) {
-      setIsAuthModalOpen(true);
+      requireSignIn();
       return;
     }
 
@@ -908,7 +908,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
 
   const handleCommentLike = async (commentId: string, replyId?: string) => {
     if (!user) {
-      setIsAuthModalOpen(true);
+      requireSignIn();
       return;
     }
 
@@ -1058,6 +1058,32 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
   })();
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // "intro": skippable card on a first visit. "required": stays until signed in.
+  const [authMode, setAuthMode] = useState<"intro" | "required">("intro");
+
+  // Liking, commenting, playing or following without an account
+  const requireSignIn = () => {
+    setAuthMode("required");
+    setIsAuthModalOpen(true);
+  };
+
+  // First visit this session: offer sign-in, but they can skip and keep reading
+  useEffect(() => {
+    if (isAuthLoading || user) return;
+    try {
+      if (sessionStorage.getItem("bridge-signin-intro-seen") === "1") return;
+      sessionStorage.setItem("bridge-signin-intro-seen", "1");
+    } catch {
+      /* Storage blocked: show the card once per page load */
+    }
+    setAuthMode("intro");
+    setIsAuthModalOpen(true);
+  }, [isAuthLoading, user]);
+
+  // Close the card once they have signed in
+  useEffect(() => {
+    if (user) setIsAuthModalOpen(false);
+  }, [user]);
 
   if (!currentDevotional) {
     return (
@@ -1251,6 +1277,7 @@ export default function DevotionalView({ devotional }: { devotional: any }) {
           Reading the devotional does not require signing in. */}
       <AuthModal
         isOpen={isAuthModalOpen}
+        required={authMode === "required"}
         onClose={() => setIsAuthModalOpen(false)}
       />
 
